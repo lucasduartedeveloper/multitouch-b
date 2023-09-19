@@ -25,6 +25,19 @@ $(document).ready(function() {
 
     $("#title")[0].innerText = "";
 
+    fpsGraphView = document.createElement("canvas");
+    fpsGraphView.style.position = "absolute";
+    fpsGraphView.width = (sw);
+    fpsGraphView.height = (50);
+    fpsGraphView.style.left = (0)+"px";
+    fpsGraphView.style.top = (0)+"px";
+    fpsGraphView.style.width = (sw)+"px";
+    fpsGraphView.style.height = (50)+"px";
+    fpsGraphView.style.zIndex = "15";
+    document.body.appendChild(fpsGraphView);
+
+    fpsGraphView.getContext("2d").imageSmoothingEnabled = false;
+
     running = false;
     toggleView = document.createElement("i");
     toggleView.style.position = "absolute";
@@ -32,12 +45,13 @@ $(document).ready(function() {
     toggleView.className = "fa-solid fa-power-off";
     toggleView.style.lineHeight = "50px";
     toggleView.style.fontSize = "30px";
+    toggleView.style.left = ((sw/2)-25)+"px";
     toggleView.style.top = ((sh/2)-250)+"px";
     toggleView.style.width = (50)+"px";
     toggleView.style.height = (50)+"px"; 
+    toggleView.style.scale = "0.9";
     toggleView.style.border = "1px solid #fff";
     toggleView.style.borderRadius = "50%";
-    toggleView.style.scale = "0.9";
     toggleView.style.zIndex = "15";
     document.body.appendChild(toggleView);
 
@@ -136,13 +150,64 @@ $(document).ready(function() {
     animate();
 });
 
+var receivedTime = 0;
+
+var renderTime = 0;
+var elapsedTime = 0;
+var animationSpeed = 0;
+
 var animate = function() {
+    elapsedTime = new Date().getTime()-renderTime;
     if (!backgroundMode) {
+        drawFPSGraph();
         drawImage();
     }
+    renderTime = new Date().getTime();
     requestAnimationFrame(animate);
 };
 
+var lastFps = 0;
+var fpsPolygon = [];
+var drawFPSGraph = function() {
+    var ctx = fpsGraphView.getContext("2d");
+    ctx.clearRect(0, 0, sw, 50);
+
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, sw, 50);
+
+    fps = Math.floor(1000/elapsedTime);
+    var x = fpsPolygon.length > 0 ?
+    (fpsPolygon[fpsPolygon.length-1].x)+1 : 0;
+
+    fpsChange = lastFps-fps;
+    var p = {
+        x: x, y: 25+(fpsChange/4)
+    };
+
+    fpsPolygon.push(p);
+
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "limegreen";
+    if (fpsPolygon.length > 1) {
+        ctx.beginPath();
+        ctx.moveTo(fpsPolygon[0].x, fpsPolygon[0].y);
+        for (var n = 1; n < fpsPolygon.length; n++) {
+            ctx.lineTo(fpsPolygon[n].x, fpsPolygon[n].y);
+        }
+        ctx.stroke();
+    }
+
+    if (fpsPolygon.length > sw) {
+        fpsPolygon.splice(0, 1);
+        for (var n = 0; n < fpsPolygon.length; n++) {
+            fpsPolygon[n].x = fpsPolygon[n].x-1;
+        }
+    }
+
+    lastFps = fps;
+};
+
+var animationSpeed = 1;
 var animationFrame = 0;
 var drawImage = function() {
     var ctx = frameView.getContext("2d");
@@ -190,7 +255,7 @@ var drawImage = function() {
     if (animationFrame == 10 && running)
     animationFrame = 0
     else if (running)
-    animationFrame += 1;
+    animationFrame += animationSpeed;
 };
 
 var position = {
