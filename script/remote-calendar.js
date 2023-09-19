@@ -25,7 +25,7 @@ $(document).ready(function() {
 
     $("#title")[0].innerText = "";
 
-    running = true;
+    running = false;
     toggleView = document.createElement("i");
     toggleView.style.position = "absolute";
     toggleView.style.color = "#fff";
