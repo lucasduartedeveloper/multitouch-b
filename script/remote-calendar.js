@@ -72,7 +72,7 @@ $(document).ready(function() {
         position.x = obj.x;
         position.y = obj.y;
 
-        if (e.touches.length) {
+        if (e.touches.length > 1) {
             startX2 = e.touches[1].clientX;
             startY2 = e.touches[1].clientY;
 
@@ -99,7 +99,7 @@ $(document).ready(function() {
         position.x = obj.x;
         position.y = obj.y;
 
-        if (e.touches.length) {
+        if (e.touches.length > 1) {
             moveX2 = e.touches[1].clientX;
             moveY2 = e.touches[1].clientY;
 
