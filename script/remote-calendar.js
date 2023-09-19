@@ -72,6 +72,18 @@ $(document).ready(function() {
         position.x = obj.x;
         position.y = obj.y;
 
+        if (e.touches.length) {
+            startX2 = e.touches[1].clientX;
+            startY2 = e.touches[1].clientY;
+
+            var obj = {
+                x: Math.floor(startX2 - ((sw/2)-75)),
+                y: Math.floor(startY2 - ((sh/2)-150))
+            };
+            position2.x = obj.x;
+            position2.y = obj.y;
+        }
+
         ws.send("PAPER|"+playerId+"|touch-position|"+
         JSON.stringify(position));
     };
@@ -86,6 +98,18 @@ $(document).ready(function() {
 
         position.x = obj.x;
         position.y = obj.y;
+
+        if (e.touches.length) {
+            moveX2 = e.touches[1].clientX;
+            moveY2 = e.touches[1].clientY;
+
+            var obj = {
+                x: Math.floor(moveX2 - ((sw/2)-75)),
+                y: Math.floor(moveY2 - ((sh/2)-150))
+            };
+            position2.x = obj.x;
+            position2.y = obj.y;
+        }
 
         ws.send("PAPER|"+playerId+"|touch-position|"+
         JSON.stringify(position));
@@ -160,11 +184,11 @@ var drawImage = function() {
 };
 
 var position = {
-    x: -1, y: -1
+    x: -20, y: 150
 };
 
 var position2 = {
-    x: -1, y: -1
+    x: 170, y: 150
 };
 
 var visibilityChange;
