@@ -177,6 +177,13 @@ var drawImage = function() {
     ctx.arc(position2.x, position2.y, 20, 0, (Math.PI*2));
     ctx.fill();
 
+    if (position.x > -20 && position.x < 170 && running) {
+        position.y += 0.5;
+    }
+    if (position2.x > -20 && position2.x < 170 && running) {
+        position2.y += 0.5;
+    }
+
     if (animationFrame == 10 && running)
     animationFrame = 0
     else if (running)
