@@ -184,6 +184,7 @@ var drawImage = function() {
         position2.y += 0.5;
     }
 
+    if (running)
     navigator.vibrate(100);
 
     if (animationFrame == 10 && running)
