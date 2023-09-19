@@ -38,6 +38,19 @@ $(document).ready(function() {
 
     fpsGraphView.getContext("2d").imageSmoothingEnabled = false;
 
+    remoteGraphView = document.createElement("canvas");
+    remoteGraphView.style.position = "absolute";
+    remoteGraphView.width = (sw);
+    remoteGraphView.height = (50);
+    remoteGraphView.style.left = (0)+"px";
+    remoteGraphView.style.top = (50)+"px";
+    remoteGraphView.style.width = (sw)+"px";
+    remoteGraphView.style.height = (50)+"px";
+    remoteGraphView.style.zIndex = "15";
+    document.body.appendChild(remoteGraphView);
+
+    remoteGraphView.getContext("2d").imageSmoothingEnabled = false;
+
     running = false;
     toggleView = document.createElement("i");
     toggleView.style.position = "absolute";
@@ -46,7 +59,7 @@ $(document).ready(function() {
     toggleView.style.lineHeight = "50px";
     toggleView.style.fontSize = "30px";
     toggleView.style.left = ((sw/2)-25)+"px";
-    toggleView.style.top = ((sh/2)-250)+"px";
+    toggleView.style.top = ((sh/2)-225)+"px";
     toggleView.style.width = (50)+"px";
     toggleView.style.height = (50)+"px"; 
     toggleView.style.scale = "0.9";
@@ -145,12 +158,38 @@ $(document).ready(function() {
             msg[2] == "toggle-power") {
             running = (msg[3] == "true");
         }
+        else if (msg[0] == "PAPER" &&
+            msg[1] != playerId &&
+            msg[2] == "fps-update") {
+            var fps = parseInt(msg[3]);
+
+            var x = remoteFPSPolygon.length > 0 ? 
+            (remoteFPSPolygon[remoteFPSPolygon.length-1].x)+1 : 
+            0;
+
+            fpsChange = lastRemoteFPS-fps;
+            var p = {
+                x: x, y: 25+(fpsChange/4)
+            };
+            remoteFPSPolygon.push(p);
+
+            if (remoteFPSPolygon.length > sw) {
+                remoteFPSPolygon.splice(0, 1);
+                for (var n = 0; n < remoteFPSPolygon.length; n++) {
+                    remoteFPSPolygon[n].x = remoteFPSPolygon[n].x-1;
+                }
+            }
+            lastRemoteFPS = fps;
+            receivedTime = true;
+        }
     };
 
     animate();
 });
 
-var receivedTime = 0;
+var lastRemoteFPS = 0;
+var remoteFPSPolygon = [];
+var receivedTime = true;
 
 var renderTime = 0;
 var elapsedTime = 0;
@@ -158,8 +197,14 @@ var animationSpeed = 0;
 
 var animate = function() {
     elapsedTime = new Date().getTime()-renderTime;
+    if (receivedTime) {
+        var fps = Math.floor(1000/elapsedTime);
+        ws.send("PAPER|"+playerId+"|fps-update|"+fps);
+        receivedTime = false;
+    }
     if (!backgroundMode) {
         drawFPSGraph();
+        drawRemoteGraph();
         drawImage();
     }
     renderTime = new Date().getTime();
@@ -175,7 +220,7 @@ var drawFPSGraph = function() {
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, sw, 50);
 
-    fps = Math.floor(1000/elapsedTime);
+    var fps = Math.floor(1000/elapsedTime);
     var x = fpsPolygon.length > 0 ?
     (fpsPolygon[fpsPolygon.length-1].x)+1 : 0;
 
@@ -205,6 +250,27 @@ var drawFPSGraph = function() {
     }
 
     lastFps = fps;
+};
+
+var drawRemoteGraph = function() {
+    var ctx = remoteGraphView.getContext("2d");
+    ctx.clearRect(0, 0, sw, 50);
+
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, sw, 50);
+
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "yellow";
+    if (remoteFPSPolygon.length > 1) {
+        ctx.beginPath();
+        ctx.moveTo(remoteFPSPolygon[0].x, 
+        remoteFPSPolygon[0].y);
+        for (var n = 1; n < remoteFPSPolygon.length; n++) {
+            ctx.lineTo(remoteFPSPolygon[n].x, 
+            remoteFPSPolygon[n].y);
+        }
+        ctx.stroke();
+    }
 };
 
 var animationSpeed = 1;
