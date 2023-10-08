@@ -48,7 +48,7 @@ $(document).ready(function() {
     lyricsView = document.createElement("div");
     lyricsView.style.position = "absolute";
     //lyricsView.style.background = "#fff";
-    lyricsView.style.color = "#000";
+    lyricsView.style.color = "#fff";
     lyricsView.style.fontFamily = "Khand";
     lyricsView.style.lineHeight = "50px";
     lyricsView.style.fontSize = "20px";
@@ -119,10 +119,44 @@ $(document).ready(function() {
 
     toggleView.onclick = function() {
         running = !running;
-        if (running)
-        bgm.play();
-        else
-        bgm.pause();
+        if (running) {
+            if (!reverseBgm.paused) {
+                reverseBgm.pause();
+                source.stop();
+            }
+            bgm.play();
+        }
+        else {
+            bgm.pause();
+        }
+    };
+
+    toggleReverseView = document.createElement("i");
+    toggleReverseView.style.position = "absolute";
+    toggleReverseView.style.display = "none";
+    toggleReverseView.style.color = "#fff";
+    toggleReverseView.className = "fa-solid fa-arrow-left";
+    toggleReverseView.style.lineHeight = "50px";
+    toggleReverseView.style.fontSize = "30px";
+    toggleReverseView.style.left = (sw-50)+"px";
+    toggleReverseView.style.top = ((sh/2)-200)+"px";
+    toggleReverseView.style.width = (50)+"px";
+    toggleReverseView.style.height = (50)+"px"; 
+    toggleReverseView.style.scale = "0.7";
+    //toggleReverseView.style.border = "1px solid #fff";
+    //toggleReverseView.style.borderRadius = "50%";
+    toggleReverseView.style.zIndex = "15";
+    document.body.appendChild(toggleReverseView);
+
+    toggleReverseView.onclick = function() {
+        toggleReverseView.style.display = "none";
+        //console.log(source, duration, now);
+        source.connect(streamNode);
+        //source.connect(context.destination);
+        reverseBgm.srcObject = streamNode.stream;
+        reverseBgm.load();
+        source.start(0);
+        reverseBgm.play();
     };
 
     loadBgmView = document.createElement("i");
@@ -152,7 +186,7 @@ $(document).ready(function() {
 
     fileInput.onchange = function(e) {
         if (!e.target.files.length) return;
-        reverseAudio(e.target.files[0]);
+        //reverseAudio(e.target.files[0]);
 
         var urlObj = URL.createObjectURL(e.target.files[0]);
         bgm.src = urlObj;
@@ -521,6 +555,10 @@ var syncLyrics = function() {
 };
 
 var updateTime = function() {
+    if (!reverseBgm.paused)
+    bgm.currentTime = 
+    (source.buffer.duration - context.currentTime);
+
     audioView.innerText = 
     reverseBgm.paused ? 
     formatTime(bgm.currentTime) : 
@@ -562,13 +600,7 @@ var reverseAudio = function(data) {
             Array.prototype.reverse.call( buffer.getChannelData(0) );
             Array.prototype.reverse.call( buffer.getChannelData(1) );
 
-            //console.log(source, duration, now);
-            source.connect(streamNode);
-            //source.connect(context.destination);
-            reverseBgm.srcObject = streamNode.stream;
-            reverseBgm.load();
-            source.start(0);
-            reverseBgm.play();
+            toggleReverseView.style.display = "initial";
         });
     };
     fileReader.readAsArrayBuffer(data);
