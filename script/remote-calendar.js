@@ -1,6 +1,35 @@
 var beepDone = new Audio("audio/beep-done.wav");
 var beepMilestone = new Audio("audio/beep-milestone.wav");
 
+var rnd = Math.random();
+var bgm0 = new Audio("audio/bgm-0.wav?rnd="+rnd);
+var bgm1 = new Audio("audio/bgm-1.wav?rnd="+rnd);
+var bgm2 = new Audio("audio/bgm-2.wav?rnd="+rnd);
+
+var bgmNo = 0;
+var bgm = bgm0;
+
+var flipAudio = function() {
+    bgmNo = (bgmNo+1) < 3 ? (bgmNo+1) : 0;
+    if (bgmNo == 0)
+    bgm = bgm0;
+    else if (bgmNo == 1)
+    bgm = bgm1;
+    else
+    bgm = bgm2;
+
+    bgm.currentTime = 0;
+    loadLyrics();
+};
+
+bgm0.playbackRate = 1;
+bgm1.playbackRate = 1;
+bgm2.playbackRate = 1;
+
+bgm0.onended = flipAudio;
+bgm1.onended = flipAudio;
+bgm2.onended = flipAudio;
+
 var audio = new Audio("audio/phone-lock.wav");
 var alarm = new Audio("audio/battleship-alarm.wav");
 var coin = new Audio("audio/coin.wav");
@@ -25,31 +54,53 @@ $(document).ready(function() {
 
     $("#title")[0].innerText = "";
 
-    fpsGraphView = document.createElement("canvas");
-    fpsGraphView.style.position = "absolute";
-    fpsGraphView.width = (sw);
-    fpsGraphView.height = (50);
-    fpsGraphView.style.left = (0)+"px";
-    fpsGraphView.style.top = (0)+"px";
-    fpsGraphView.style.width = (sw)+"px";
-    fpsGraphView.style.height = (50)+"px";
-    fpsGraphView.style.zIndex = "15";
-    document.body.appendChild(fpsGraphView);
+    lyricsView = document.createElement("span");
+    lyricsView.style.position = "absolute";
+    lyricsView.style.color = "#fff";
+    lyricsView.innerText = "";
+    lyricsView.style.lineHeight = "25px";
+    lyricsView.style.fontSize = "15px";
+    lyricsView.style.fontFamily = "Khand";
+    lyricsView.style.left = (0)+"px";
+    lyricsView.style.top = (0)+"px";
+    lyricsView.style.width = (sw)+"px";
+    lyricsView.style.height = (50)+"px"; 
+    lyricsView.style.scale = "0.9";
+    lyricsView.style.zIndex = "15";
+    document.body.appendChild(lyricsView);
 
-    fpsGraphView.getContext("2d").imageSmoothingEnabled = false;
+    distance = 0;
+    distanceView = document.createElement("span");
+    distanceView.style.position = "absolute";
+    distanceView.style.color = "#fff";
+    distanceView.innerText = distance+" px";
+    distanceView.style.lineHeight = "50px";
+    distanceView.style.fontSize = "15px";
+    distanceView.style.fontFamily = "Khand";
+    distanceView.style.left = ((sw/2)-100)+"px";
+    distanceView.style.top = ((sh/2)-250)+"px";
+    distanceView.style.width = (50)+"px";
+    distanceView.style.height = (50)+"px"; 
+    distanceView.style.scale = "0.9";
+    distanceView.style.zIndex = "15";
+    document.body.appendChild(distanceView);
 
-    remoteGraphView = document.createElement("canvas");
-    remoteGraphView.style.position = "absolute";
-    remoteGraphView.width = (sw);
-    remoteGraphView.height = (50);
-    remoteGraphView.style.left = (0)+"px";
-    remoteGraphView.style.top = (50)+"px";
-    remoteGraphView.style.width = (sw)+"px";
-    remoteGraphView.style.height = (50)+"px";
-    remoteGraphView.style.zIndex = "15";
-    document.body.appendChild(remoteGraphView);
-
-    remoteGraphView.getContext("2d").imageSmoothingEnabled = false;
+    bpm = 0;
+    lastBpm = 0;
+    bpmView = document.createElement("span");
+    bpmView.style.position = "absolute";
+    bpmView.style.color = "#fff";
+    bpmView.innerText = (bpm)+" bpm";
+    bpmView.style.lineHeight = "50px";
+    bpmView.style.fontSize = "15px";
+    bpmView.style.fontFamily = "Khand";
+    bpmView.style.left = ((sw/2)-75)+"px";
+    bpmView.style.top = ((sh/2)-225)+"px";
+    bpmView.style.width = (50)+"px";
+    bpmView.style.height = (50)+"px"; 
+    bpmView.style.scale = "0.9";
+    bpmView.style.zIndex = "15";
+    document.body.appendChild(bpmView);
 
     running = false;
     toggleView = document.createElement("i");
@@ -59,7 +110,7 @@ $(document).ready(function() {
     toggleView.style.lineHeight = "50px";
     toggleView.style.fontSize = "30px";
     toggleView.style.left = ((sw/2)-25)+"px";
-    toggleView.style.top = ((sh/2)-225)+"px";
+    toggleView.style.top = ((sh/2)-250)+"px";
     toggleView.style.width = (50)+"px";
     toggleView.style.height = (50)+"px"; 
     toggleView.style.scale = "0.9";
@@ -70,6 +121,7 @@ $(document).ready(function() {
 
     toggleView.onclick = function() {
         running = !running;
+        bgm.pause();
         ws.send("PAPER|"+playerId+"|toggle-power|"+running);
     };
 
@@ -88,6 +140,9 @@ $(document).ready(function() {
     startX = 0;
     startY = 0;
 
+    var bpmStart = 0;
+    var bgmTimeout = 0;
+
     frameView.ontouchstart = function(e) {
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
@@ -96,8 +151,23 @@ $(document).ready(function() {
             x: Math.floor(startX - ((sw/2)-75)),
             y: Math.floor(startY - ((sh/2)-150))
         };
-        position.x = obj.x;
-        position.y = obj.y;
+        if (lastSide == 0) {
+            position.x = obj.x;
+            position.y = obj.y;
+        }
+        else {
+            position2.x = obj.x;
+            position2.y = obj.y;
+        }
+
+        if (lastSide == 0) {
+            distance += (position.y-position2.y)*-1;
+            distanceView.innerText = distance+" px";
+        }
+        else {
+            distance += (position2.y-position.y)*-1;
+            distanceView.innerText = distance+" px";
+        }
 
         if (e.touches.length > 1) {
             startX2 = e.touches[1].clientX;
@@ -111,6 +181,19 @@ $(document).ready(function() {
             position2.y = obj.y;
         }
 
+        var bpmTime = (new Date().getTime() - bpmStart);
+        bpm = (60000 / bpmTime).toFixed(1);
+        bpmStart = new Date().getTime();
+        lastBpm = bpm;
+        bpmView.innerText = (bpm)+" bpm";
+
+        if (bgm.paused)
+        bgm.play();
+        clearTimeout(bgmTimeout);
+        bgmTimeout = setTimeout(function() {
+            bgm.pause();
+        }, (bpmTime*2));
+
         ws.send("PAPER|"+playerId+"|touch-position|"+
         JSON.stringify(position));
     };
@@ -122,9 +205,14 @@ $(document).ready(function() {
             x: Math.floor(moveX - ((sw/2)-75)),
             y: Math.floor(moveY - ((sh/2)-150))
         };
-
-        position.x = obj.x;
-        position.y = obj.y;
+        if (lastSide == 0) {
+            position.x = obj.x;
+            position.y = obj.y;
+        }
+        else {
+            position2.x = obj.x;
+            position2.y = obj.y;
+        }
 
         if (e.touches.length > 1) {
             moveX2 = e.touches[1].clientX;
@@ -140,6 +228,9 @@ $(document).ready(function() {
 
         ws.send("PAPER|"+playerId+"|touch-position|"+
         JSON.stringify(position));
+    };
+    frameView.ontouchend = function() {
+        lastSide = lastSide == 0 ? 1 : 0;
     };
 
     frameView.getContext("2d").imageSmoothingEnabled = false;
@@ -158,38 +249,67 @@ $(document).ready(function() {
             msg[2] == "toggle-power") {
             running = (msg[3] == "true");
         }
-        else if (msg[0] == "PAPER" &&
-            msg[1] != playerId &&
-            msg[2] == "fps-update") {
-            var fps = parseInt(msg[3]);
-
-            var x = remoteFPSPolygon.length > 0 ? 
-            (remoteFPSPolygon[remoteFPSPolygon.length-1].x)+1 : 
-            0;
-
-            fpsChange = lastRemoteFPS-fps;
-            var p = {
-                x: x, y: 25+(fpsChange/4)
-            };
-            remoteFPSPolygon.push(p);
-
-            if (remoteFPSPolygon.length > sw) {
-                remoteFPSPolygon.splice(0, 1);
-                for (var n = 0; n < remoteFPSPolygon.length; n++) {
-                    remoteFPSPolygon[n].x = remoteFPSPolygon[n].x-1;
-                }
-            }
-            lastRemoteFPS = fps;
-            receivedTime = true;
-        }
     };
 
+    loadLyrics();
     animate();
-});
+})
 
-var lastRemoteFPS = 0;
-var remoteFPSPolygon = [];
-var receivedTime = true;
+var lyricsLoaded = false;
+var lyrics = [];
+
+var loadLyrics = function() {
+    lyricsLoaded = false;
+    currentLine = 0;
+    lyricsView.innerText = "";
+    lyrics = [];
+    var rnd = Math.random();
+    var fileName = ("audio/bgm-"+bgmNo+".txt?rnd="+rnd);
+    $.get(fileName, function(data) {
+        var arr = data.split("\n");
+        for (var n = 0; n < arr.length; n++) {
+            var line = arr[n].split(" # ");
+            if (line.length != 2) continue;
+            var obj = {
+                timestamp: toMiliseconds(line[0]),
+                lyrics: line[1]
+            };
+            lyrics.push(obj);
+        }
+        lyricsLoaded = true;
+    })
+    .fail(function() {
+        lyricsView.innerText = "LYRICS NOT FOUND";
+    });
+};
+
+var toMiliseconds = function(timestamp) {
+    var arr = timestamp.split(":");
+    var minute = parseInt(arr[0]*60000);
+    var seconds = parseInt(arr[1]*1000);
+    var result = (minute+seconds);
+    return result;
+};
+
+var syncLyrics = function() {
+    var synchronized = false;
+    var n0 = 0;
+    var n1 = 1;
+    for (var n = 0; n < lyrics.length; n++) {
+        if (lyrics[n].timestamp > ((bgm.currentTime*1000)-(1000)) && n > 0) {
+            n0 = (n-1);
+            n1 = n;
+            synchronized = true;
+            break;
+        }
+    }
+    if (synchronized)
+    lyricsView.innerText = lyrics[n0].lyrics + "\n" + lyrics[n1].lyrics;
+    else
+    lyricsView.innerText = "";
+};
+
+var lastSide = 0;
 
 var renderTime = 0;
 var elapsedTime = 0;
@@ -197,80 +317,13 @@ var animationSpeed = 0;
 
 var animate = function() {
     elapsedTime = new Date().getTime()-renderTime;
-    if (receivedTime) {
-        var fps = Math.floor(1000/elapsedTime);
-        ws.send("PAPER|"+playerId+"|fps-update|"+fps);
-        receivedTime = false;
-    }
     if (!backgroundMode) {
-        drawFPSGraph();
-        drawRemoteGraph();
+        if (lyricsLoaded)
+        syncLyrics();
         drawImage();
     }
     renderTime = new Date().getTime();
     requestAnimationFrame(animate);
-};
-
-var lastFps = 0;
-var fpsPolygon = [];
-var drawFPSGraph = function() {
-    var ctx = fpsGraphView.getContext("2d");
-    ctx.clearRect(0, 0, sw, 50);
-
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, sw, 50);
-
-    var fps = Math.floor(1000/elapsedTime);
-    var x = fpsPolygon.length > 0 ?
-    (fpsPolygon[fpsPolygon.length-1].x)+1 : 0;
-
-    fpsChange = lastFps-fps;
-    var p = {
-        x: x, y: 25+(fpsChange/4)
-    };
-
-    fpsPolygon.push(p);
-
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = "limegreen";
-    if (fpsPolygon.length > 1) {
-        ctx.beginPath();
-        ctx.moveTo(fpsPolygon[0].x, fpsPolygon[0].y);
-        for (var n = 1; n < fpsPolygon.length; n++) {
-            ctx.lineTo(fpsPolygon[n].x, fpsPolygon[n].y);
-        }
-        ctx.stroke();
-    }
-
-    if (fpsPolygon.length > sw) {
-        fpsPolygon.splice(0, 1);
-        for (var n = 0; n < fpsPolygon.length; n++) {
-            fpsPolygon[n].x = fpsPolygon[n].x-1;
-        }
-    }
-
-    lastFps = fps;
-};
-
-var drawRemoteGraph = function() {
-    var ctx = remoteGraphView.getContext("2d");
-    ctx.clearRect(0, 0, sw, 50);
-
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, sw, 50);
-
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = "yellow";
-    if (remoteFPSPolygon.length > 1) {
-        ctx.beginPath();
-        ctx.moveTo(remoteFPSPolygon[0].x, 
-        remoteFPSPolygon[0].y);
-        for (var n = 1; n < remoteFPSPolygon.length; n++) {
-            ctx.lineTo(remoteFPSPolygon[n].x, 
-            remoteFPSPolygon[n].y);
-        }
-        ctx.stroke();
-    }
 };
 
 var animationSpeed = 1;
@@ -313,6 +366,15 @@ var drawImage = function() {
     }
     if (position2.x > -20 && position2.x < 170 && running) {
         position2.y += 0.5;
+    }
+
+    if (position.x > -20 && position.x < 170 &&
+        position.y > 320 && running) {
+        position.y = -20;
+    }
+    if (position2.x > -20 && position2.x < 170 &&
+        position2.y > 320 && running) {
+        position2.y = -20;
     }
 
     if (running)
