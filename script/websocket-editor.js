@@ -33,7 +33,7 @@ $(document).ready(function() {
     loadArray();
 });
 
-var count = 1;
+var count = 5;
 var websocketArr = [];
 
 var sortArray = function(arr) {
@@ -82,6 +82,7 @@ var loadArray = function() {
              var websocket = 
              document.createElement("i");
              websocket.style.position = "absolute";
+             //websocket.style.opacity = 0.5;
              websocket.style.background = "#fff";
              websocket.style.fontSize = (size/1.5)+"px";
              websocket.style.lineHeight = (size)+"px";
