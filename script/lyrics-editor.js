@@ -542,7 +542,8 @@ var syncLyrics = function() {
             currentLine = n0;
             markLine(currentLine);
 
-            if (currentLine > endMark) {
+            if (startMark > -1 && endMark > -1 &&
+                currentLine > endMark) {
                 currentLine = startMark;
                 markLine(currentLine);
                 moveTo(currentLine);
