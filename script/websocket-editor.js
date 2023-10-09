@@ -33,7 +33,7 @@ $(document).ready(function() {
     loadArray();
 });
 
-var count = 10;
+var count = 1;
 var websocketArr = [];
 
 var sortArray = function(arr) {
@@ -64,43 +64,72 @@ var loadArray = function() {
     var n0 = result[0];
     var n1 = result[1];
 
+    var x0 = Math.floor(n0 % count);
+    var y0 = Math.floor(n0 / count);
+
+    var x1 = Math.floor(n1 % count);
+    var y1 = Math.floor(n1 / count);
+
+    var angle0 = (180/Math.PI)*angleTo(x0, y0, x1, y1);
+    var angle1 = (180/Math.PI)*angleTo(x1, y1, x0, y0);
+
     var size = ((sw/2)/count);
     for (var y = 0; y < count; y++) {
         for (var x = 0; x < count; x++) {
+             var pos = { x: x, y: y };
+
+             setTimeout(function() {
              var websocket = 
-             document.createElement("span");
+             document.createElement("i");
              websocket.style.position = "absolute";
              websocket.style.background = "#fff";
+             websocket.style.fontSize = (size/1.5)+"px";
+             websocket.style.lineHeight = (size)+"px";
              websocket.style.left = 
-             ((sw/2)-((count/2)*size)+(x*size))+"px";
+             ((sw/2)-((count/2)*size)+(this.x*size))+"px";
              websocket.style.top = 
-             ((sh/2)-((count/2)*size)+(y*size))+"px";
+             ((sh/2)-((count/2)*size)+(this.y*size))+"px";
              websocket.style.width = (size)+"px";
              websocket.style.height = (size)+"px";
-             if (((y*count)+x) == n0)
-             websocket.style.border = "1px solid orange";
-             if (((y*count)+x) == n1)
-             websocket.style.border = "1px solid limegreen";
+             if (((this.y*count)+this.x) == n0) {
+                 websocket.className = "fa-solid fa-arrow-up";
+                 websocket.style.border = "1px solid orange";
+                 websocket.style.transform = "rotateZ("+angle0+"deg)";
+             }
+             if (((this.y*count)+this.x) == n1) {
+                 websocket.className = "fa-solid fa-arrow-up";
+                 websocket.style.border = "1px solid limegreen";
+                 websocket.style.transform = "rotateZ("+angle1+"deg)";
+             }
              websocket.style.borderRadius = "50%";
              websocket.style.scale = "0.9";
              websocket.style.zIndex = "15";
              document.body.appendChild(websocket);
 
-             if (((y*count)+x) == n0)
+             if (((this.y*count)+this.x) == n0)
              websocket.onclick = function() {
                  count += 1;
                  loadArray();
              };
 
-             if (((y*count)+x) == n1)
+             if (((this.y*count)+this.x) == n1)
              websocket.onclick = function() {
                  count -= 1;
                  loadArray();
              };
 
              websocketArr.push(websocket);
+             }.bind(pos), 10);
         }
     }
+};
+
+var angleTo = function(x0, y0, x1, y1) {
+    var co = x1-x0;
+    var ca = y1-y0;
+    var angle = _angle2d(co, ca);
+    console.log(angle);
+    return angle;
 };
 
 var renderTime = 0;
