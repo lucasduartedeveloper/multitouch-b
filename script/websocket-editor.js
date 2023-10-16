@@ -285,6 +285,7 @@ $(document).ready(function() {
 
     imageView = document.createElement("img");
     imageView.style.position = "absolute";
+    imageView.crossOrigin = "anonymous";
     imageView.style.left = (0)+"px";
     imageView.style.top = (0)+"px";
     imageView.style.zIndex = "15";
