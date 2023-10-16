@@ -22,8 +22,7 @@ $thirdpart_script = [];
 $script = [
     0 => "script/websocket.js",
     1 => "script/math-helper.js",
-    2 => "script/camera-helper.js",
-    3 => "script/websocket-editor.js"
+    2 => "script/text-projector.js"
 ];
 
 $module = [];
