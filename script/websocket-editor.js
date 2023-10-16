@@ -130,7 +130,8 @@ $(document).ready(function() {
     };
 
     var typeList = 
-    [ "ONE TYPE", "TWO TYPES", "TRIANGLES", "HEXAGONS" ];
+    [ "ONE TYPE", "TWO TYPES", "TRIANGLES", "HEXAGONS", 
+    "RECTANGLES" ];
     var typeNo = 1;
     typeView = document.createElement("span");
     typeView.style.position = "absolute";
@@ -154,7 +155,7 @@ $(document).ready(function() {
     document.body.appendChild(typeView);
 
     typeView.onclick = function() {
-        typeNo = (typeNo+1) < 4 ? (typeNo+1) : 0;
+        typeNo = (typeNo+1) < 5 ? (typeNo+1) : 0;
         type = typeNo;
         typeView.innerText = typeList[typeNo];
     };
@@ -372,6 +373,8 @@ var drawImage = function() {
         polygon = createPolygon3(c, size, c.x, c.y, 0);
         else if (type == 3)
         polygon = createPolygon6(c, size, c.x, c.y, 0);
+        else if (type == 4)
+        polygon = createPolygon8(c, size, c.x, c.y, 0);
 
         ctx.beginPath();
         ctx.moveTo(polygon[0].x, polygon[0].y);
@@ -382,7 +385,7 @@ var drawImage = function() {
         if (colorMode == 0)
         ctx.fill();
 
-        if (type == 2) {
+        if (type == 2 || type == 4) {
             var red = Math.floor(Math.random()*255);
             var green = Math.floor(Math.random()*255);
             var blue = Math.floor(Math.random()*255);
@@ -393,9 +396,11 @@ var drawImage = function() {
             Math.floor(imageArray[w+1]*brightness)+","+
             Math.floor(imageArray[w+2]*brightness)+",1)";
 
-            var polygon = type < 2 ? 
-            createPolygon(c, size, c.x, c.y) : 
-            createPolygon3(c, size, c.x, c.y, 3);
+            var polygon;
+            if (type == 2)
+            polygon = createPolygon3(c, size, c.x, c.y, 3);
+            else if (type == 4)
+            polygon = createPolygon8(c, size, c.x, c.y, 1);
 
             ctx.beginPath();
             ctx.moveTo(polygon[0].x, polygon[0].y);
@@ -692,6 +697,37 @@ var createPolygon6 = function(pos, size, x, y) {
 
     for (var n = 0; n < polygon.length; n++) {
         polygon[n].x = (pos.moveX + (polygon[n].x/2))*(size*1.15);
+        polygon[n].y = (pos.moveY + (polygon[n].y/2))*size;
+    }
+
+    return polygon
+}
+
+var createPolygon8 = function(pos, size, x, y, dir) {
+    var lineEven = y % 2 == 0;
+
+    var polygon = [];
+
+    switch (dir) {
+        case 0:
+            polygon.push({ x: -1 , y: -1 });
+            polygon.push({ x: 0 , y: -1 });
+            polygon.push({ x: 0 , y: 1 });
+            polygon.push({ x: -1 , y: 1 });
+            polygon.push({ x: -1 , y: -1 });
+            break;
+
+        case 1:
+            polygon.push({ x: 0 , y: -1 });
+            polygon.push({ x: 1 , y: -1 });
+            polygon.push({ x: 1 , y: 1 });
+            polygon.push({ x: 0 , y: 1 });
+            polygon.push({ x: 0 , y: -1 });
+            break;
+    }
+
+    for (var n = 0; n < polygon.length; n++) {
+        polygon[n].x = (pos.moveX + (polygon[n].x/2))*size;
         polygon[n].y = (pos.moveY + (polygon[n].y/2))*size;
     }
 
