@@ -257,6 +257,55 @@ $(document).ready(function() {
     moveView.style.zIndex = "15";
     document.body.appendChild(moveView);
 
+    uploadView = document.createElement("i");
+    uploadView.style.position = "absolute";
+    uploadView.style.color = "#fff";
+    uploadView.className = "fa-solid fa-file";
+    uploadView.style.lineHeight = "50px";
+    uploadView.style.fontSize = "30px";
+    uploadView.style.left = (110)+"px";
+    uploadView.style.top = ((sh-110))+"px";
+    uploadView.style.width = (50)+"px";
+    uploadView.style.height = (50)+"px"; 
+    uploadView.style.scale = "0.9";
+    uploadView.style.border = "1px solid #fff";
+    uploadView.style.borderRadius = "50%";
+    uploadView.style.zIndex = "15";
+    document.body.appendChild(uploadView);
+
+    imageUploaded = false;
+    uploadView.onclick = function() {
+        var url = prompt();
+        imageView.src = url;
+    };
+
+    uploadView.ondblclick = function() {
+        fileInput.click();
+    };
+
+    imageView = document.createElement("img");
+    imageView.style.position = "absolute";
+    imageView.style.left = (0)+"px";
+    imageView.style.top = (0)+"px";
+    imageView.style.zIndex = "15";
+    //document.body.appendChild(imageView);
+
+    imageView.onload = function() {
+        imageUploaded = true;
+    };
+
+    fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = "image";
+
+    fileInput.onchange = function(e) {
+        if (!e.target.files.length) return;
+        //reverseAudio(e.target.files[0]);
+
+        var urlObj = URL.createObjectURL(e.target.files[0]);
+        imageView.src = urlObj;
+    };
+
     updateResolution(5);
     animate();
 });
@@ -304,7 +353,7 @@ var drawImage = function() {
         ctxResolution.translate(-resolution, 0);
     }
 
-    if (updateImage) {
+    if (updateImage && !imageUploaded) {
         var r = (vw/vh);
         var image = {
             width: resolution,
@@ -327,7 +376,7 @@ var drawImage = function() {
     ctx = frameView.getContext("2d");
     ctx.clearRect(0, 0, sw, sh);
 
-    if (colorMode == 1) {
+    if (colorMode == 1 && !imageUploaded) {
         var image = {
             width: vw,
             height: vh
@@ -343,6 +392,40 @@ var drawImage = function() {
         format.top, format.width, format.height);
     }
 
+    var imageX = 0;
+    var imageWidth = sh;
+    if (imageUploaded) {
+        ctx.save();
+        ctx.translate((sw/2), (sh/2));
+        ctx.rotate((Math.PI/2));
+        ctx.translate(-(sw/2), -(sh/2));
+
+        var image = {
+            width: imageView.width,
+            height: imageView.height
+        };
+
+        var frame = {
+            width: sw,
+            height: sh
+        };
+
+        var r = (imageView.width/imageView.height);
+        var height = sw;
+        var width = sw*r;
+
+        var left = ((sw/2)-(width/2))-((sh-width)/2);
+        var top = (sh/2)-(height/2);
+
+        var format = fitImageCover(image, frame);
+        //console.log(format);
+        ctx.drawImage(imageView, left, top, 
+        width, height);
+
+        imageWidth = width;
+        ctx.restore();
+    }
+
     ctx.lineWidth = 2;
     var size = (sw/resolution);
 
@@ -351,7 +434,7 @@ var drawImage = function() {
     var width = resolutionView.width;
     var height = resolutionView.height;
     for (var n = 0; n < positionArray.length; n++) {
-        if (cameraOn)
+        if (imageUploaded || cameraOn)
         ctx.strokeStyle = "#000";
         else
         ctx.strokeStyle = positionArray[n].selected ? 
@@ -366,9 +449,20 @@ var drawImage = function() {
         imageArray[w+1]+","+
         imageArray[w+2]+",1)";
 
+        var removed = -1;
+        if ((imageX < resolution) && 
+            ((c.y+1.5)*size) > imageWidth) {
+            removed = 0;
+            imageX = (imageX+1);
+            imageY = c.y;
+        }
+        else if (imageY > 0 && (c.y-imageY) == 1) {
+            removed = 1;
+        }
+
         var polygon; 
         if (type < 2)
-        polygon = createPolygon(c, size, c.x, c.y);
+        polygon = createPolygon(c, size, c.x, c.y, removed);
         else if (type == 2)
         polygon = createPolygon3(c, size, c.x, c.y, 0);
         else if (type == 3)
@@ -382,7 +476,7 @@ var drawImage = function() {
             ctx.lineTo(polygon[k].x, polygon[k].y);
         }
         ctx.stroke();
-        if (colorMode == 0)
+        if (!imageUploaded && colorMode == 0)
         ctx.fill();
 
         if (type == 2 || type == 4) {
@@ -415,6 +509,8 @@ var drawImage = function() {
         ctx.restore();
     }
 };
+
+var imageY = 0;
 
 var drawToShape = function(ctx) {
     ctx.clip();
@@ -512,7 +608,7 @@ var updateArray = function() {
 };
 
 var type = 1;
-var createPolygon = function(pos, size, x, y) {
+var createPolygon = function(pos, size, x, y, removed) {
     var lineEven = y % 2 == 0;
     var columnEven = x % 2 == 0;
     var polygon = [];
@@ -548,7 +644,7 @@ var createPolygon = function(pos, size, x, y) {
     polygon.push({ x: -1, y: -1 });
     polygon.push({ x: -(2/6), y: -1 });
 
-    if (y > 0 && type == 0) {
+    if (y > 0 && type == 0 && !(removed == 1) ) {
     var c = { x: 0, y: -1 };
     var p = { x: -(2/6), y: -1 };
     for (var n = 0; n < 60; n++) {
@@ -557,7 +653,7 @@ var createPolygon = function(pos, size, x, y) {
     };
     }
 
-    if (y > 0 && type == 1) {
+    if (y > 0 && type == 1 && !(removed == 1)) {
     var c = { x: 0, y: -1 };
     var p = { x: -(2/6), y: -1 };
     for (var n = 0; n < 60; n++) {
@@ -605,7 +701,7 @@ var createPolygon = function(pos, size, x, y) {
     polygon.push({ x: (2/6), y: 1 });
 
     var height = resolutionView.height;
-    if (y < (height-1) && type == 0) {
+    if (y < (height-1) && type == 0 && !(removed == 0)) {
     var c = { x: 0, y: 1 };
     var p = { x: (2/6), y: 1 };
     for (var n = 0; n < 60; n++) {
@@ -614,7 +710,7 @@ var createPolygon = function(pos, size, x, y) {
     };
     }
 
-    if (y < (height-1) && type == 1) {
+    if (y < (height-1) && type == 1 && !(removed == 0)) {
     var c = { x: 0, y: 1 };
     var p = { x: (2/6), y: 1 };
     for (var n = 0; n < 60; n++) {
