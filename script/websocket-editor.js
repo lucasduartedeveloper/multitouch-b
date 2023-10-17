@@ -249,6 +249,7 @@ $(document).ready(function() {
 
     moveView = document.createElement("i");
     moveView.style.position = "absolute";
+    moveView.style.display = "none";
     moveView.style.color = "#888";
     moveView.style.lineHeight = (sh)+"px";
     moveView.className = "fa-solid fa-plus";
@@ -312,7 +313,7 @@ $(document).ready(function() {
         imageView.src = urlObj;
     };
 
-    moveEnabled = false;
+    moveEnabled = true;
     toggleMoveView = document.createElement("span");
     toggleMoveView.style.position = "absolute";
     toggleMoveView.style.color = "#fff";
@@ -337,7 +338,7 @@ $(document).ready(function() {
         "ON" : "OFF";
     };
 
-    menuEnabled = false;
+    menuEnabled = true;
     toggleMenuView = document.createElement("span");
     toggleMenuView.style.position = "absolute";
     toggleMenuView.style.color = "#fff";
@@ -362,9 +363,9 @@ $(document).ready(function() {
 
     menuView = document.createElement("div");
     menuView.style.position = "absolute";
+    menuView.style.display = menuEnabled ? "initial" : "none";
     menuView.style.background = "#fff";
     menuView.style.color = "#000";
-    menuView.style.display = "none";
     menuView.style.objectFit = "contain";
     menuView.style.lineHeight = "50px";
     menuView.style.fontSize = "30px";
@@ -386,13 +387,13 @@ $(document).ready(function() {
     countView.style.color = "#000";
     countView.innerText = "0 / 0";
     countView.style.objectFit = "contain";
-    countView.style.lineHeight = "50px";
+    countView.style.lineHeight = "35px";
     countView.style.fontSize = "30px";
     countView.style.textAlign = "left";
     countView.style.fontFamily = "Khand";
     countView.style.left = (10)+"px";
     countView.style.top = (10)+"px";
-    countView.style.width = (100)+"px";
+    countView.style.width = (80)+"px";
     countView.style.height = (50)+"px"; 
     countView.style.border = "1px solid #fff";
     countView.style.borderRadius = "10px";
@@ -416,6 +417,25 @@ $(document).ready(function() {
     menuViewImg.style.borderRadius = "10px";
     menuViewImg.style.zIndex = "15";
     menuView.appendChild(menuViewImg);
+
+    timerView = document.createElement("span");
+    timerView.style.position = "absolute";
+    timerView.style.background = "#fff";
+    timerView.style.color = "#000";
+    timerView.innerText = "01:00";
+    timerView.style.objectFit = "contain";
+    timerView.style.lineHeight = "35px";
+    timerView.style.fontSize = "30px";
+    timerView.style.textAlign = "right";
+    timerView.style.fontFamily = "Khand";
+    timerView.style.left = (((sw-60)-90))+"px";
+    timerView.style.top = (10)+"px";
+    timerView.style.width = (80)+"px";
+    timerView.style.height = (50)+"px"; 
+    timerView.style.border = "1px solid #fff";
+    timerView.style.borderRadius = "10px";
+    timerView.style.zIndex = "15";
+    menuView.appendChild(timerView);
 
     ws.onmessage = function(e) {
         var msg = e.data.split("|");
