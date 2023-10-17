@@ -122,8 +122,9 @@ $(document).ready(function() {
     document.body.appendChild(downloadView);
 
     downloadView.onclick = function() {
+        var n = (positionArray.length-1);
         var dataURL = moveEnabled ? 
-        downloadSelected() : frameView.toDataURL();
+        downloadSelected(n) : frameView.toDataURL();
         var hiddenElement = document.createElement('a');
         hiddenElement.href = dataURL;
         hiddenElement.target = "_blank";
@@ -294,8 +295,10 @@ $(document).ready(function() {
     //document.body.appendChild(imageView);
 
     imageView.onload = function() {
+        updateSet(false);
         imageUploaded = true;
     };
+    imageView.src = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSXBqX72S0LMRvsaCYxqwd_rl5YuYi2hNOlgA&usqp=CAU";
 
     fileInput = document.createElement("input");
     fileInput.type = "file";
@@ -310,7 +313,7 @@ $(document).ready(function() {
     };
 
     moveEnabled = false;
-    toggleMoveView = document.createElement("i");
+    toggleMoveView = document.createElement("span");
     toggleMoveView.style.position = "absolute";
     toggleMoveView.style.color = "#fff";
     toggleMoveView.innerText = moveEnabled ? 
@@ -334,9 +337,139 @@ $(document).ready(function() {
         "ON" : "OFF";
     };
 
+    menuEnabled = false;
+    toggleMenuView = document.createElement("span");
+    toggleMenuView.style.position = "absolute";
+    toggleMenuView.style.color = "#fff";
+    toggleMenuView.innerText = "";
+    toggleMenuView.style.lineHeight = "50px";
+    toggleMenuView.style.fontSize = "30px";
+    toggleMenuView.style.fontFamily = "Khand";
+    toggleMenuView.style.left = ((sw-60))+"px";
+    toggleMenuView.style.top = ((sh-110))+"px";
+    toggleMenuView.style.width = (50)+"px";
+    toggleMenuView.style.height = (50)+"px"; 
+    toggleMenuView.style.scale = "0.9";
+    toggleMenuView.style.border = "1px solid #fff";
+    toggleMenuView.style.borderRadius = "50%";
+    toggleMenuView.style.zIndex = "15";
+    document.body.appendChild(toggleMenuView);
+
+    toggleMenuView.onclick = function() {
+        menuEnabled = !menuEnabled;
+        menuView.style.display = menuEnabled ? "initial" : "none";
+    };
+
+    menuView = document.createElement("div");
+    menuView.style.position = "absolute";
+    menuView.style.background = "#fff";
+    menuView.style.color = "#000";
+    menuView.style.display = "none";
+    menuView.style.objectFit = "contain";
+    menuView.style.lineHeight = "50px";
+    menuView.style.fontSize = "30px";
+    menuView.style.textAlign = "left";
+    menuView.style.fontFamily = "Khand";
+    menuView.style.left = (10)+"px";
+    menuView.style.top = ((sh-120))+"px";
+    menuView.style.width = (sw-60)+"px";
+    menuView.style.height = (110)+"px"; 
+    //menuView.style.scale = "0.9";
+    menuView.style.border = "1px solid #fff";
+    menuView.style.borderRadius = "10px";
+    menuView.style.zIndex = "15";
+    document.body.appendChild(menuView);
+
+    countView = document.createElement("span");
+    countView.style.position = "absolute";
+    countView.style.background = "#fff";
+    countView.style.color = "#000";
+    countView.innerText = "0 / 0";
+    countView.style.objectFit = "contain";
+    countView.style.lineHeight = "50px";
+    countView.style.fontSize = "30px";
+    countView.style.textAlign = "left";
+    countView.style.fontFamily = "Khand";
+    countView.style.left = (10)+"px";
+    countView.style.top = (10)+"px";
+    countView.style.width = (100)+"px";
+    countView.style.height = (50)+"px"; 
+    countView.style.border = "1px solid #fff";
+    countView.style.borderRadius = "10px";
+    countView.style.zIndex = "15";
+    menuView.appendChild(countView);
+
+    menuViewImg = document.createElement("img");
+    menuViewImg.style.position = "absolute";
+    menuViewImg.style.background = "#fff";
+    menuViewImg.style.color = "#000";
+    menuViewImg.style.objectFit = "contain";
+    menuViewImg.style.lineHeight = "50px";
+    menuViewImg.style.fontSize = "30px";
+    menuViewImg.style.textAlign = "left";
+    menuViewImg.style.fontFamily = "Khand";
+    menuViewImg.style.left = (((sw-60)/2)-45)+"px";
+    menuViewImg.style.top = (10)+"px";
+    menuViewImg.style.width = (90)+"px";
+    menuViewImg.style.height = (90)+"px"; 
+    menuViewImg.style.border = "1px solid #fff";
+    menuViewImg.style.borderRadius = "10px";
+    menuViewImg.style.zIndex = "15";
+    menuView.appendChild(menuViewImg);
+
+    ws.onmessage = function(e) {
+        var msg = e.data.split("|");
+        if (msg[0] == "PAPER" &&
+            msg[1] != playerId &&
+            msg[2] == "data") {
+            obj = JSON.parse(msg[3]);
+            remotePosition = obj;
+        }
+        else if (msg[0] == "PAPER" &&
+            msg[1] != playerId &&
+            msg[2] == "update-set") {
+            remoteCount = (remoteCount+1);
+            updateSet(false);
+        }
+    };
+
     updateResolution(5);
     animate();
 });
+
+var localCount = 0;
+var remoteCount = 0;
+
+var removedId = 0;
+
+var updateMenu = function() {
+    var n = getPosition(removedId);
+    menuViewImg.src = downloadSelected(n);
+};
+
+var remotePosition = [];
+var sendPosition = function() {
+    var json = JSON.stringify(remotePosition);
+    ws.send("PAPER|"+playerId+"|data|"+json);
+};
+
+var setPosition = function(id) {
+    var n = remotePosition.findIndex((o) => {
+    return o.id == id });
+    if (n == -1) {
+        var obj = {
+            id: id
+        };
+        remotePosition.push(id);
+    }
+    sendPosition();
+};
+
+var getPosition = function(id) {
+    var n = positionArray.findIndex((o) => {
+    return o.id == id; });
+    return n;
+};
 
 var updateImage = true;
 
@@ -350,6 +483,8 @@ var animate = function() {
     if (!backgroundMode) {
         if (!(!updateImage && colorMode == 1))
         drawImage();
+
+        updateMenu();
     }
     renderTime = new Date().getTime();
     requestAnimationFrame(animate);
@@ -369,8 +504,16 @@ var updateResolution = function(n) {
     createArray();
 };
 
-var resolution = 10;
+var updateSet = function(local=true) {
+    var n = Math.floor(Math.random()*(imageY*resolution));
+    removedId = n;
+    if (local)
+    ws.send("PAPER|"+playerId+"|update-set");
 
+    countView.innerText = localCount+" / "+remoteCount;
+}
+
+var resolution = 10;
 var imageArray = [];
 
 var drawImage = function() {
@@ -631,10 +774,17 @@ var updatePosition = function(moveX, moveY) {
 
     var pos = positionArray.splice(n, 1)[0];
     positionArray.push(pos);
+
+    if (pos.id == removedId) {
+        removedId = pos.id;
+        localCount = (localCount+1);
+        updateSet();
+    }
+
+    setPosition(pos.id);
 };
 
-var downloadSelected = function() {
-    selected = (positionArray.length-1);
+var downloadSelected = function(n) {
     var size = (sw/resolution);
 
     var canvas = document.createElement("canvas");
@@ -647,7 +797,7 @@ var downloadSelected = function() {
     ctx.save();
     ctx.translate((canvas.width/2), (canvas.height/2));
 
-    var polygon = positionArray[selected].polygon;
+    var polygon = positionArray[n].polygon;
     ctx.beginPath();
     ctx.moveTo((polygon[0].base.x*(size/2)), 
     (polygon[0].base.y*(size/2)));
@@ -661,8 +811,8 @@ var downloadSelected = function() {
     ctx.translate(-(canvas.width/2), -(canvas.height/2));
 
     ctx.drawImage(frameView, 
-    (positionArray[selected].x*size)-(((1/3)/2)*size), 
-    (positionArray[selected].y*size)-(((1/3)/2)*size), 
+    (positionArray[n].x*size)-(((1/3)/2)*size), 
+    (positionArray[n].y*size)-(((1/3)/2)*size), 
     canvas.width, canvas.height, 
     0, 0, canvas.width, canvas.height);
 
