@@ -310,7 +310,7 @@ $(document).ready(function() {
     };
 
     moveEnabled = false;
-    toggleMoveView = document.createElement("span");
+    toggleMoveView = document.createElement("i");
     toggleMoveView.style.position = "absolute";
     toggleMoveView.style.color = "#fff";
     toggleMoveView.innerText = moveEnabled ? 
