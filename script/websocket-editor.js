@@ -573,6 +573,7 @@ var createArray = function() {
     for (var y = 0; y < height; y++) {
         for (var x = 0; x < width; x++) {
             var pos = {
+                id: (y*resolution)+x,
                 x: x, y: y,
                 moveX: (x+0.5),
                 moveY: (y+0.5) 
@@ -587,31 +588,29 @@ var updatePosition = function(moveX, moveY) {
     var size = (sw/resolution);
     var reverseArray = positionArray.toReversed();
 
-    console.log(moveX, moveY);
-
     var nr = reverseArray.findIndex((o) => { 
-        if ((o.moveX*size) > ((moveX*size)-size) && 
-        (o.moveX*size) < ((moveX*size)+size) && 
-        (o.moveY*size) > ((moveY*size)-size) && 
-        (o.moveY*size) < ((moveY*size)+size)) {
+        if ((o.moveX*size) > ((moveX*size)-(size/2)) && 
+        (o.moveX*size) < ((moveX*size)+(size/2)) && 
+        (o.moveY*size) > ((moveY*size)-(size/2)) && 
+        (o.moveY*size) < ((moveY*size)+(size/2))) {
             console.log((o.moveX*size) + " > " + 
-            ((moveX*size)-size));
+            ((moveX*size)-(size/2)));
             console.log((o.moveX*size) + " < " + 
-            ((moveX*size)+size));
+            ((moveX*size)+(size/2)));
             console.log((o.moveY*size) + " > " + 
-            ((moveY*size)-size));
+            ((moveY*size)-(size/2)));
             console.log((o.moveY*size) + " < " + 
-            ((moveY*size)+size));
+            ((moveY*size)+(size/2)));
         }
 
-        return (o.moveX*size) > ((moveX*size)-size) && 
-        (o.moveX*size) < ((moveX*size)+size) && 
-        (o.moveY*size) > ((moveY*size)-size) && 
-        (o.moveY*size) < ((moveY*size)+size);
+        return (o.moveX*size) > ((moveX*size)-(size/2)) && 
+        (o.moveX*size) < ((moveX*size)+(size/2)) && 
+        (o.moveY*size) > ((moveY*size)-(size/2)) && 
+        (o.moveY*size) < ((moveY*size)+(size/2));
     });
 
     var n = (positionArray.length-1)-nr;
-    console.log(n);
+    console.log(positionArray[n].id);
 
     var offsetX = (moveX % 0.5);
     var offsetY = (moveY % 0.5);
