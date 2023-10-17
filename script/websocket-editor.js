@@ -73,7 +73,6 @@ $(document).ready(function() {
     var x = 0;
     var y = 0;
 
-    /*
     frameView.ontouchstart = function(e) {
         var size = (sw/resolution);
 
@@ -82,6 +81,8 @@ $(document).ready(function() {
 
         var moveX = (e.touches[0].clientX / size);
         var moveY = (e.touches[0].clientY / size);
+
+        if (moveEnabled)
         updatePosition(moveX, moveY);
     };
 
@@ -91,7 +92,7 @@ $(document).ready(function() {
         var moveX = (e.touches[0].clientX / size);
         var moveY = (e.touches[0].clientY / size);
         //updatePosition(moveX, moveY);
-    };*/
+    };
 
     resolutionView = document.createElement("canvas");
     resolutionView.width = (sw);
@@ -121,7 +122,8 @@ $(document).ready(function() {
     document.body.appendChild(downloadView);
 
     downloadView.onclick = function() {
-        var dataURL = frameView.toDataURL();
+        var dataURL = moveEnabled ? 
+        downloadSelected() : frameView.toDataURL();
         var hiddenElement = document.createElement('a');
         hiddenElement.href = dataURL;
         hiddenElement.target = "_blank";
@@ -183,7 +185,7 @@ $(document).ready(function() {
 
     countView.onclick = function() {
         resolution = 
-        ((Math.floor(resolution/5)*5)+5) < 30 ? 
+        ((Math.floor(resolution/5)*5)+5) < 50 ? 
         ((Math.floor(resolution/5)*5)+5) : 5;
         updateResolution(resolution);
         countView.innerText = (resolution+"x");
@@ -305,6 +307,31 @@ $(document).ready(function() {
 
         var urlObj = URL.createObjectURL(e.target.files[0]);
         imageView.src = urlObj;
+    };
+
+    moveEnabled = false;
+    toggleMoveView = document.createElement("span");
+    toggleMoveView.style.position = "absolute";
+    toggleMoveView.style.color = "#fff";
+    toggleMoveView.innerText = moveEnabled ? 
+    "ON" : "OFF";
+    toggleMoveView.style.lineHeight = "50px";
+    toggleMoveView.style.fontSize = "30px";
+    toggleMoveView.style.fontFamily = "Khand";
+    toggleMoveView.style.left = (160)+"px";
+    toggleMoveView.style.top = ((sh-110))+"px";
+    toggleMoveView.style.width = (50)+"px";
+    toggleMoveView.style.height = (50)+"px"; 
+    toggleMoveView.style.scale = "0.9";
+    toggleMoveView.style.border = "1px solid #fff";
+    toggleMoveView.style.borderRadius = "50%";
+    toggleMoveView.style.zIndex = "15";
+    document.body.appendChild(toggleMoveView);
+
+    toggleMoveView.onclick = function() {
+        moveEnabled = !moveEnabled;
+        toggleMoveView.innerText = moveEnabled ? 
+        "ON" : "OFF";
     };
 
     updateResolution(5);
@@ -436,7 +463,8 @@ var drawImage = function() {
     var height = resolutionView.height;
     for (var n = 0; n < positionArray.length; n++) {
         if (imageUploaded || cameraOn)
-        ctx.strokeStyle = "#000";
+        ctx.strokeStyle = positionArray[n].selected ? 
+        "lightblue" : "#000";
         else
         ctx.strokeStyle = positionArray[n].selected ? 
         "orange" : "#888";
@@ -470,6 +498,8 @@ var drawImage = function() {
         polygon = createPolygon6(c, size, c.x, c.y, 0);
         else if (type == 4)
         polygon = createPolygon8(c, size, c.x, c.y, 0);
+
+        positionArray[n].polygon = polygon;
 
         ctx.beginPath();
         ctx.moveTo(polygon[0].x, polygon[0].y);
@@ -552,9 +582,12 @@ var createArray = function() {
     }
 };
 
+var selected = 0;
 var updatePosition = function(moveX, moveY) {
     var size = (sw/resolution);
     var reverseArray = positionArray.toReversed();
+
+    console.log(moveX, moveY);
 
     var nr = reverseArray.findIndex((o) => { 
         if ((o.moveX*size) > ((moveX*size)-size) && 
@@ -583,8 +616,8 @@ var updatePosition = function(moveX, moveY) {
     var offsetX = (moveX % 0.5);
     var offsetY = (moveY % 0.5);
     console.log(moveX, moveY, offsetX, offsetY);
-    var positionX = (moveX-offsetX);
-    var positionY = (moveY-offsetY);
+    var positionX = Math.floor(moveX-offsetX)+0.5;
+    var positionY = Math.floor(moveY-offsetY)+0.5;
 
     for (var k = 0; k < positionArray.length; k++) {
         positionArray[k].selected = false
@@ -594,11 +627,48 @@ var updatePosition = function(moveX, moveY) {
     positionArray[n].moveY = positionY; //moveY;*/
     positionArray[n].selected = true;
 
-    moveView.style.left = ((moveX*size)-(size/2))+"px";
-    moveView.style.top = ((moveY*size)-(size/2))+"px";
+    moveView.style.left = ((positionX*size)-(size/2))+"px";
+    moveView.style.top = ((positionY*size)-(size/2))+"px";
 
     var pos = positionArray.splice(n, 1)[0];
     positionArray.push(pos);
+};
+
+var downloadSelected = function() {
+    selected = (positionArray.length-1);
+    var size = (sw/resolution);
+
+    var canvas = document.createElement("canvas");
+    canvas.width = size*(1+(2/3)/2);
+    canvas.height = size*(1+(2/3)/2);
+
+    var ctx = canvas.getContext("2d");
+    ctx.strokeStyle = "#fff";
+
+    ctx.save();
+    ctx.translate((canvas.width/2), (canvas.height/2));
+
+    var polygon = positionArray[selected].polygon;
+    ctx.beginPath();
+    ctx.moveTo((polygon[0].base.x*(size/2)), 
+    (polygon[0].base.y*(size/2)));
+    for (var k = 1; k < polygon.length; k++) {
+        ctx.lineTo((polygon[k].base.x*(size/2)), 
+        (polygon[k].base.y*(size/2)));
+    }
+    ctx.stroke();
+    ctx.clip();
+
+    ctx.translate(-(canvas.width/2), -(canvas.height/2));
+
+    ctx.drawImage(frameView, 
+    (positionArray[selected].x*size)-(((1/3)/2)*size), 
+    (positionArray[selected].y*size)-(((1/3)/2)*size), 
+    canvas.width, canvas.height, 
+    0, 0, canvas.width, canvas.height);
+
+    ctx.restore();
+    return canvas.toDataURL();
 };
 
 var updateArray = function() {
@@ -730,6 +800,10 @@ var createPolygon = function(pos, size, x, y, removed) {
     polygon.push({ x: -1, y: 1 });
 
     for (var n = 0; n < polygon.length; n++) {
+        polygon[n].base = {
+            x: polygon[n].x,
+            y: polygon[n].y
+        };
         polygon[n].x = (pos.moveX + (polygon[n].x/2))*size;
         polygon[n].y = (pos.moveY + (polygon[n].y/2))*size;
     }
