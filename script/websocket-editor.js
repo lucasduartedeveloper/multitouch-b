@@ -60,6 +60,7 @@ $(document).ready(function() {
     frameView.getContext("2d").imageSmoothingEnabled = false;
 
     frameView.onclick = function() {
+        if (imageUploaded) return;
         if (cameraOn) {
             updateImage = !updateImage;
         }
@@ -295,11 +296,15 @@ $(document).ready(function() {
     imageView.style.zIndex = "15";
     //document.body.appendChild(imageView);
 
+    holdImage = false;
     imageView.onload = function() {
+        if (!holdImage)
         updateSet(false);
+
         imageUploaded = true;
+        holdImage = false;
     };
-    imageView.src = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSXBqX72S0LMRvsaCYxqwd_rl5YuYi2hNOlgA&usqp=CAU";
+    imageView.src = img_list[0];
 
     fileInput = document.createElement("input");
     fileInput.type = "file";
@@ -457,6 +462,12 @@ $(document).ready(function() {
     animate();
 });
 
+var imgNo = 0;
+var img_list = [
+    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSXBqX72S0LMRvsaCYxqwd_rl5YuYi2hNOlgA&usqp=CAU",
+    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSretp8t4eUZMSTy0IJGhmOPveUPay6O9tq7A&usqp=CAU"
+];
+
 var localCount = 0;
 var remoteCount = 0;
 
@@ -525,12 +536,27 @@ var updateResolution = function(n) {
 };
 
 var updateSet = function(local=true) {
-    var n = Math.floor(Math.random()*(imageY*resolution));
-    removedId = n;
+    var size = imageY > 0 ? 
+    (imageY*resolution)+1 : (resolution*resolution);
+    var list = [];
+    for (var k = 0; k < size; k++) {
+        if (k != removedId)
+        list.push(k);
+    }
+
+    var n = Math.floor(Math.random()*list.length);
+    removedId = list[n];
     if (local)
     ws.send("PAPER|"+playerId+"|update-set");
 
     countView.innerText = localCount+" / "+remoteCount;
+
+    if (localCount > 0 && (localCount % 10) == 0) {
+        imageY = 0;
+        imgNo = (imgNo+1) < img_list.length ? (imgNo+1) : 0;
+        holdImage = true;
+        imageView.src = img_list[imgNo];
+    }
 }
 
 var resolution = 10;
@@ -586,35 +612,66 @@ var drawImage = function() {
     var imageX = 0;
     var imageWidth = sh;
     if (imageUploaded) {
+        var portrait = (imageView.height > imageView.width);
+
         ctx.save();
         ctx.translate((sw/2), (sh/2));
+        if (!portrait)
         ctx.rotate((Math.PI/2));
         ctx.translate(-(sw/2), -(sh/2));
 
-        var image = {
-            width: imageView.width,
-            height: imageView.height
-        };
+        if (!portrait) {
+            var image = {
+                width: imageView.width,
+                height: imageView.height
+            };
 
-        var frame = {
-            width: sw,
-            height: sh
-        };
+            var frame = {
+                width: sw,
+                height: sh
+            };
 
-        var r = (imageView.width/imageView.height);
-        var height = sw;
-        var width = sw*r;
+            var r = (imageView.width/imageView.height);
+            var height = sw;
+            var width = sw*r;
 
-        var left = ((sw/2)-(width/2))-((sh-width)/2);
-        var top = (sh/2)-(height/2);
+            var left = ((sw/2)-(width/2))-((sh-width)/2);
+            var top = (sh/2)-(height/2);
 
-        var format = fitImageCover(image, frame);
-        //console.log(format);
-        ctx.drawImage(imageView, left, top, 
-        width, height);
+            var format = fitImageCover(image, frame);
+            //console.log(format);
+            ctx.drawImage(imageView, left, top, 
+            width, height);
 
-        imageWidth = width;
-        ctx.restore();
+            imageWidth = width;
+            ctx.restore();
+        }
+        else {
+            var image = {
+                width: imageView.width,
+                height: imageView.height
+            };
+
+            var frame = {
+                width: sw,
+                height: sh
+            };
+
+            var r = (imageView.height/imageView.width);
+            var width = sw;
+            var height = sw*r;
+
+            var left = 0;
+            var top = 0;
+
+            var format = fitImageCover(image, frame);
+            //console.log(format);
+            ctx.drawImage(imageView, left, top, 
+            width, height);
+
+            imageWidth = height;
+            ctx.restore();
+        }
     }
 
     ctx.lineWidth = 2;
@@ -624,6 +681,23 @@ var drawImage = function() {
 
     var width = resolutionView.width;
     var height = resolutionView.height;
+
+    var ordered_positionArray = positionArray.toSorted((a, b) => {
+        return a - b;
+    });
+
+    var expectedY = 0;
+    for (var n = 0; n < ordered_positionArray.length; n++) {
+        var c = ordered_positionArray[n];
+
+        if ((imageX < resolution) && ((c.y+1.2)*size) > imageWidth) {
+            var removed = 0;
+            imageX = (imageX+1);
+            imageY = c.y;
+        }
+        expectedY = imageY;
+    }
+
     for (var n = 0; n < positionArray.length; n++) {
         if (imageUploaded || cameraOn)
         ctx.strokeStyle = positionArray[n].selected ? 
@@ -642,13 +716,10 @@ var drawImage = function() {
         imageArray[w+2]+",1)";
 
         var removed = -1;
-        if ((imageX < resolution) && 
-            ((c.y+1.5)*size) > imageWidth) {
+        if (c.y == imageY) {
             removed = 0;
-            imageX = (imageX+1);
-            imageY = c.y;
         }
-        else if (imageY > 0 && (c.y-imageY) == 1) {
+        if (imageY > 0 && (c.y-imageY) == 1) {
             removed = 1;
         }
 
@@ -1094,3 +1165,14 @@ document.addEventListener(visibilityChange, function(){
         console.log("backgroundMode: "+backgroundMode);
     }
 }, false);
+
+/*
+    var position = [ 0, 1, 2 ];
+    var logPosition = function() {
+        var ordered_position = position.toSorted(
+        (a, b) => { return b - a; });
+        var position = ordered_position;
+        console.log(ordered_position, position);
+    };
+    logPosition();
+*/
