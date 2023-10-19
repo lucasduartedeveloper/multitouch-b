@@ -46,6 +46,17 @@ $(document).ready(function() {
     document.body.appendChild(camera);
     cameraElem = camera;
 
+    frameViewContainer = document.createElement("div");
+    frameViewContainer.style.position = "absolute";
+    frameViewContainer.width = (sw);
+    frameViewContainer.style.left = (0)+"px";
+    frameViewContainer.style.top = (0)+"px";
+    frameViewContainer.style.width = (sw)+"px";
+    frameViewContainer.style.height = (sh)+"px"; 
+    frameViewContainer.style.overflowY = "scroll";
+    frameViewContainer.style.zIndex = "15";
+    document.body.appendChild(frameViewContainer);
+
     frameView = document.createElement("canvas");
     frameView.style.position = "absolute";
     frameView.width = (sw);
@@ -465,7 +476,10 @@ $(document).ready(function() {
 var imgNo = 0;
 var img_list = [
     "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSXBqX72S0LMRvsaCYxqwd_rl5YuYi2hNOlgA&usqp=CAU",
-    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSretp8t4eUZMSTy0IJGhmOPveUPay6O9tq7A&usqp=CAU"
+    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSretp8t4eUZMSTy0IJGhmOPveUPay6O9tq7A&usqp=CAU",
+    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQrSCHr-vSS_t_c1l2tq4lSqY6jJCOD11n2Uw&usqp=CAU",
+    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSHoxqPqapU7MOxKoi2hVKGyCpHqII4T6z3Kw&usqp=CAU",
+    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTg_38vHuCpP5CQLqbnoQ6Dks-A7uwFnPQlg&usqp=CAU"
 ];
 
 var localCount = 0;
@@ -533,11 +547,13 @@ var updateResolution = function(n) {
     moveView.style.lineHeight = (sw/resolution)+"px";
 
     createArray();
+
+    frameViewContainer.style.height = ((sw/resolution)*7)+"px";
 };
 
 var updateSet = function(local=true) {
-    var size = imageY > 0 ? 
-    (imageY*resolution)+1 : (resolution*resolution);
+    var size = imageLimit > 0 ? 
+    (imageLimit*resolution)+1 : (resolution*resolution);
     var list = [];
     for (var k = 0; k < size; k++) {
         if (k != removedId)
@@ -593,6 +609,9 @@ var drawImage = function() {
     ctx = frameView.getContext("2d");
     ctx.clearRect(0, 0, sw, sh);
 
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, sw, sh);
+
     if (colorMode == 1 && !imageUploaded) {
         var image = {
             width: vw,
@@ -635,15 +654,24 @@ var drawImage = function() {
             var height = sw;
             var width = sw*r;
 
+            var sizeOffset = (width % (sw/resolution));
+            var cutWidth = (width - sizeOffset);
+
+            var r = cutWidth / height;
+            var srcCutWidth = imageView.height * r;
+            var srcSizeOffset = (imageView.width % (sw/resolution));
+
             var left = ((sw/2)-(width/2))-((sh-width)/2);
             var top = (sh/2)-(height/2);
 
             var format = fitImageCover(image, frame);
             //console.log(format);
-            ctx.drawImage(imageView, left, top, 
-            width, height);
+            ctx.drawImage(imageView, 
+            srcSizeOffset, 0, srcCutWidth, imageView.height, 
+            left, top, 
+            cutWidth, height);
 
-            imageWidth = width;
+            imageLimit = Math.floor(cutWidth / (sw/resolution))-1;
             ctx.restore();
         }
         else {
@@ -661,15 +689,24 @@ var drawImage = function() {
             var width = sw;
             var height = sw*r;
 
+            var sizeOffset = (height % (sw/resolution));
+            var cutHeight = (height - sizeOffset);
+
+            var r = cutHeight / width;
+            var srcCutHeight = imageView.width * r;
+            var srcSizeOffset = (imageView.height % (sw/resolution));
+
             var left = 0;
             var top = 0;
 
             var format = fitImageCover(image, frame);
             //console.log(format);
-            ctx.drawImage(imageView, left, top, 
-            width, height);
+            ctx.drawImage(imageView, 
+            0, 0, imageView.width, srcCutHeight, 
+            left, top, 
+            width, cutHeight);
 
-            imageWidth = height;
+            imageLimit = Math.floor(cutHeight / (sw/resolution))-1;
             ctx.restore();
         }
     }
@@ -716,10 +753,10 @@ var drawImage = function() {
         imageArray[w+2]+",1)";
 
         var removed = -1;
-        if (c.y == imageY) {
+        if ((c.y - imageLimit) == 0) {
             removed = 0;
         }
-        if (imageY > 0 && (c.y-imageY) == 1) {
+        if ((c.y - imageLimit) == 1) {
             removed = 1;
         }
 
@@ -775,6 +812,7 @@ var drawImage = function() {
     }
 };
 
+var imageLimit = 0;
 var imageY = 0;
 
 var drawToShape = function(ctx) {
