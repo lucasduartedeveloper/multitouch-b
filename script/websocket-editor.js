@@ -479,7 +479,8 @@ var img_list = [
     "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSretp8t4eUZMSTy0IJGhmOPveUPay6O9tq7A&usqp=CAU",
     "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQrSCHr-vSS_t_c1l2tq4lSqY6jJCOD11n2Uw&usqp=CAU",
     "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSHoxqPqapU7MOxKoi2hVKGyCpHqII4T6z3Kw&usqp=CAU",
-    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTg_38vHuCpP5CQLqbnoQ6Dks-A7uwFnPQlg&usqp=CAU"
+    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTg_38vHuCpP5CQLqbnoQ6Dks-A7uwFnPQlg&usqp=CAU",
+    "img/background-0.png"
 ];
 
 var localCount = 0;
