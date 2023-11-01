@@ -106,6 +106,54 @@ $(document).ready(function() {
         //updatePosition(moveX, moveY);
     };
 
+    showPath = false;
+    window.ontouchstart = function(e) {
+        showPath = false;
+        path = [];
+        var pos = {
+            x: e.touches[0].clientX, 
+            y: e.touches[0].clientY
+        };
+        path.push(pos);
+    };
+
+    window.ontouchmove = function(e) {
+        //navigator.vibrate(100);
+        var pos = {
+            x: e.touches[0].clientX, 
+            y: e.touches[0].clientY
+        };
+        path.push(pos);
+    };
+
+    window.ontouchend = function(e) {
+        var size = (sw/resolution);
+
+        var moveX = (path[path.length-1].x / size);
+        var moveY = (path[path.length-1].y / size);
+
+        if (moveEnabled)
+        updatePosition(moveX, moveY);
+
+        distance = 0;
+        for (var n = 1; n < path.length; n++) {
+            var co = Math.abs(path[n].x - path[n-1].x);
+            var ca = Math.abs(path[n].y - path[n-1].y);
+            var hyp = Math.sqrt(
+                 Math.pow(co, 2) + 
+                 Math.pow(ca, 2)
+            );
+            //console.log(co, ca, hyp);
+            distance += hyp;
+        }
+        //console.log(distance);
+        distanceView.innerText = 
+        (distance/ppcm).toFixed(2) + 
+        " cm";
+
+        showPath = true;
+    };
+
     resolutionView = document.createElement("canvas");
     resolutionView.width = (sw);
     resolutionView.height = (sh);
@@ -416,6 +464,25 @@ $(document).ready(function() {
     countView.style.zIndex = "15";
     menuView.appendChild(countView);
 
+    distanceView = document.createElement("span");
+    distanceView.style.position = "absolute";
+    distanceView.style.background = "#fff";
+    distanceView.style.color = "#000";
+    distanceView.innerText = "0 cm";
+    distanceView.style.objectFit = "contain";
+    distanceView.style.lineHeight = "75px";
+    distanceView.style.fontSize = "15px";
+    distanceView.style.textAlign = "left";
+    distanceView.style.fontFamily = "Khand";
+    distanceView.style.left = (10)+"px";
+    distanceView.style.top = (50)+"px";
+    distanceView.style.width = (80)+"px";
+    distanceView.style.height = (50)+"px"; 
+    distanceView.style.border = "1px solid #fff";
+    distanceView.style.borderRadius = "10px";
+    distanceView.style.zIndex = "15";
+    menuView.appendChild(distanceView);
+
     menuViewImg = document.createElement("img");
     menuViewImg.style.position = "absolute";
     menuViewImg.style.background = "#fff";
@@ -472,6 +539,10 @@ $(document).ready(function() {
     updateResolution(5);
     animate();
 });
+
+var ppcm = 50;
+var distance = 0;
+var path = [];
 
 var imgNo = 0;
 var img_list = [
@@ -811,6 +882,18 @@ var drawImage = function() {
 
         ctx.restore();
     }
+
+    if (showPath && path.length > 1) {
+        ctx.strokeStyle = "white";
+        ctx.setLineDash([2, 2]);
+        ctx.beginPath();
+        ctx.moveTo(path[0].x, path[0].y);
+        for (var n = 1; n < path.length; n++) {
+            ctx.lineTo(path[n].x, path[n].y);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+    }
 };
 
 var imageLimit = 0;
@@ -856,26 +939,13 @@ var createArray = function() {
     }
 };
 
+
 var selected = 0;
 var updatePosition = function(moveX, moveY) {
     var size = (sw/resolution);
     var reverseArray = positionArray.toReversed();
 
     var nr = reverseArray.findIndex((o) => { 
-        if ((o.moveX*size) > ((moveX*size)-(size/2)) && 
-        (o.moveX*size) < ((moveX*size)+(size/2)) && 
-        (o.moveY*size) > ((moveY*size)-(size/2)) && 
-        (o.moveY*size) < ((moveY*size)+(size/2))) {
-            console.log((o.moveX*size) + " > " + 
-            ((moveX*size)-(size/2)));
-            console.log((o.moveX*size) + " < " + 
-            ((moveX*size)+(size/2)));
-            console.log((o.moveY*size) + " > " + 
-            ((moveY*size)-(size/2)));
-            console.log((o.moveY*size) + " < " + 
-            ((moveY*size)+(size/2)));
-        }
-
         return (o.moveX*size) > ((moveX*size)-(size/2)) && 
         (o.moveX*size) < ((moveX*size)+(size/2)) && 
         (o.moveY*size) > ((moveY*size)-(size/2)) && 
@@ -883,11 +953,11 @@ var updatePosition = function(moveX, moveY) {
     });
 
     var n = (positionArray.length-1)-nr;
-    console.log(positionArray[n].id);
+    //console.log(positionArray[n].id);
 
     var offsetX = (moveX % 0.5);
     var offsetY = (moveY % 0.5);
-    console.log(moveX, moveY, offsetX, offsetY);
+    //console.log(moveX, moveY, offsetX, offsetY);
     var positionX = Math.floor(moveX-offsetX)+0.5;
     var positionY = Math.floor(moveY-offsetY)+0.5;
 
