@@ -108,6 +108,9 @@ $(document).ready(function() {
 
     showPath = false;
     window.ontouchstart = function(e) {
+        timerStarted = true;
+        startTime = new Date().getTime();
+
         showPath = false;
         path = [];
         var pos = {
@@ -124,16 +127,6 @@ $(document).ready(function() {
             y: e.touches[0].clientY
         };
         path.push(pos);
-    };
-
-    window.ontouchend = function(e) {
-        var size = (sw/resolution);
-
-        var moveX = (path[path.length-1].x / size);
-        var moveY = (path[path.length-1].y / size);
-
-        if (moveEnabled)
-        updatePosition(moveX, moveY);
 
         distance = 0;
         for (var n = 1; n < path.length; n++) {
@@ -150,6 +143,17 @@ $(document).ready(function() {
         distanceView.innerText = 
         (distance/ppcm).toFixed(2) + 
         " cm";
+    };
+
+    window.ontouchend = function(e) {
+        timerStarted = false;
+        var size = (sw/resolution);
+
+        var moveX = (path[path.length-1].x / size);
+        var moveY = (path[path.length-1].y / size);
+
+        if (moveEnabled)
+        updatePosition(moveX, moveY);
 
         showPath = true;
     };
@@ -540,6 +544,8 @@ $(document).ready(function() {
     animate();
 });
 
+var startTime = 0;
+var timerStarted = false;
 var ppcm = 50;
 var distance = 0;
 var path = [];
@@ -598,6 +604,11 @@ var animationSpeed = 0;
 var animate = function() {
     elapsedTime = new Date().getTime()-renderTime;
     if (!backgroundMode) {
+        if (timerStarted) {
+            var timer = new Date().getTime() - startTime;
+            timerView.innerText = toTimestamp(timer);
+        };
+
         if (!(!updateImage && colorMode == 1))
         drawImage();
 
@@ -605,6 +616,17 @@ var animate = function() {
     }
     renderTime = new Date().getTime();
     requestAnimationFrame(animate);
+};
+
+var toTimestamp = function(timer) {
+    //console.log(timer);
+
+    var miliseconds = (timer % 1000);
+    var seconds = Math.floor((timer % 60000) / 1000);
+    var minutes = Math.floor(timer / 60000);
+
+    return (minutes).toString().padStart(2, "0") + ":" + 
+    (seconds).toString().padStart(2, "0");
 };
 
 var updateResolution = function(n) {
