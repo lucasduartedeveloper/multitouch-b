@@ -910,11 +910,32 @@ var drawImage = function() {
         ctx.setLineDash([2, 2]);
         ctx.beginPath();
         ctx.moveTo(path[0].x, path[0].y);
-        for (var n = 1; n < path.length; n++) {
+
+        var w = path.length;
+        for (var n = (path.length-1); n > 0; n--) {
+            var co = Math.abs(path[path.length-1].x - path[n].x);
+            var ca = Math.abs(path[path.length-1].y - path[n].y);
+            var hyp = Math.sqrt(
+                 Math.pow(co, 2) + 
+                 Math.pow(ca, 2)
+            );
+            if (hyp > 10) {
+                w = n;
+                break;
+            }
+        }
+
+        for (var n = 1; n < (w+1); n++) {
             ctx.lineTo(path[n].x, path[n].y);
         }
         ctx.stroke();
         ctx.setLineDash([]);
+
+        ctx.fillStyle = "white";
+        ctx.beginPath();
+        ctx.arc(path[path.length-1].x, path[path.length-1].y, 
+        5, 0, Math.PI * 2);
+        ctx.fill();
     }
 };
 
