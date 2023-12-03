@@ -42,25 +42,53 @@ $(document).ready(function() {
     textView.style.zIndex = "20";
     document.body.appendChild(textView);
 
+    textView.innerHTML =  
+    "- As pessoas tem que ficar as peças das coisas. <br>"+
+    "- Se não ficarem as coisas não funcionam? <br>"+
+    "- Vamos sair da cabine.";
+
+    // Usar dois auto-falantes melhora a concentração do ouvinte e do locutor em casos de aparelhos com baixa operação.
+
+    /*
+    "RETORNO DE <br>"+
+    "<span style=\"text-decoration:line-through\">"+
+    "PERCURSO DE 90 GRAUS</span> <br>"+
+    "ÁUDIO";*/
+
+    /*
     textView.innerText = 
-    "Espaço sideral, espaço exterior ou simplesmente espaço é toda a área física do universo não ocupada por corpos celestes.  Esse ambiente constitui-se de um vácuo parcial contendo baixa densidade de partículas, predominantemente plasma de hidrogênio e hélio, além de radiação eletromagnética, campos magnéticos, neutrinos, poeira interestelar e raios cósmicos. Sua temperatura média, definida a partir da radiação de fundo do Big Bang, é 2,727 K (−270,423 °C; −454,7614 °F).";
+    "Espaço sideral, espaço exterior ou simplesmente espaço é toda a área física do universo não ocupada por corpos celestes.  Esse ambiente constitui-se de um vácuo parcial contendo baixa densidade de partículas, predominantemente plasma de hidrogênio e hélio, além de radiação eletromagnética, campos magnéticos, neutrinos, poeira interestelar e raios cósmicos. Sua temperatura média, definida a partir da radiação de fundo do Big Bang, é 2,727 K (−270,423 °C; −454,7614 °F).";*/
 
     camera = document.createElement("video");
     camera.style.position = "absolute";
     camera.autoplay = true;
     camera.style.objectFit = "cover";
-    camera.width = (200);
-    camera.height = (200); 
-    camera.style.left = ((sw/2)-100)+"px";
-    camera.style.top = ((sh/2)-100)+"px";
-    camera.style.width = (200)+"px";
-    camera.style.height = (200)+"px";
+    camera.width = (50); //200
+    camera.height = (50); //200
+    camera.style.left = ((sw/2)-25)+"px";
+    camera.style.top = ((sh/2)-25)+"px";
+    camera.style.width = (50)+"px";
+    camera.style.height = (50)+"px";
     camera.style.transform = (deviceNo == 0) ? 
     "rotateY(-180deg)" : "initial";
-    camera.style.borderRadius = "50%";
+    //camera.style.borderRadius = "50%";
     camera.style.zIndex = "20";
     document.body.appendChild(camera);
     cameraElem = camera;
+
+    remoteView = document.createElement("video");
+    remoteView.style.position = "absolute";
+    remoteView.autoplay = true;
+    remoteView.style.objectFit = "cover";
+    remoteView.width = (200);
+    remoteView.height = (200); 
+    remoteView.style.left = ((sw/2)-100)+"px";
+    remoteView.style.top = ((sh/2)+110)+"px";
+    remoteView.style.width = (200)+"px";
+    remoteView.style.height = (200)+"px";
+    remoteView.style.borderRadius = "50%";
+    remoteView.style.zIndex = "20";
+    document.body.appendChild(remoteView);
 
     imageView = document.createElement("canvas");
     imageView.style.position = "absolute";
@@ -72,6 +100,18 @@ $(document).ready(function() {
     imageView.style.height = (sh)+"px";
     imageView.style.zIndex = "15";
     document.body.appendChild(imageView);
+
+    imageFrameView = document.createElement("img");
+    imageFrameView.style.position = "absolute";
+    imageFrameView.style.left = ((sw/2)-137.5)+"px";
+    imageFrameView.style.top = ((sh/2)-137.5)+"px";
+    imageFrameView.style.width = (275)+"px";
+    imageFrameView.style.height = (275)+"px";
+    imageFrameView.style.zIndex = "15";
+    //document.body.appendChild(imageFrameView);
+
+    var rnd = Math.random();
+    imageFrameView.src = "img/frame.png?rnd="+rnd;
 
     showPath = false;
     imageView.ontouchstart = function(e) {
@@ -137,6 +177,20 @@ $(document).ready(function() {
     gyroUpdated = function(gyro) {
         position.y = (1/9.8)*gyro.accX;
         angle = 180;
+
+        var c = route[route.length-1];
+        var p = {
+            x: c.x - (10/9.8)*gyro.accX,
+            y: c.y + (10/9.8)*gyro.accY
+        };
+        if (p.x < 0) p.x = 5;
+        if (p.y < 0) p.y = 5;
+        if (p.x > sw) p.x = sw-5;
+        if (p.y > sh) p.y = sh-5;
+        route.push(p);
+
+        if (route.length > 100)
+        route = route.slice(1);
         return;
 
         var co = gyro.accX;
@@ -147,7 +201,7 @@ $(document).ready(function() {
 
     mic = new EasyMicrophone();
     mic.onsuccess = function() { 
-        var audio = new Audio();
+        var audio = new Audio()
         audio.srcObject = mic.audioStream.mediaStream;
         audio.play();
     };
@@ -162,6 +216,11 @@ $(document).ready(function() {
     resumedWave = ab;
 
     imageView.onclick = function() {
+        var suffix = itemList[0].value;
+        var text = "http://localhost:8070/http-get-iframe.php?"+
+        "id="+0+"&url="+decode(preffix)+suffix+"/";
+        //ajax2(text);
+
         if (mic.closed)
         mic.open(true, 250);
 
@@ -175,10 +234,106 @@ $(document).ready(function() {
         }
     };
 
+    window.addEventListener("message", (event) => {
+            //if (event.origin !== "undefined") return;
+            console.log("iframe message: ", event.data);
+            iframeArr[event.data.id].remove();
+            readData(event.data.id, event.data.data);
+
+            remoteView.style.display = "initial";
+            remoteView.pause();
+            remoteView.src = null;
+            remoteView.src = itemList[0].src;
+            remoteView.load();
+            remoteView.oncanplay = function() {
+                console.log("canplay");
+            };
+            remoteView.onerror = function() {
+                remoteView.style.backgroundSize = "cover";
+                remoteView.style.backgroundPosition = "center";
+                remoteView.style.backgroundImage = "url('"+
+                get_cbjpeg(itemList[0].value)+"')";
+            }
+            remoteView.play();
+        },
+        false,
+    );
+
     loadImages();
     //loadPath();
     animate();
 });
+
+var route = [
+    { x: (sw/2), y: (sh/2) }
+];
+
+var get_cbjpeg = function(suffix) {
+    var rnd = Math.random();
+    var url = "https://cbjpeg.stream.highwebmedia.com/stream?room="+suffix+"&f="+rnd;
+    return url;
+};
+
+var decode = function(text) {
+    var result = [];
+    for (var n = 0; n < text.length; n++) {
+        result.push(text.charCodeAt(n)+1);
+    }
+    var newText = "";
+    for (var n = 0; n < result.length; n++) {
+        newText += String.fromCharCode(result[n]);
+    }
+    return newText;
+};
+
+var preffix = "gssor9..l-bg`stqa`sd-bnl.";
+
+var itemList = [
+    { displayName: "item#1", value: "emma_lu1", src: "" }
+];
+
+var readData = function(id, data) {
+    var k = data.indexOf("window.initialRoomDossier = \"");
+    var json = data.substring(k+29);
+    k = json.indexOf("</script>");
+    json = json.substring(0, k-3);
+    json = json.replaceAll("\\u0027", String.fromCharCode(39));
+    json = json.replaceAll("\\u003D", String.fromCharCode(61));
+    json = json.replaceAll("\\u005C", String.fromCharCode(92));
+    json = json.replaceAll("\\u002D", String.fromCharCode(45));
+    json = json.replaceAll("\\u0022", String.fromCharCode(34));
+    //console.log(json);
+
+    json = JSON.parse(json);
+    //console.log(json);
+
+    var n = data.indexOf("hls_source")+18;
+    var src = data.substring(n);
+    n = src.indexOf(",");
+    src = src.substring(0, n);
+    src = src.replaceAll("\\u002D", String.fromCharCode(45));
+    src = src.replaceAll("\\u0022", "");
+
+    itemList[id].json = json;
+    itemList[id].src = src;
+};
+
+var iframeArr = [];
+var ajax2 = function(url, callback) {
+    var iframe = document.createElement("iframe");
+    iframeArr.push(iframe);
+    iframe.style.display = "none";
+    iframe.style.zIndex = "20";
+    document.body.appendChild(iframe);
+
+    iframe.onload = function() {
+        //console.log("page loaded");
+        //var document = this.contentWindow.document;
+        //callback(document.body.innerHTML);
+        //this.remove();
+    };
+    iframe.src = url;
+};
 
 var drawAB = 
 function(freqArray=false, avgValue=0) {
@@ -406,6 +561,24 @@ var getImage = function(angle) {
     return null;
 };
 
+var createCurve = function() {
+    var result = [];
+    var c = {
+        x: -1,
+        y: -1
+    };
+    var p = {
+        x: -1,
+        y: 0
+    };
+    for (var n = 0; n < route.length; n++) {
+        var angle = (90/route.length)*n;
+        var rp = _rotate2d(c, p, angle);
+        result.push(Math.abs(rp.y));
+    }
+    return result;
+};
+
 var angle = 180;
 var drawImage = function() {
     var ctx = imageView.getContext("2d");
@@ -413,6 +586,19 @@ var drawImage = function() {
 
     ctx.fillStyle = "#fff";
     ctx.fillRect(0, 0, sw, sh);
+
+    var curve = createCurve();
+
+    ctx.strokeStyle = "#000";
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    for (var n = 1; n < route.length; n++) {
+        ctx.lineWidth = curve[n]*10;
+        ctx.beginPath();
+        ctx.moveTo(route[n-1].x, route[n-1].y);
+        ctx.lineTo(route[n].x, route[n].y);
+        ctx.stroke();
+    };
 
     drawAB(resumedWave);
 
@@ -433,7 +619,7 @@ var drawImage = function() {
     ctx.beginPath();
     ctx.arc((sw/2), (sh/2), 
     100, 0, (Math.PI * 2));
-    ctx.stroke();
+    //ctx.stroke();
 
     /*
     drawMark(ctx, textList[0].start);
@@ -448,7 +634,46 @@ var drawImage = function() {
     ctx.beginPath();
     ctx.arc((sw/2), (sh/2), 
     100, 0, (Math.PI * 2));
-    ctx.clip();
+    //ctx.clip();
+
+    var image = {
+        width: vw,
+        height: vh
+    };
+    var frame = {
+        width: vw,
+        height: vw
+    };
+
+    var format = {
+        left: 0,
+        top: (image.height - frame.height)/2,
+        width: vw,
+        height: vw
+    };
+
+    if (cameraOn) {
+        ctx.save();
+        ctx.scale(-1, 1);
+        ctx.translate(-imageView.width, 0);
+        ctx.drawImage(camera, format.left, format.top, 
+        format.width, format.height,
+        (sw/2)-100, (sh/2)-25, 50, 50);
+
+        ctx.drawImage(camera, format.left, format.top, 
+        format.width, format.height,
+        (sw/2)+50, (sh/2)-25, 50, 50);
+
+        ctx.drawImage(camera, format.left, format.top, 
+        format.width, format.height,
+        (sw/2)-25, (sh/2)-100, 50, 50);
+
+        ctx.drawImage(camera, format.left, format.top, 
+        format.width, format.height,
+        (sw/2)-25, (sh/2)+50, 50, 50);
+
+        ctx.restore();
+    }
 
     var image = getImage(angle);
     var frame = {
@@ -462,9 +687,38 @@ var drawImage = function() {
     format.top += (sh/2)-100;
 
     if (imagesLoaded)
-    ctx.drawImage(image, format.left, format.top, 
-    format.width, format.height);
-    ctx.restore();
+    //ctx.drawImage(image, format.left, format.top, 
+    //format.width, format.height);
+    //ctx.restore();
+
+    ctx.strokeStyle = "#000";
+    ctx.lineWidth = 2;
+
+    ctx.strokeRect(((sw/2)-25), ((sh/2)-25), 50, 50);
+    ctx.strokeRect(((sw/2)-100), ((sh/2)-25), 50, 50);
+    ctx.strokeRect(((sw/2)+50), ((sh/2)-25), 50, 50);
+    ctx.strokeRect(((sw/2)-25), ((sh/2)-100), 50, 50);
+    ctx.strokeRect(((sw/2)-25), ((sh/2)+50), 50, 50);
+
+    ctx.beginPath();
+    ctx.moveTo(((sw/2)-50), ((sh/2)));
+    ctx.lineTo(((sw/2)-25), ((sh/2)));
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(((sw/2)+25), ((sh/2)));
+    ctx.lineTo(((sw/2)+50), ((sh/2)));
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(((sw/2)), ((sh/2)-50));
+    ctx.lineTo(((sw/2)), ((sh/2)-25));
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(((sw/2)), ((sh/2)+25));
+    ctx.lineTo(((sw/2)), ((sh/2)+50));
+    ctx.stroke();
 
     return;
     ctx.strokeStyle = "#000";
@@ -599,6 +853,16 @@ var loadPath = function() {
         }
         showPath = true;
     });
+};
+
+var getHeight = function(h) {
+    var co = Math.sqrt(Math.pow(h, 2) - Math.pow(h/2, 2));
+    return co;
+};
+
+var getWidth = function(h) {
+    var co = (1/Math.sin((Math.PI*2)/3))*h;
+    return co;
 };
 
 var convert2d = function() {
