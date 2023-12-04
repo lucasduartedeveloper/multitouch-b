@@ -46,16 +46,6 @@ $(document).ready(function() {
     document.body.appendChild(camera);
     cameraElem = camera;
 
-    deviceNo = 0;
-    camera.onclick = function() {
-        if (cameraOn) {
-            flipX = !flipX;
-        }
-        else {
-            startCamera();
-        }
-    };
-
     imageView = document.createElement("canvas");
     imageView.style.position = "absolute";
     imageView.width = sw;
@@ -66,6 +56,16 @@ $(document).ready(function() {
     imageView.style.height = (sh)+"px";
     imageView.style.zIndex = "15";
     document.body.appendChild(imageView);
+
+    deviceNo = 0;
+    imageView.onclick = function() {
+        if (cameraOn) {
+            flipX = !flipX;
+        }
+        else {
+            startCamera();
+        }
+    };
 
     var startX = 0;
     var startY = 0;
@@ -409,118 +409,172 @@ var drawImage = function() {
     (sw/2)-(lineWidth/2),
     (sh/2)-(lineWidth/2), lineWidth, lineWidth);*/
 
-    if (imagesLoaded)
+    if (!cameraOn && imagesLoaded)
     ctx.drawImage(img_list[0], 
     format.left, format.top, format.width, format.height,
     0, (sh/2)-(sw/2), sw, sw);
 
-    if (!cameraOn && imagesLoaded)
-    for (var n = 0; n < 4; n++) {
-        var orientated = img_list[1].width > img_list[1].height;
-        var imageFormat = {
-            left: 
-            orientated ? 
-            (img_list[1].width/2) - (img_list[1].height/2) : 0,
-            top: 
-            orientated ? 
-            0 : (img_list[1].height/2) - (img_list[1].width/2),
-            width: 
-            orientated ? img_list[1].height : img_list[1].width,
-            height: 
-            orientated ? img_list[1].height : img_list[1].width,
-        }
-
-        var r = (vh/vw);
-        var width = (sh/r);
-        var height = sh;
-
-        var format = { 
-            left: 0,
-            top: ((sh/2)-(sw/2)),
-            width: (sw/2),
-            height: sw
-        };
-
-        format.height = format.height/2;
-
-        ctx.drawImage(img_list[1], 
-        0, 0, (img_list[1].width/2), (img_list[1].height/2),
-        format.left-(lineWidth/2), format.top-(lineWidth/2), 
-        format.width, format.height);
-
-        format.left = format.left + format.width;
-
-        ctx.drawImage(img_list[1], 
-        (img_list[1].width/2),  0, (img_list[1].width/2), 
-        (img_list[1].height/2),
-        format.left+(lineWidth/2), format.top-(lineWidth/2), 
-        format.width, format.height);
-
-        format.left = format.left - format.width;
-        format.top = format.top + format.height;
-
-        ctx.drawImage(img_list[1], 
-        0, (img_list[1].height/2), (img_list[1].width/2), 
-        (img_list[1].height/2),
-        format.left-(lineWidth/2), format.top+(lineWidth/2), 
-        format.width, format.height);
-
-        format.left = format.left + format.width;
-
-        ctx.drawImage(img_list[1], 
-        (img_list[1].width/2), (img_list[1].height/2), 
-        (img_list[1].width/2), (img_list[1].height/2),
-        format.left+(lineWidth/2), format.top+(lineWidth/2), 
-        format.width, format.height);
-    }
     if (cameraOn)
-    for (var n = 0; n < 4; n++) {
-        var r = (vh/vw);
-        var width = (sh/r);
-        var height = sh;
-
-        var format = { 
-            left: (sw-width)/2,
-            top: 0,
-            width: (width/2),
-            height: sh
-        };
-
-        format.height = format.height/2;
-
-        ctx.drawImage(camera, 
-        0, 0, (vw/2), (vh/2),
-        format.left-(lineWidth/2), format.top-(lineWidth/2), 
-        format.width, format.height);
-
-        format.left = format.left + format.width;
-
-        ctx.drawImage(camera, 
-        (vw/2),  0, (vw/2), (vh/2),
-        format.left+(lineWidth/2), format.top-(lineWidth/2), 
-        format.width, format.height);
-
-        format.left = format.left - format.width;
-        format.top = format.top + format.height;
-
-        ctx.drawImage(camera, 
-        0, (vh/2), (vw/2), (vh/2),
-        format.left-(lineWidth/2), format.top+(lineWidth/2), 
-        format.width, format.height);
-
-        format.left = format.left + format.width;
-
-        ctx.drawImage(camera, 
-        (vw/2), (vh/2), (vw/2), (vh/2),
-        format.left+(lineWidth/2), format.top+(lineWidth/2), 
-        format.width, format.height);
-    }
+    drawToSquare(ctx, camera);
     ctx.restore();
 
-    
+    if (!cameraOn && imagesLoaded)
+    drawToSquare(ctx, img_list[1]);
 
     if (updateWidth)
     lineWidth += 2;
+};
+
+var drawToSquare = function(ctx, image, size=30) {
+    var canvas = document.createElement("canvas");
+    canvas.width = sw;
+    canvas.height = sw;
+
+    ctx.lineWidth = 1;
+
+    var squareCtx = canvas.getContext("2d");
+
+    var format = fitImageCover(image, canvas);
+    squareCtx.drawImage(image, format.left, format.top, 
+    format.width, format.height);
+
+    var circles = [];
+    for (var n = 0; n < (size/2); n++) {
+        var obj = {
+            x: (sw/2),
+            y: (sh/2),
+            radius: (size/2)-(n+0.5),
+            parts: []
+        };
+        circles.push(obj);
+    };
+
+    var offsetX = 0;
+    var offsetY = (sh/2)-(sw/2);
+
+    var co = (size/2);
+    var ca = (size/2);
+    var max = Math.sqrt(
+    Math.pow(co, 2)+
+    Math.pow(ca, 2));
+
+    var parts = [];
+    for (var n = 0; n < (size*size); n++) {
+        var x = (n%size);
+        var y = Math.floor(n/size);
+
+        var left = (x*(sw/size));
+        var top = (y*(sw/size));
+
+        var dirX = (x < (size/2) ? -1 : 1);
+        var offX = ((size/2)-
+        Math.abs((x - (size/2)) < 0 ? 
+        (x - (size/2)) : 1+(x - (size/2))));
+        dirX = dirX * offX;
+
+        var dirY = (y < (size/2) ? -1 : 1);
+        var offY = ((size/2)-
+        Math.abs((y - (size/2)) < 0 ? 
+        (y - (size/2)) : 1+(y - (size/2))));
+        dirY = dirY * offY;
+
+        var diffX = Math.abs((x - (size/2)) < 0 ? 
+        (x - (size/2)) : 1+(x - (size/2)));
+        var diffY = Math.abs((y - (size/2)) < 0 ? 
+        (y - (size/2)) : 1+(y - (size/2)));
+
+        var pcXY = (1/diffY)*diffX;
+        var pcYX = (1/diffX)*diffY;
+
+        /*pcXY = pcXY > 1 ? 1 : pcXY;
+        pcYX = pcYX > 1 ? 1 : pcYX;*/
+
+        var co = diffX-0.5;
+        var ca = diffY-0.5;
+        var hyp = Math.sqrt(
+        Math.pow(co, 2)+
+        Math.pow(ca, 2));
+
+        var r = 1-((1/max)*hyp);
+
+        var order = (offX + offY);
+        var obj = {
+             hyp: hyp,
+             dirX: dirX,
+             dirY: dirY,
+             diffX: diffX,
+             diffY: diffY,
+             pcXY: pcXY,
+             pcYX: pcYX,
+             pos: { x: x, y: y },
+             order: order,
+             srcX: left,
+             srcY: top,
+             destX: offsetX + left + ((dirX*(lineWidth/2)) * (pcXY * r)),
+             destY: offsetY + top + ((dirY*(lineWidth/2)) * (pcYX * r))
+        };
+        parts.push(obj);
+    }
+
+    var ordered = parts.sort(function(a, b) {
+        return a.order > b.order ? 1 : -1;
+    });
+
+    for (var n = 0; n < parts.length; n++) {
+        var obj = parts[n];
+
+        var lastDiff = Math.abs(obj.hyp - circles[0].radius);
+        var cn = 0;
+        for (var k = 0; k < circles.length; k++) {
+            diff = Math.abs(obj.hyp - circles[k].radius);
+            if (diff < lastDiff)
+            cn = k;
+            lastDiff = diff;
+        }
+
+        circles[cn].parts.push(obj);
+    }
+
+    for (var n = 0; n < circles.length; n++) {
+        var obj = circles[n];
+
+        var c = { x: 0, y: 0 };
+        var p = { x: -1, y: 0 };
+        var rp = _rotate2d(c, p, (n*(90/(size/2))));
+
+        var radius = obj.radius + rp.y*(lineWidth/2);
+        var diff = radius - obj.radius;
+        obj.radius = radius;
+
+        obj.diff = diff;
+
+        for (var k = 0; k < obj.parts.length; k++) {
+            var part = obj.parts[k];
+
+            //part.destX += part.dirX * (diff);
+            //part.destY += part.dirY * (diff);
+
+            /*part.destX += ((part.dirX*(lineWidth/2)) * 
+            (part.pcXY * r));
+            part.destY += ((part.dirX*(lineWidth/2)) * 
+            (part.pcXY * r));*/
+
+            ctx.drawImage(canvas, part.srcX, part.srcY, 
+            (sw/size), (sw/size),
+            part.destX, part.destY, (sw/size), (sw/size));
+
+            ctx.strokeStyle = "#000";
+            ctx.strokeRect(part.destX, part.destY, 
+            (sw/size), (sw/size));
+        }
+
+        ctx.strokeStyle = "yellow";
+        ctx.beginPath();
+        ctx.arc(obj.x, obj.y, obj.radius*(sw/size), 0, Math.PI*2);
+        //ctx.stroke();
+    };
+
+    console.log(circles);
 };
 
 var visibilityChange;
