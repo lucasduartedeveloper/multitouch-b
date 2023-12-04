@@ -93,6 +93,23 @@ $(document).ready(function() {
         updateWidth = false;
     };
 
+    recordedVideo = document.createElement("video");
+    recordedVideo.style.position = "absolute";
+    recordedVideo.autoplay = true;
+    recordedVideo.controls = true;
+    recordedVideo.style.objectFit = "cover";
+    recordedVideo.width = (sw/2);
+    recordedVideo.height = (sw/4); 
+    recordedVideo.style.left = (0)+"px";
+    recordedVideo.style.top = ((sh/2)-(sw/2))+"px";
+    recordedVideo.style.width = (sw/2)+"px";
+    recordedVideo.style.height = (sw/4)+"px";
+    recordedVideo.style.zIndex = "15";
+    document.body.appendChild(recordedVideo);
+
+    recordedVideo.src = 
+    "https://192.168.15.4:8443/movies/scary-movie_4.mp4";
+
     buttonView = document.createElement("button");
     buttonView.style.position = "absolute";
     buttonView.style.color = "#000";
@@ -195,6 +212,30 @@ $(document).ready(function() {
             mic.close();
             buttonMicView.innerText = "mic: off";
         }
+    };
+
+    buttonEffectView = document.createElement("button");
+    buttonEffectView.style.position = "absolute";
+    buttonEffectView.style.color = "#000";
+    buttonEffectView.innerText = "fx: off";
+    buttonEffectView.style.fontFamily = "Khand";
+    buttonEffectView.style.fontSize = "15px";
+    buttonEffectView.style.left = (10)+"px";
+    buttonEffectView.style.top = (sh-145)+"px";
+    buttonEffectView.style.width = (75)+"px";
+    buttonEffectView.style.height = (25)+"px";
+    buttonEffectView.style.border = "1px solid white";
+    buttonEffectView.style.borderRadius = "25px";
+    buttonEffectView.style.zIndex = "15";
+    document.body.appendChild(buttonEffectView);
+
+    effect = false;
+    buttonEffectView.onclick = function() {
+        effect = !effect;
+        if (effect)
+        buttonEffectView.innerText = "fx: on";
+        else
+        buttonEffectView.innerText = "fx: off";
     };
 
     loadImages();
@@ -370,12 +411,6 @@ var drawImage = function() {
     ctx.fillStyle = "#fff";
     //ctx.fillRect(0, 0, sw, sh);
 
-    ctx.save();
-    if (cameraOn) {
-        ctx.scale(-1, 1);
-        ctx.translate(-sw, 0);
-    }
-
     ctx.lineWidth = lineWidth;
 
     ctx.strokeStyle = "#fff";
@@ -402,21 +437,13 @@ var drawImage = function() {
         height: orientated ? img_list[0].height : img_list[0].width
     };
 
-    /* 
     if (imagesLoaded)
     ctx.drawImage(img_list[0], 
     format.left, format.top, format.width, format.height,
-    (sw/2)-(lineWidth/2),
-    (sh/2)-(lineWidth/2), lineWidth, lineWidth);*/
-
-    if (!cameraOn && imagesLoaded)
-    ctx.drawImage(img_list[0], 
-    format.left, format.top, format.width, format.height,
-    0, (sh/2)-(sw/2), sw, sw);
+    0, (sh/2)-(sw/2), (sw/4), (sw/4));
 
     if (cameraOn)
-    drawToSquare(ctx, camera);
-    ctx.restore();
+    drawToSquare(ctx, camera, true);
 
     if (!cameraOn && imagesLoaded)
     drawToSquare(ctx, img_list[1]);
@@ -425,7 +452,8 @@ var drawImage = function() {
     lineWidth += 2;
 };
 
-var drawToSquare = function(ctx, image, size=30) {
+var drawToSquare = 
+    function(ctx, image, camera=false, size=4) {
     var canvas = document.createElement("canvas");
     canvas.width = sw;
     canvas.height = sw;
@@ -434,9 +462,27 @@ var drawToSquare = function(ctx, image, size=30) {
 
     var squareCtx = canvas.getContext("2d");
 
-    var format = fitImageCover(image, canvas);
+    squareCtx.save();
+    if (cameraOn) {
+        squareCtx.scale(-1, 1);
+        squareCtx.translate(-sw, 0);
+    }
+
+    var format;
+    if (!camera)
+    format = fitImageCover(image, canvas);
+    else {
+        var video = {
+            width: vw,
+            height: vh
+        }
+        format = fitImageCover(video, canvas);
+    }
+
     squareCtx.drawImage(image, format.left, format.top, 
     format.width, format.height);
+
+    squareCtx.restore();
 
     var circles = [];
     for (var n = 0; n < (size/2); n++) {
@@ -510,8 +556,10 @@ var drawToSquare = function(ctx, image, size=30) {
              order: order,
              srcX: left,
              srcY: top,
-             destX: offsetX + left + ((dirX*(lineWidth/2)) * (pcXY * r)),
-             destY: offsetY + top + ((dirY*(lineWidth/2)) * (pcYX * r))
+             destX: offsetX + left + 
+             (effect ? ((dirX*(lineWidth/2)) * (pcXY * r)) : 0),
+             destY: offsetY + top + 
+             (effect ? ((dirY*(lineWidth/2)) * (pcYX * r)) : 0)
         };
         parts.push(obj);
     }
@@ -559,6 +607,7 @@ var drawToSquare = function(ctx, image, size=30) {
             part.destY += ((part.dirX*(lineWidth/2)) * 
             (part.pcXY * r));*/
 
+            if (!(part.pos.x == 0 && part.pos.y == 0))
             ctx.drawImage(canvas, part.srcX, part.srcY, 
             (sw/size), (sw/size),
             part.destX, part.destY, (sw/size), (sw/size));
@@ -573,8 +622,6 @@ var drawToSquare = function(ctx, image, size=30) {
         ctx.arc(obj.x, obj.y, obj.radius*(sw/size), 0, Math.PI*2);
         //ctx.stroke();
     };
-
-    console.log(circles);
 };
 
 var visibilityChange;
