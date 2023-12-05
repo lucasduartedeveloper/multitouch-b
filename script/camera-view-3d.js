@@ -49,7 +49,7 @@ $(document).ready(function() {
     recordedVideo = document.createElement("video");
     recordedVideo.style.position = "absolute";
     recordedVideo.autoplay = true;
-    //recordedVideo.controls = true;
+    recordedVideo.controls = true;
     recordedVideo.style.objectFit = "cover";
     recordedVideo.width = (sw/2);
     recordedVideo.height = (sw/2); 
@@ -74,8 +74,11 @@ $(document).ready(function() {
     imageView.style.zIndex = "15";
     document.body.appendChild(imageView);
 
+    rotatedX = -1;
+    rotatedY = -1;
+
     deviceNo = 0;
-    imageView.onclick = function() {
+    imageView.onclick = function(e) {
         if (cameraOn) {
             flipX = !flipX;
         }
@@ -84,6 +87,17 @@ $(document).ready(function() {
         }
         if (recordedVideo.paused)
         recordedVideo.play();
+
+        console.log(e);
+
+        var offsetX = 0;
+        var offsetY = (sh/2)-(sw/2);
+
+        var posX = Math.floor((e.clientX-offsetX)/(sw/4));
+        var posY = Math.floor((e.clientY-offsetY)/(sw/4));
+
+        rotatedX = posX;
+        rotatedY = posY;
     };
 
     var startX = 0;
@@ -238,6 +252,30 @@ $(document).ready(function() {
         buttonEffectView.innerText = "fx: on";
         else
         buttonEffectView.innerText = "fx: off";
+    };
+
+    buttonRotateView = document.createElement("button");
+    buttonRotateView.style.position = "absolute";
+    buttonRotateView.style.color = "#000";
+    buttonRotateView.innerText = "single";
+    buttonRotateView.style.fontFamily = "Khand";
+    buttonRotateView.style.fontSize = "15px";
+    buttonRotateView.style.left = (95)+"px";
+    buttonRotateView.style.top = (sh-145)+"px";
+    buttonRotateView.style.width = (75)+"px";
+    buttonRotateView.style.height = (25)+"px";
+    buttonRotateView.style.border = "1px solid white";
+    buttonRotateView.style.borderRadius = "25px";
+    buttonRotateView.style.zIndex = "15";
+    document.body.appendChild(buttonRotateView);
+
+    rotated = false;
+    buttonRotateView.onclick = function() {
+        rotated = !rotated;
+        if (rotated)
+        buttonRotateView.innerText = "missing";
+        else
+        buttonRotateView.innerText = "single";
     };
 
     loadImages();
@@ -609,6 +647,18 @@ var drawToSquare =
             part.destY += ((part.dirX*(lineWidth/2)) * 
             (part.pcXY * r));*/
 
+            if (rotated && 
+                part.pos.x == rotatedX && part.pos.y == rotatedY) {
+                ctx.save();
+                ctx.translate(part.destX+(sw/(size*2)), 
+                part.destY+(sw/(size*2)));
+                ctx.rotate(-(Math.PI/2));
+                ctx.drawImage(canvas, part.srcX, part.srcY, 
+                (sw/size), (sw/size),
+                -(sw/(size*2)), -(sw/(size*2)), (sw/size), (sw/size));
+                ctx.restore();
+            }
+            else
             ctx.drawImage(canvas, part.srcX, part.srcY, 
             (sw/size), (sw/size),
             part.destX, part.destY, (sw/size), (sw/size));
