@@ -1,0 +1,2 @@
+cp /storage/emulated/0/Download/movie.mp4 
+/data/data/com.termux/files/usr/share/apache2/default-site/htdocs/movies/movie.mp4

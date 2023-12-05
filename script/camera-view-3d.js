@@ -46,6 +46,23 @@ $(document).ready(function() {
     document.body.appendChild(camera);
     cameraElem = camera;
 
+    recordedVideo = document.createElement("video");
+    recordedVideo.style.position = "absolute";
+    recordedVideo.autoplay = true;
+    //recordedVideo.controls = true;
+    recordedVideo.style.objectFit = "cover";
+    recordedVideo.width = (sw/2);
+    recordedVideo.height = (sw/2); 
+    recordedVideo.style.left = (sw/4)+"px";
+    recordedVideo.style.top = ((sh/2)-(sw/2)+(sw/4))+"px";
+    recordedVideo.style.width = (sw/2)+"px";
+    recordedVideo.style.height = (sw/2)+"px";
+    recordedVideo.style.zIndex = "15";
+    document.body.appendChild(recordedVideo);
+
+    recordedVideo.src = 
+    "https://192.168.15.4:8443/movies/avengers.mp4";
+
     imageView = document.createElement("canvas");
     imageView.style.position = "absolute";
     imageView.width = sw;
@@ -65,6 +82,8 @@ $(document).ready(function() {
         else {
             startCamera();
         }
+        if (recordedVideo.paused)
+        recordedVideo.play();
     };
 
     var startX = 0;
@@ -92,23 +111,6 @@ $(document).ready(function() {
     imageView.ontouchend = function(e) {
         updateWidth = false;
     };
-
-    recordedVideo = document.createElement("video");
-    recordedVideo.style.position = "absolute";
-    recordedVideo.autoplay = true;
-    recordedVideo.controls = true;
-    recordedVideo.style.objectFit = "cover";
-    recordedVideo.width = (sw/2);
-    recordedVideo.height = (sw/4); 
-    recordedVideo.style.left = (0)+"px";
-    recordedVideo.style.top = ((sh/2)-(sw/2))+"px";
-    recordedVideo.style.width = (sw/2)+"px";
-    recordedVideo.style.height = (sw/4)+"px";
-    recordedVideo.style.zIndex = "15";
-    document.body.appendChild(recordedVideo);
-
-    recordedVideo.src = 
-    "https://192.168.15.4:8443/movies/scary-movie_4.mp4";
 
     buttonView = document.createElement("button");
     buttonView.style.position = "absolute";
@@ -607,7 +609,6 @@ var drawToSquare =
             part.destY += ((part.dirX*(lineWidth/2)) * 
             (part.pcXY * r));*/
 
-            if (!(part.pos.x == 0 && part.pos.y == 0))
             ctx.drawImage(canvas, part.srcX, part.srcY, 
             (sw/size), (sw/size),
             part.destX, part.destY, (sw/size), (sw/size));
