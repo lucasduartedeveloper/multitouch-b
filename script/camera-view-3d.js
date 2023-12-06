@@ -25,13 +25,24 @@ $(document).ready(function() {
     $("html, body").css("overscroll-behavior", "none");
     $("html, body").css("overflow", "hidden");
     $("html, body").css("background", backgroundColor);
+
     $("#title").css("font-size", "15px");
     $("#title").css("color", "#fff");
+    $("#title").css("top", "75px");
+    $("#title").css("z-index", "25");
 
-    $("#title")[0].innerText = "";
+    // O outro nome não era [  ]
+    // Teleprompter
+    $("#title")[0].innerText = "ABERTO"; 
+    $("#title")[0].onclick = function() {
+        var text = prompt();
+        sendText(text);
+    };
 
     camera = document.createElement("video");
     camera.style.position = "absolute";
+    camera.style.display = "none";
+    camera.autoplay = true;
     camera.autoplay = true;
     camera.style.objectFit = "cover";
     camera.width = (sw);
@@ -74,6 +85,7 @@ $(document).ready(function() {
     imageView.style.zIndex = "15";
     document.body.appendChild(imageView);
 
+    angle = 0
     rotatedX = -1;
     rotatedY = -1;
 
@@ -98,6 +110,14 @@ $(document).ready(function() {
 
         rotatedX = posX;
         rotatedY = posY;
+
+        angle += -(Math.PI/2);
+        if (angle < -((Math.PI/2)*3))
+        angle = 0;
+
+        textObj.value = prompt();
+        textObj.posX = rotatedX;
+        textObj.posY = rotatedY;
     };
 
     var startX = 0;
@@ -278,11 +298,97 @@ $(document).ready(function() {
         buttonRotateView.innerText = "single";
     };
 
+    buttonPositionView = document.createElement("button");
+    buttonPositionView.style.position = "absolute";
+    buttonPositionView.style.color = "#000";
+    buttonPositionView.innerText = "in front";
+    buttonPositionView.style.fontFamily = "Khand";
+    buttonPositionView.style.fontSize = "15px";
+    buttonPositionView.style.left = (180)+"px";
+    buttonPositionView.style.top = (sh-145)+"px";
+    buttonPositionView.style.width = (75)+"px";
+    buttonPositionView.style.height = (25)+"px";
+    buttonPositionView.style.border = "1px solid white";
+    buttonPositionView.style.borderRadius = "25px";
+    buttonPositionView.style.zIndex = "15";
+    document.body.appendChild(buttonPositionView);
+
+    inFront = false;
+    buttonPositionView.onclick = function() {
+        inFront = !inFront;
+        if (inFront)
+        buttonPositionView.innerText = "in front";
+        else
+        buttonPositionView.innerText = "behind";
+    };
+
+    buttonTextReceiverView = 
+    document.createElement("button");
+    buttonTextReceiverView.style.position = "absolute";
+    buttonTextReceiverView.style.color = "#000";
+    buttonTextReceiverView.innerText = "camera";
+    buttonTextReceiverView.style.fontFamily = "Khand";
+    buttonTextReceiverView.style.fontSize = "15px";
+    buttonTextReceiverView.style.left = (265)+"px";
+    buttonTextReceiverView.style.top = (sh-145)+"px";
+    buttonTextReceiverView.style.width = (75)+"px";
+    buttonTextReceiverView.style.height = (25)+"px";
+    buttonTextReceiverView.style.border = "1px solid white";
+    buttonTextReceiverView.style.borderRadius = "25px";
+    buttonTextReceiverView.style.zIndex = "15";
+    document.body.appendChild(buttonTextReceiverView);
+
+    isCamera = false;
+    buttonTextReceiverView.onclick = function() {
+        isCamera = !isCamera;
+        if (isCamera) {
+            textView.style.display = "none";
+            buttonTextReceiverView.innerText = "camera";
+        }
+        else {
+            textView.style.display = "initial";
+            buttonTextReceiverView.innerText = "text";
+        }
+    };
+
+    textView = document.createElement("span");
+    textView.style.position = "absolute";
+    textView.style.display = "none";
+    textView.style.background = backgroundColor;
+    textView.style.color = "#fff";
+    textView.innerText = "ABERTO";
+    textView.style.textWrap = "wrap";
+    textView.style.fontWeight = (900)+"px";
+    textView.style.fontFamily = "Khand";
+    textView.style.fontSize = (sw/8)+"px";
+    textView.style.lineHeight = (sw)+"px";
+    textView.style.left = (-(sh-sw)/2)+"px";
+    textView.style.top = ((sh/2)-(sw/2))+"px";
+    textView.style.width = (sh)+"px";
+    textView.style.height = (sw)+"px";
+    textView.style.transform = "rotateY(-180deg) rotateZ(90deg)";
+    textView.style.zIndex = "35";
+    document.body.appendChild(textView);
+
+    ws.onmessage = function(e) {
+        var msg = e.data.split("|");
+        if (msg[0] == "PAPER" &&
+            msg[1] != playerId &&
+            msg[2] == "new-text") {
+            $("#title")[0].innerText = msg[3].replace("#", "\n");
+            textView.innerText = msg[3].replace("#", "\n");
+        }
+    };
+
     loadImages();
 
     load3D();
     animate();
 });
+
+var sendText = function(text) {
+    ws.send("PAPER|"+playerId+"|new-text|"+text);
+};
 
 var drawAB = 
 function(freqArray=false, avgValue=0) {
@@ -477,10 +583,11 @@ var drawImage = function() {
         height: orientated ? img_list[0].height : img_list[0].width
     };
 
+    /*
     if (imagesLoaded)
-    ctx.drawImage(img_list[0], 
+    ctx.drawImage(img_list[1], 
     format.left, format.top, format.width, format.height,
-    0, (sh/2)-(sw/2), (sw/4), (sw/4));
+    0, (sh/2)-(sw/2), (sw/4), (sw/4));*/
 
     if (cameraOn)
     drawToSquare(ctx, camera, true);
@@ -490,6 +597,12 @@ var drawImage = function() {
 
     if (updateWidth)
     lineWidth += 2;
+};
+
+var textObj = {
+    value: "ABERTO",
+    posX: -1,
+    posY: -1
 };
 
 var drawToSquare = 
@@ -503,7 +616,7 @@ var drawToSquare =
     var squareCtx = canvas.getContext("2d");
 
     squareCtx.save();
-    if (cameraOn) {
+    if (inFront && cameraOn) {
         squareCtx.scale(-1, 1);
         squareCtx.translate(-sw, 0);
     }
@@ -652,7 +765,7 @@ var drawToSquare =
                 ctx.save();
                 ctx.translate(part.destX+(sw/(size*2)), 
                 part.destY+(sw/(size*2)));
-                ctx.rotate(-(Math.PI/2));
+                ctx.rotate(angle);
                 ctx.drawImage(canvas, part.srcX, part.srcY, 
                 (sw/size), (sw/size),
                 -(sw/(size*2)), -(sw/(size*2)), (sw/size), (sw/size));
@@ -666,6 +779,16 @@ var drawToSquare =
             ctx.strokeStyle = "#000";
             ctx.strokeRect(part.destX, part.destY, 
             (sw/size), (sw/size));
+
+            if (part.pos.x == textObj.posX && 
+                part.pos.y == textObj.posY) {
+                ctx.fillStyle = "#fff";
+                ctx.font = (sw/(size*4)); //(sw/(size*5));
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(textObj.value, part.destX+(sw/(size*2)), 
+                part.destY+(sw/(size*2)));
+            }
         }
 
         ctx.strokeStyle = "yellow";

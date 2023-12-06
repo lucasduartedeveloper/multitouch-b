@@ -30,7 +30,7 @@ function startCamera(color=true) {
     if (navigator.mediaDevices) {
           navigator.mediaDevices
           .getUserMedia({ 
-          video: videoDevices.length == 0 ? true : {
+          video: videoDevices.length == 1 ? true : {
           deviceId: { 
                exact: videoDevices[deviceNo].deviceId
           } }, 
