@@ -1,3 +1,25 @@
+var audioDevice = 0;
+var audioDevices = [];
+
+if (navigator.mediaDevices) {
+    navigator.mediaDevices.enumerateDevices()
+    .then(function(devices) {
+         devices.forEach(function(device) {
+             if (device.kind == "audioinput")
+             audioDevices.push({
+                 kind: device.kind,
+                 label: device.label,
+                 deviceId: device.deviceId
+             });
+         });
+         audioDeviceNo = audioDevices.length > 1 ? 
+         (audioDevices.length-1) : 0;
+    })
+    .catch(function(err) {
+         console.log(err.name + ": " + err.message);
+    });
+}
+
 class EasyMicrophone {
 
     constructor() {
@@ -55,7 +77,12 @@ class EasyMicrophone {
         }
 
         // request microphone access
-        navigator.mediaDevices.getUserMedia({audio:true}).
+        navigator.mediaDevices.getUserMedia({
+            audio: audioDevices.length == 1 ? true : {
+            deviceId: { 
+               exact: audioDevices[deviceNo].deviceId
+            } }, 
+        }).
         then((stream) => {
             soundAllowed(stream);
         }).

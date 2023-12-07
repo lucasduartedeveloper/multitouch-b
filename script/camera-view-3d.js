@@ -33,7 +33,7 @@ $(document).ready(function() {
 
     // O outro nome não era [  ]
     // Teleprompter
-    $("#title")[0].innerText = "ABERTO"; 
+    $("#title")[0].innerText = ""; 
     $("#title")[0].onclick = function() {
         var text = prompt();
         sendText(text);
@@ -160,11 +160,22 @@ $(document).ready(function() {
     buttonView.style.zIndex = "15";
     document.body.appendChild(buttonView);
 
+    pause = 0;
     buttonView.onclick = function() {
-        if (camera.paused)
-        camera.play();
-        else
-        camera.pause();
+        setTimeout(function() {
+            beepMilestone.play();
+
+            thresholdReached = false;
+            pause = (pause+1) < 4 ? (pause+1) : 0;
+            if (pause == 0) 
+            buttonView.innerText = "PAUSE";
+            else if (pause == 1) 
+            buttonView.innerText = "PAUSE <";
+            else if (pause == 2) 
+            buttonView.innerText = "PAUSE >";
+            else if (pause == 3) 
+            buttonView.innerText = "PAUSE ><";
+        }, 5000);
     };
 
     button3DView = document.createElement("button");
@@ -193,16 +204,32 @@ $(document).ready(function() {
         threejsEnabled ? "initial" : "none";
     };
 
+    micAvgValue = 0;
+    micThreshold = 0.5;
+    thresholdReached = false;
+
     mic = new EasyMicrophone();
     mic.onsuccess = function() { 
-        mic.audio.srcObject = mic.audioStream.mediaStream;
-        mic.audio.play();
+        mic.audio.pause();
+        //mic.audio.srcObject = mic.audioStream.mediaStream;
+        //mic.audio.play();
+        mic.record();
     };
     mic.onupdate = function(freqArray, reachedFreq, avgValue) {
+        micAvgValue = avgValue;
+
+        if (avgValue >= micThreshold && !thresholdReached) {
+            thresholdReached = true;
+            buttonView.click();
+        }
+
         lineWidth = (avgValue*50);
         resumedWave = resumeWave(freqArray);
     };
-    mic.onclose = function() { };
+    mic.onclose = function() { 
+        mic.audio.loop = true;
+        mic.audio.play();
+    };
     var ab = new Array(50);
     for (var n = 0; n < 50; n++) {
         ab[n] = 0;
@@ -243,10 +270,15 @@ $(document).ready(function() {
         if (mic.closed) {
             mic.open();
             buttonMicView.innerText = "mic: on";
+
+            htmlRecorder.start();
         }
         else {
             mic.close();
             buttonMicView.innerText = "mic: off";
+
+            htmlRecorder.stop();
+            htmlRecorder.save("filename.webm");
         }
     };
 
@@ -313,7 +345,7 @@ $(document).ready(function() {
     buttonPositionView.style.zIndex = "15";
     document.body.appendChild(buttonPositionView);
 
-    inFront = false;
+    inFront = true;
     buttonPositionView.onclick = function() {
         inFront = !inFront;
         if (inFront)
@@ -370,6 +402,27 @@ $(document).ready(function() {
     textView.style.zIndex = "35";
     document.body.appendChild(textView);
 
+    viewerCountView = document.createElement("span");
+    viewerCountView.style.position = "absolute";
+    viewerCountView.style.color = "#fff";
+    viewerCountView.innerText = viewerCount + " viewers";
+    viewerCountView.style.textWrap = "wrap";
+    viewerCountView.style.fontWeight = (900)+"px";
+    viewerCountView.style.fontFamily = "Khand";
+    viewerCountView.style.fontSize = (15)+"px";
+    viewerCountView.style.lineHeight = (15)+"px";
+    viewerCountView.style.left = (sw-110)+"px";
+    viewerCountView.style.top = ((sh/2)-(sw/2)-25)+"px";
+    viewerCountView.style.width = (100)+"px";
+    viewerCountView.style.height = (25)+"px";
+    viewerCountView.style.zIndex = "15";
+    document.body.appendChild(viewerCountView);
+
+    viewerCountView.onclick = function() {
+        viewerCount += 1;
+        viewerCountView.innerText = viewerCount + " viewers";
+    };
+
     ws.onmessage = function(e) {
         var msg = e.data.split("|");
         if (msg[0] == "PAPER" &&
@@ -380,11 +433,29 @@ $(document).ready(function() {
         }
     };
 
+    squareCanvas = document.createElement("canvas");
+    squareCanvas.width = sw;
+    squareCanvas.height = sw;
+
+    videoCanvas = document.createElement("canvas");
+    videoCanvas.width = sw;
+    videoCanvas.height = sw;
+    videoCanvas.style.left = (0)+"px";
+    videoCanvas.style.top = ((sh/2)-(sw/2))+"px";
+    videoCanvas.style.width = (sw)+"px";
+    videoCanvas.style.height = (sw)+"px";
+    videoCanvas.style.zIndex = "15";
+    document.body.appendChild(videoCanvas);
+
+    var htmlRecorder = new CanvasRecorder(videoCanvas);
+
     loadImages();
 
     load3D();
     animate();
 });
+
+var viewerCount = 0;
 
 var sendText = function(text) {
     ws.send("PAPER|"+playerId+"|new-text|"+text);
@@ -392,7 +463,6 @@ var sendText = function(text) {
 
 var drawAB = 
 function(freqArray=false, avgValue=0) {
-
     var canvas = imageView;
     var ctx = canvas.getContext("2d");
 
@@ -555,21 +625,27 @@ var drawImage = function() {
     ctx.clearRect(0, 0, sw, sh);
 
     ctx.fillStyle = "#fff";
-    //ctx.fillRect(0, 0, sw, sh);
-
-    ctx.lineWidth = lineWidth;
+    ctx.lineWidth = 5;
 
     ctx.strokeStyle = "#fff";
     ctx.beginPath();
-    ctx.moveTo((sw/2), 0);
-    ctx.lineTo((sw/2), sh);
-    //ctx.stroke();
+    ctx.moveTo(10, 150);
+    ctx.lineTo(10, 150-(100*micAvgValue));
+    ctx.stroke();
+
+    ctx.lineWidth = 0.5;
 
     ctx.strokeStyle = "#fff";
     ctx.beginPath();
-    ctx.moveTo(0, (sh/2));
-    ctx.lineTo(sw, (sh/2));
-    //ctx.stroke();
+    ctx.moveTo(0, 150-(100*micThreshold));
+    ctx.lineTo(15, 150-(100*micThreshold));
+    ctx.stroke();
+
+    ctx.fillStyle = "#fff";
+    ctx.font = "10px sans serif";
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "center";
+    ctx.fillText(micAvgValue.toFixed(2), 35, 150);
 
     drawAB(resumedWave);
 
@@ -589,8 +665,10 @@ var drawImage = function() {
     format.left, format.top, format.width, format.height,
     0, (sh/2)-(sw/2), (sw/4), (sw/4));*/
 
+    var videoCtx = videoCanvas.getContext("2d");
+
     if (cameraOn)
-    drawToSquare(ctx, camera, true);
+    drawToSquare((mic.closed ? ctx : videoCtx), camera, true);
 
     if (!cameraOn && imagesLoaded)
     drawToSquare(ctx, img_list[1]);
@@ -607,12 +685,9 @@ var textObj = {
 
 var drawToSquare = 
     function(ctx, image, camera=false, size=4) {
-    var canvas = document.createElement("canvas");
-    canvas.width = sw;
-    canvas.height = sw;
-
     ctx.lineWidth = 1;
 
+    var canvas = squareCanvas;
     var squareCtx = canvas.getContext("2d");
 
     squareCtx.save();
@@ -622,18 +697,42 @@ var drawToSquare =
     }
 
     var format;
-    if (!camera)
-    format = fitImageCover(image, canvas);
+    if (!camera) {
+        format = fitImageCover(image, canvas);
+
+        squareCtx.drawImage(image, 
+        -format.left, -format.top, 
+        (image.width/2), image.width, 
+        format.left, format.top, 
+        (format.width/2), format.height);
+
+        squareCtx.drawImage(image, 
+        -format.left + (image.width/2), -format.top, 
+        (image.width/2), image.width, 
+        format.left + (sw/2), format.top, 
+        (format.width/2), format.height);
+    }
     else {
         var video = {
             width: vw,
             height: vh
         }
         format = fitImageCover(video, canvas);
-    }
 
-    squareCtx.drawImage(image, format.left, format.top, 
-    format.width, format.height);
+        if ((pause == 0 || pause == 2) && !(pause == 3))
+        squareCtx.drawImage(image, 
+        -format.left, -format.top, 
+        (video.width/2), video.width, 
+        format.left, format.top, 
+        (format.width/2), format.height);
+
+        if ((pause == 0 || pause == 1) && !(pause == 3))
+        squareCtx.drawImage(image, 
+        -format.left + (video.width/2), -format.top, 
+        (video.width/2), video.width, 
+        format.left + (sw/2), format.top, 
+        (format.width/2), format.height);
+    }
 
     squareCtx.restore();
 
@@ -649,7 +748,7 @@ var drawToSquare =
     };
 
     var offsetX = 0;
-    var offsetY = (sh/2)-(sw/2);
+    var offsetY = mic.closed ? (sh/2)-(sw/2) : 0;
 
     var co = (size/2);
     var ca = (size/2);
