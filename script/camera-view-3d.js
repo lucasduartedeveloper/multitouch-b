@@ -63,16 +63,16 @@ $(document).ready(function() {
     recordedVideo.controls = true;
     recordedVideo.style.objectFit = "cover";
     recordedVideo.width = (sw/2);
-    recordedVideo.height = (sw/2); 
-    recordedVideo.style.left = (sw/4)+"px";
-    recordedVideo.style.top = ((sh/2)-(sw/2)+(sw/4))+"px";
+    recordedVideo.height = (sw); 
+    recordedVideo.style.left = (sw/2)+"px";
+    recordedVideo.style.top = ((sh/2)-(sw/2))+"px";
     recordedVideo.style.width = (sw/2)+"px";
-    recordedVideo.style.height = (sw/2)+"px";
+    recordedVideo.style.height = (sw)+"px";
     recordedVideo.style.zIndex = "15";
     document.body.appendChild(recordedVideo);
 
     recordedVideo.src = 
-    "https://192.168.15.4:8443/movies/avengers.mp4";
+    "https://192.168.15.4:8443/movies/movie-0.mp4";
 
     imageView = document.createElement("canvas");
     imageView.style.position = "absolute";
@@ -160,13 +160,21 @@ $(document).ready(function() {
     buttonView.style.zIndex = "15";
     document.body.appendChild(buttonView);
 
+    var pauseNo = 0;
+    var pauseArr1 = [ 0, 1, 2, 3 ];
+    var pauseArr2 = [ 0, 2, 1, 3 ];
+
     pause = 0;
     buttonView.onclick = function() {
         setTimeout(function() {
             beepMilestone.play();
 
             thresholdReached = false;
-            pause = (pause+1) < 4 ? (pause+1) : 0;
+            pauseNo = (pauseNo+1) < 4 ? (pauseNo+1) : 0;
+            pause = pauseOrder == 0 ? 
+            pauseArr1[pauseNo] : 
+            pauseArr2[pauseNo];
+
             if (pause == 0) 
             buttonView.innerText = "PAUSE";
             else if (pause == 1) 
@@ -176,6 +184,32 @@ $(document).ready(function() {
             else if (pause == 3) 
             buttonView.innerText = "PAUSE ><";
         }, 5000);
+    };
+
+    pauseOrder = 0;
+    buttonOrderView = document.createElement("button");
+    buttonOrderView.style.position = "absolute";
+    buttonOrderView.style.color = "#000";
+    buttonOrderView.innerText = "PAUSE ORDER: 0";
+    buttonOrderView.style.fontFamily = "Khand";
+    buttonOrderView.style.fontSize = "15px";
+    buttonOrderView.style.left = (10)+"px";
+    buttonOrderView.style.top = (sh-50)+"px";
+    buttonOrderView.style.width = (100)+"px";
+    buttonOrderView.style.height = (25)+"px";
+    buttonOrderView.style.border = "1px solid white";
+    buttonOrderView.style.borderRadius = "25px";
+    buttonOrderView.style.zIndex = "15";
+    document.body.appendChild(buttonOrderView);
+
+    buttonOrderView.onclick = function() {
+        pauseOrder = (pauseOrder+1) < 2 ? (pauseOrder+1) : 0;
+        if (pauseOrder == 0) {
+            buttonOrderView.innerText = "PAUSE ORDER: 0";
+        }
+        else if (pauseOrder == 1) {
+            buttonOrderView.innerText = "PAUSE ORDER: 1";
+        }
     };
 
     button3DView = document.createElement("button");
@@ -732,6 +766,21 @@ var drawToSquare =
         (video.width/2), video.width, 
         format.left + (sw/2), format.top, 
         (format.width/2), format.height);
+
+        /*
+        var video = {
+            width: recordedVideo.videoWidth,
+            height: recordedVideo.videoHeight
+        }
+        format = fitImageCover(video, canvas);
+
+        if ((pause == 0 || pause == 1) && !(pause == 3))
+        squareCtx.drawImage(recordedVideo, 
+        -format.left + (video.height/2) - (video.height/4), 
+        -format.top, 
+        (video.height/2), video.height, 
+        0, format.top, 
+        (format.height/2), format.height);*/
     }
 
     squareCtx.restore();
