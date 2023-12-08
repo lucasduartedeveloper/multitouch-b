@@ -85,10 +85,6 @@ $(document).ready(function() {
     imageView.style.zIndex = "15";
     document.body.appendChild(imageView);
 
-    angle = 0
-    rotatedX = -1;
-    rotatedY = -1;
-
     deviceNo = 0;
     imageView.onclick = function(e) {
         if (cameraOn) {
@@ -461,6 +457,9 @@ $(document).ready(function() {
 
     squareAngles = [];
 
+    rotatedX = -1;
+    rotatedY = -1;
+
     videoCanvas.onclick = function(e) {
         var offsetX = 0;
         var offsetY = (sh/2)-(sw/2);
@@ -471,10 +470,6 @@ $(document).ready(function() {
         rotatedX = posX;
         rotatedY = posY;
 
-        angle += -(Math.PI/2);
-        if (angle < -((Math.PI/2)*3))
-        angle = 0;
-
         var defined = false;
         for (var n = 0; n < squareAngles.length; n++) {
             if (squareAngles[n].rotatedX == rotatedX && 
@@ -483,6 +478,9 @@ $(document).ready(function() {
                 squareAngles[n].angle += -(Math.PI/2);
                 if (squareAngles[n].angle < -((Math.PI/2)*3))
                 squareAngles[n].angle = 0;
+
+                if (boardAngle != 0)
+                squareAngles[n].angle = boardAngle;
             }
         }
 
@@ -502,6 +500,34 @@ $(document).ready(function() {
     };
 
     var htmlRecorder = new CanvasRecorder(videoCanvas);
+
+    boardAngle = 0;
+    boardAngleView = document.createElement("span");
+    boardAngleView.style.position = "absolute";
+    boardAngleView.style.color = "#fff";
+    boardAngleView.innerText = boardAngle+"°";
+    boardAngleView.style.textWrap = "wrap";
+    boardAngleView.style.fontWeight = (900)+"px";
+    boardAngleView.style.fontFamily = "Khand";
+    boardAngleView.style.fontSize = (15)+"px";
+    boardAngleView.style.lineHeight = (15)+"px";
+    boardAngleView.style.left = (sw-110)+"px";
+    boardAngleView.style.top = ((sh/2)-(sw/2)-50)+"px";
+    boardAngleView.style.width = (100)+"px";
+    boardAngleView.style.height = (25)+"px";
+    boardAngleView.style.zIndex = "15";
+    document.body.appendChild(boardAngleView);
+
+    boardAngleView.onclick = function() {
+        boardAngle += -(Math.PI/2);
+        if (boardAngle < -((Math.PI/2)*3))
+        boardAngle = 0;
+
+        var angle = boardAngle*(180/Math.PI);
+        angle = angle < -90 ? -angle-180 : angle;
+
+        boardAngleView.innerText = angle+"°";
+    };
 
     loadImages();
 

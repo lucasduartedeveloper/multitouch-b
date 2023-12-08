@@ -32,9 +32,10 @@ $script = [
     0 => "script/websocket.js",
     1 => "script/math-helper.js",
     2 => "script/mic-helper.js",
-    3 => "script/camera-helper.js",
-    4 => "script/camera-view-3d.js",
-    5 => "script/threejs-view.js"
+    3 => "script/gyro-helper.js",
+    4 => "script/camera-helper.js",
+    5 => "script/camera-view-3d.js",
+    6 => "script/threejs-view.js"
 ];
 
 $module = [];
