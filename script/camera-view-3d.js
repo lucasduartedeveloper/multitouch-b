@@ -99,25 +99,6 @@ $(document).ready(function() {
         }
         if (recordedVideo.paused)
         recordedVideo.play();
-
-        console.log(e);
-
-        var offsetX = 0;
-        var offsetY = (sh/2)-(sw/2);
-
-        var posX = Math.floor((e.clientX-offsetX)/(sw/4));
-        var posY = Math.floor((e.clientY-offsetY)/(sw/4));
-
-        rotatedX = posX;
-        rotatedY = posY;
-
-        angle += -(Math.PI/2);
-        if (angle < -((Math.PI/2)*3))
-        angle = 0;
-
-        textObj.value = prompt();
-        textObj.posX = rotatedX;
-        textObj.posY = rotatedY;
     };
 
     var startX = 0;
@@ -161,8 +142,11 @@ $(document).ready(function() {
     document.body.appendChild(buttonView);
 
     var pauseNo = 0;
-    var pauseArr1 = [ 0, 1, 2, 3 ];
-    var pauseArr2 = [ 0, 2, 1, 3 ];
+    var pauseArr = [
+        [ 0, 1, 2, 3 ],
+        [ 0, 2, 1, 3 ],
+        [ 0, 3, 1, 2 ]
+    ];
 
     pause = 0;
     buttonView.onclick = function() {
@@ -171,9 +155,7 @@ $(document).ready(function() {
 
             thresholdReached = false;
             pauseNo = (pauseNo+1) < 4 ? (pauseNo+1) : 0;
-            pause = pauseOrder == 0 ? 
-            pauseArr1[pauseNo] : 
-            pauseArr2[pauseNo];
+            pause = pauseArr[pauseNo];
 
             if (pause == 0) 
             buttonView.innerText = "PAUSE";
@@ -203,13 +185,9 @@ $(document).ready(function() {
     document.body.appendChild(buttonOrderView);
 
     buttonOrderView.onclick = function() {
-        pauseOrder = (pauseOrder+1) < 2 ? (pauseOrder+1) : 0;
-        if (pauseOrder == 0) {
-            buttonOrderView.innerText = "PAUSE ORDER: 0";
-        }
-        else if (pauseOrder == 1) {
-            buttonOrderView.innerText = "PAUSE ORDER: 1";
-        }
+        pauseOrder = (pauseOrder+1) < 3 ? (pauseOrder+1) : 0;
+        buttonOrderView.innerText = 
+        "PAUSE ORDER: "+pauseOrder;
     };
 
     button3DView = document.createElement("button");
@@ -480,6 +458,27 @@ $(document).ready(function() {
     videoCanvas.style.height = (sw)+"px";
     videoCanvas.style.zIndex = "15";
     document.body.appendChild(videoCanvas);
+
+    videoCanvas.onclick = function(e) {
+        var offsetX = 0;
+        var offsetY = (sh/2)-(sw/2);
+
+        var posX = Math.floor((e.clientX-offsetX)/(sw/4));
+        var posY = Math.floor((e.clientY-offsetY)/(sw/4));
+
+        rotatedX = posX;
+        rotatedY = posY;
+
+        angle += -(Math.PI/2);
+        if (angle < -((Math.PI/2)*3))
+        angle = 0;
+
+        if (!rotated) {
+            textObj.value = prompt();
+            textObj.posX = rotatedX;
+            textObj.posY = rotatedY;
+        }
+    };
 
     var htmlRecorder = new CanvasRecorder(videoCanvas);
 
@@ -757,15 +756,15 @@ var drawToSquare =
         squareCtx.drawImage(image, 
         -format.left, -format.top, 
         (video.width/2), video.width, 
-        format.left, format.top, 
-        (format.width/2), format.height);
+        format.left, 0, 
+        (format.width/2), format.width);
 
         if ((pause == 0 || pause == 1) && !(pause == 3))
         squareCtx.drawImage(image, 
         -format.left + (video.width/2), -format.top, 
         (video.width/2), video.width, 
-        format.left + (sw/2), format.top, 
-        (format.width/2), format.height);
+        format.left + (sw/2), 0, 
+        (format.width/2), format.width);
 
         /*
         var video = {
