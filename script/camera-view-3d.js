@@ -155,7 +155,7 @@ $(document).ready(function() {
 
             thresholdReached = false;
             pauseNo = (pauseNo+1) < 4 ? (pauseNo+1) : 0;
-            pause = pauseArr[pauseNo];
+            pause = pauseArr[pauseOrder][pauseNo];
 
             if (pause == 0) 
             buttonView.innerText = "PAUSE";
@@ -459,6 +459,8 @@ $(document).ready(function() {
     videoCanvas.style.zIndex = "15";
     document.body.appendChild(videoCanvas);
 
+    squareAngles = [];
+
     videoCanvas.onclick = function(e) {
         var offsetX = 0;
         var offsetY = (sh/2)-(sw/2);
@@ -472,6 +474,25 @@ $(document).ready(function() {
         angle += -(Math.PI/2);
         if (angle < -((Math.PI/2)*3))
         angle = 0;
+
+        var defined = false;
+        for (var n = 0; n < squareAngles.length; n++) {
+            if (squareAngles[n].rotatedX == rotatedX && 
+            squareAngles[n].rotatedY == rotatedY) {
+                defined = true;
+                squareAngles[n].angle += -(Math.PI/2);
+                if (squareAngles[n].angle < -((Math.PI/2)*3))
+                squareAngles[n].angle = 0;
+            }
+        }
+
+        if (!defined) {
+            squareAngles.push({
+                rotatedX: rotatedX,
+                rotatedY: rotatedY,
+                angle: 0
+            });
+        }
 
         if (!rotated) {
             textObj.value = prompt();
@@ -907,18 +928,25 @@ var drawToSquare =
             part.destY += ((part.dirX*(lineWidth/2)) * 
             (part.pcXY * r));*/
 
-            if (rotated && 
-                part.pos.x == rotatedX && part.pos.y == rotatedY) {
+            var defined = false;
+
+            if (rotated)
+            for (var w = 0; w < squareAngles.length; w++) {
+            if (squareAngles[w].rotatedX == part.pos.x && 
+            squareAngles[w].rotatedY == part.pos.y) {
+                defined = true;
                 ctx.save();
                 ctx.translate(part.destX+(sw/(size*2)), 
                 part.destY+(sw/(size*2)));
-                ctx.rotate(angle);
+                ctx.rotate(squareAngles[w].angle);
                 ctx.drawImage(canvas, part.srcX, part.srcY, 
                 (sw/size), (sw/size),
                 -(sw/(size*2)), -(sw/(size*2)), (sw/size), (sw/size));
                 ctx.restore();
             }
-            else
+            }
+
+            if (!rotated || !defined)
             ctx.drawImage(canvas, part.srcX, part.srcY, 
             (sw/size), (sw/size),
             part.destX, part.destY, (sw/size), (sw/size));
