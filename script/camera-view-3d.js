@@ -557,18 +557,43 @@ $(document).ready(function() {
     videoBackgroundTitleView.style.color = "#fff";
     videoBackgroundTitleView.innerText = 
     "ADICIONE OS NÚMEROS";
+    videoBackgroundTitleView.style.textAlign = "center";
     videoBackgroundTitleView.style.fontWeight = (900)+"px";
     videoBackgroundTitleView.style.fontFamily = "Khand";
     videoBackgroundTitleView.style.fontSize = (15)+"px";
-    videoBackgroundTitleView.style.lineHeight = (15)+"px";
-    videoBackgroundTitleView.style.left = (0)+"px";
+    videoBackgroundTitleView.style.lineHeight = (25)+"px";
+    videoBackgroundTitleView.style.left = (10)+"px";
     videoBackgroundTitleView.style.top = 
     ((sh/2)-(sw/2)-25)+"px";
-    videoBackgroundTitleView.style.width = (sw)+"px";
+    videoBackgroundTitleView.style.width = (sw-20)+"px";
     videoBackgroundTitleView.style.height = (25)+"px";
     videoBackgroundTitleView.style.zIndex = "15";
     videoBackgroundView
     .appendChild(videoBackgroundTitleView);
+
+    videoGuestNameView = 
+    document.createElement("span");
+    videoGuestNameView.style.position = "absolute";
+    videoGuestNameView.style.color = "#fff";
+    videoGuestNameView.innerText = 
+    "CONVIDADO (A)";
+    videoGuestNameView.style.textAlign = "right";
+    videoGuestNameView.style.fontWeight = (900)+"px";
+    videoGuestNameView.style.fontFamily = "Khand";
+    videoGuestNameView.style.fontSize = (15)+"px";
+    videoGuestNameView.style.lineHeight = (25)+"px";
+    videoGuestNameView.style.left = (10)+"px";
+    videoGuestNameView.style.bottom = 
+    (((sh-sw)/2)-25)+"px";
+    videoGuestNameView.style.width = (sw-20)+"px";
+    videoGuestNameView.style.height = (25)+"px";
+    videoGuestNameView.style.zIndex = "15";
+    videoBackgroundView
+    .appendChild(videoGuestNameView);
+
+    videoGuestNameView.onclick = function() {
+        videoGuestNameView.innerText = prompt();
+    };
 
     hasBackground = false;
     videoBackgroundToggleView = document.createElement("i");
