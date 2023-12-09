@@ -551,6 +551,25 @@ $(document).ready(function() {
     videoBackgroundView.style.zIndex = "15";
     document.body.appendChild(videoBackgroundView);
 
+    videoBackgroundTitleView = 
+    document.createElement("span");
+    videoBackgroundTitleView.style.position = "absolute";
+    videoBackgroundTitleView.style.color = "#fff";
+    videoBackgroundTitleView.innerText = 
+    "ADICIONE OS NÚMEROS";
+    videoBackgroundTitleView.style.fontWeight = (900)+"px";
+    videoBackgroundTitleView.style.fontFamily = "Khand";
+    videoBackgroundTitleView.style.fontSize = (15)+"px";
+    videoBackgroundTitleView.style.lineHeight = (15)+"px";
+    videoBackgroundTitleView.style.left = (0)+"px";
+    videoBackgroundTitleView.style.top = 
+    ((sh/2)-(sw/2)-25)+"px";
+    videoBackgroundTitleView.style.width = (sw)+"px";
+    videoBackgroundTitleView.style.height = (25)+"px";
+    videoBackgroundTitleView.style.zIndex = "15";
+    videoBackgroundView
+    .appendChild(videoBackgroundTitleView);
+
     hasBackground = false;
     videoBackgroundToggleView = document.createElement("i");
     videoBackgroundToggleView.style.position = "absolute";
@@ -647,7 +666,7 @@ var startList = function() {
 
         residueArea2.x = pos2.x;
         residueArea2.y = pos2.y;
-    }, 5000);
+    }, 10000);
 };
 
 var stopList = function() {
