@@ -598,7 +598,8 @@ $(document).ready(function() {
 });
 
 var wordList = [];
-var wordNo = 0;
+var wordNo1 = 0;
+var wordNo2 = 0;
 
 var listInterval = false;
 var startList = function() {
@@ -612,26 +613,41 @@ var startList = function() {
         }
     }
 
-    wordNo = 0;
+    wordNo1 = 0;
+    wordNo2 = 0;
     listInterval = setInterval(function() {
         var filteredList = posList.filter((o) => {
-            return residueArea.x != o.x &&
-            residueArea.y != o.y
+            return residueArea1.x != o.x &&
+            residueArea1.y != o.y
+        });
+        filteredList = filteredList.filter((o) => {
+            return residueArea2.x != o.x &&
+            residueArea2.y != o.y
         });
         var rnd = Math.floor(Math.random()*filteredList.length);
-        var pos = filteredList[rnd];
+        var pos1 = filteredList[rnd];
+
+        filteredList = filteredList.filter((o) => {
+            return pos1.x != o.x &&
+            pos1.y != o.y
+        });
+        var rnd = Math.floor(Math.random()*filteredList.length);
+        var pos2 = filteredList[rnd];
 
         /*var filteredList = wordList.toSpliced(wordNo, 1);
         wordNo = wordList.indexOf(
         filteredList[
         Math.floor(Math.random()*filteredList.length)]);*/
 
-        wordNo = (wordNo+1) < wordList.length ? 
-        (wordNo+1) : 0;
+        wordNo1 = Math.floor(Math.random()*100);
+        wordNo2 = Math.floor(Math.random()*100);
 
-        residueArea.x = pos.x;
-        residueArea.y = pos.y;
-    }, 2000);
+        residueArea1.x = pos1.x;
+        residueArea1.y = pos1.y
+
+        residueArea2.x = pos2.x;
+        residueArea2.y = pos2.y;
+    }, 5000);
 };
 
 var stopList = function() {
@@ -639,7 +655,12 @@ var stopList = function() {
     clearInterval(listInterval);
 };
 
-var residueArea = {
+var residueArea1 = {
+    x: -1,
+    y: -1
+};
+
+var residueArea2 = {
     x: -1,
     y: -1
 };
@@ -1100,12 +1121,12 @@ var drawToSquare =
                 part.destY+(sw/(size*2)));
             }
 
-            if (part.pos.x == residueArea.x && 
-                part.pos.y == residueArea.y) {
+            if (part.pos.x == residueArea1.x && 
+                part.pos.y == residueArea1.y) {
                 ctx.beginPath();
                 ctx.fillStyle = "#000";
-                ctx.font = (wordList[wordNo].length < 3 ? 
-                (sw/(size*3)) : (sw/(size*5)))+
+                ctx.font = 
+                (sw/(size*3))+
                 "px sans serif"; //(sw/(size*5));
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
@@ -1114,7 +1135,26 @@ var drawToSquare =
                 0, Math.PI*2);
                 ctx.fill();
                 ctx.fillStyle = "#fff";
-                ctx.fillText(wordList[wordNo], 
+                ctx.fillText(wordNo1, 
+                part.destX+(sw/(size*2)), 
+                part.destY+(sw/(size*2)));
+            }
+
+            if (part.pos.x == residueArea2.x && 
+                part.pos.y == residueArea2.y) {
+                ctx.beginPath();
+                ctx.fillStyle = "#000";
+                ctx.font = 
+                (sw/(size*3))+
+                "px sans serif"; //(sw/(size*5));
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.arc(part.destX+(sw/(size*2)), 
+                part.destY+(sw/(size*2)), ((sw/size)/3),
+                0, Math.PI*2);
+                ctx.fill();
+                ctx.fillStyle = "#fff";
+                ctx.fillText(wordNo2, 
                 part.destX+(sw/(size*2)), 
                 part.destY+(sw/(size*2)));
             }
