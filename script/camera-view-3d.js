@@ -937,6 +937,15 @@ var textObj = {
     posY: -1
 };
 
+var textureMap = [
+    { x: 1, y: 1, no: 0 },
+    { x: 2, y: 1, no: 1 },
+    { x: 1, y: 2, no: 2 },
+    { x: 2, y: 2, no: 3 },
+    { x: 1, y: 0, no: 4 },
+    { x: 2, y: 0, no: 5 }
+];
+
 var drawToSquare = 
     function(ctx, image, camera=false, size=4) {
     ctx.lineWidth = 1;
@@ -1201,6 +1210,24 @@ var drawToSquare =
                 ctx.fillText(wordNo2, 
                 part.destX+(sw/(size*2)), 
                 part.destY+(sw/(size*2)));
+            }
+
+            for (var w = 0; w < textureMap.length; w++) {
+                if (part.pos.x == textureMap[w].x && 
+                part.pos.y == textureMap[w].y) {
+                    var textureCanvas = 
+                    document.createElement("canvas");
+                    textureCanvas.width = (sw/size);
+                    textureCanvas.height = (sw/size);
+
+                    var textureCtx = textureCanvas.getContext("2d");
+
+                    textureCtx.drawImage(canvas, part.srcX, part.srcY, 
+                (sw/size), (sw/size),
+                    0, 0, (sw/size), (sw/size));
+
+                    setTexture(w, textureCanvas.toDataURL());
+                }
             }
         }
 

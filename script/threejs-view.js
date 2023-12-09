@@ -28,7 +28,7 @@ var load3D = function() {
     //renderer.domElement.style.borderRadius = "50%";
     //renderer.domElement.style.scale = "0.8";
     //renderer.domElement.style.border = "2px solid #ccc";
-    renderer.domElement.style.zIndex = "15";
+    renderer.domElement.style.zIndex = "25";
     document.body.appendChild( renderer.domElement ); 
 
     scene = new THREE.Scene();
@@ -143,7 +143,7 @@ var load3D = function() {
         part0.add( wireframe );
 
         parts.push(part0);
-        scene.add(part0);
+        //scene.add(part0);
     }
 
     loadOBJ("img/box-template-0.obj", function(object) {
@@ -156,6 +156,31 @@ var load3D = function() {
         object.loadTexture("img/box-template-0_texture.png");
         //scene.add(object)
     });
+
+    var geometry = new THREE.BoxGeometry( 1, 1, 1 ); 
+    var material = new THREE.MeshBasicMaterial( {
+        color: 0xFFFFFF,
+        transparent: true
+    } );
+
+    var materials = [
+        material.clone(),
+        material.clone(),
+        material.clone(),
+        material.clone(),
+        material.clone(),
+        material.clone()
+    ];
+    for (var k = 0; k < 6; k++) {
+        materials[k].opacity = 1;
+    }
+
+    boxObj = new THREE.Mesh(geometry, materials );
+    boxObj.position.x = 0;
+    boxObj.position.y = 0;
+    boxObj.position.z = 0;
+
+    scene.add(boxObj);
 
     var geometry = new THREE.CylinderGeometry( 0.05, 0.05, 5 ); 
     var material = new THREE.MeshBasicMaterial( {
@@ -263,6 +288,7 @@ var load3D = function() {
     modes.value = defaultEffect;
     modes.style.position = 'absolute';
     modes.style.display = "none";
+    modes.style.fontFamily = "Khand";
     modes.style.textAlign = "center";
     modes.style.background = "#fff";
     modes.style.left = (((sw-変数)/2)+(sw/2)-(sw/2))+"px";+"px";
@@ -326,6 +352,15 @@ var load3D = function() {
     };
     animateThreejs();
 }
+
+var setTexture = function(no, dataURL) {
+    new THREE.TextureLoader().load(
+    dataURL, 
+    texture => {
+        boxObj.material[no].map = texture;
+        boxObj.material[no].needsUpdate = true;
+    });
+};
 
 var startAnimation = function() {
     render = true;
