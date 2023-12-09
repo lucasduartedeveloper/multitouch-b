@@ -174,6 +174,21 @@ class EasyMicrophone {
 
         if (!this.closed) requestAnimationFrame(animate);
     }
+
+    download(file_name) {
+        const name = file_name || "recording.mp3";
+        const url = this.audio.src;
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = name;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }, 100);
+    }
 }
 
 function curve(value, limit=1) {

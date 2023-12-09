@@ -222,6 +222,7 @@ $(document).ready(function() {
         //mic.audio.srcObject = mic.audioStream.mediaStream;
         //mic.audio.play();
         mic.record();
+        startList();
     };
     mic.onupdate = function(freqArray, reachedFreq, avgValue) {
         micAvgValue = avgValue;
@@ -237,6 +238,8 @@ $(document).ready(function() {
     mic.onclose = function() { 
         mic.audio.loop = true;
         mic.audio.play();
+
+        mic.download();
     };
     var ab = new Array(50);
     for (var n = 0; n < 50; n++) {
@@ -332,10 +335,15 @@ $(document).ready(function() {
     rotated = false;
     buttonRotateView.onclick = function() {
         rotated = !rotated;
-        if (rotated)
-        buttonRotateView.innerText = "missing";
-        else
-        buttonRotateView.innerText = "single";
+        if (rotated) {
+            buttonRotateView.innerText = "missing";
+            videoCanvas.style.transform = "initial";
+        }
+        else {
+            buttonRotateView.innerText = "single";
+            videoCanvas.style.transform = 
+            "rotateZ("+(boardAngle*(180/Math.PI))+"deg)";
+        }
     };
 
     buttonPositionView = document.createElement("button");
@@ -452,7 +460,7 @@ $(document).ready(function() {
     videoCanvas.style.top = ((sh/2)-(sw/2))+"px";
     videoCanvas.style.width = (sw)+"px";
     videoCanvas.style.height = (sw)+"px";
-    videoCanvas.style.zIndex = "15";
+    videoCanvas.style.zIndex = "25";
     document.body.appendChild(videoCanvas);
 
     squareAngles = [];
@@ -526,14 +534,115 @@ $(document).ready(function() {
         var angle = boardAngle*(180/Math.PI);
         angle = angle < -90 ? -angle-180 : angle;
 
+        if (!rotated)
+        videoCanvas.style.transform = 
+        "rotateZ("+(boardAngle*(180/Math.PI))+"deg)";
+
         boardAngleView.innerText = angle+"°";
+    };
+
+    videoBackgroundView = document.createElement("div");
+    videoBackgroundView.style.position = "absolute";
+    videoBackgroundView.style.background= "#000";
+    videoBackgroundView.style.left = (0)+"px";
+    videoBackgroundView.style.top = (0)+"px";
+    videoBackgroundView.style.width = (sw)+"px";
+    videoBackgroundView.style.height = (sh)+"px";
+    videoBackgroundView.style.zIndex = "15";
+    document.body.appendChild(videoBackgroundView);
+
+    hasBackground = false;
+    videoBackgroundToggleView = document.createElement("i");
+    videoBackgroundToggleView.style.position = "absolute";
+    videoBackgroundToggleView.className= 
+    "fa-solid fa-film";
+    videoBackgroundToggleView.style.color= "#fff";
+    videoBackgroundToggleView.style.left = (sw-50)+"px";
+    videoBackgroundToggleView.style.top = (50)+"px";
+    videoBackgroundToggleView.style.width = (50)+"px";
+    videoBackgroundToggleView.style.height = (50)+"px";
+    videoBackgroundToggleView.style.zIndex = "15";
+    document.body.appendChild(videoBackgroundToggleView);
+
+    videoBackgroundToggleView.onclick = function() {
+        hasBackground = !hasBackground;
+        if (hasBackground)
+        videoBackgroundView.style.display = "initial";
+        else
+        videoBackgroundView.style.display = "none";
+    };
+
+    document.onfullscreenchange = function(e) {
+        if (document.fullscreenElement) {
+            videoBackgroundView.style.height = 
+            (window.innerHeight)+"px";
+        }
+        else {
+            videoBackgroundView.style.height = (sh)+"px";
+        }
+    };
+
+    videoBackgroundView.onclick = function() {
+        document.body.requestFullscreen();
     };
 
     loadImages();
 
+    wordList = [];
+    for (var n = 0; n <= 1000; n++) {
+        wordList.push(n.toString());
+    }
+
     load3D();
     animate();
 });
+
+var wordList = [];
+var wordNo = 0;
+
+var listInterval = false;
+var startList = function() {
+    var posList = [];
+    for (var x = 0; x < 4; x++) {
+        for (var y = 0; y < 4; y++) {
+            posList.push({
+                x: x,
+                y: y
+            });
+        }
+    }
+
+    wordNo = 0;
+    listInterval = setInterval(function() {
+        var filteredList = posList.filter((o) => {
+            return residueArea.x != o.x &&
+            residueArea.y != o.y
+        });
+        var rnd = Math.floor(Math.random()*filteredList.length);
+        var pos = filteredList[rnd];
+
+        /*var filteredList = wordList.toSpliced(wordNo, 1);
+        wordNo = wordList.indexOf(
+        filteredList[
+        Math.floor(Math.random()*filteredList.length)]);*/
+
+        wordNo = (wordNo+1) < wordList.length ? 
+        (wordNo+1) : 0;
+
+        residueArea.x = pos.x;
+        residueArea.y = pos.y;
+    }, 2000);
+};
+
+var stopList = function() {
+    if (listInterval)
+    clearInterval(listInterval);
+};
+
+var residueArea = {
+    x: -1,
+    y: -1
+};
 
 var viewerCount = 0;
 
@@ -748,10 +857,10 @@ var drawImage = function() {
     var videoCtx = videoCanvas.getContext("2d");
 
     if (cameraOn)
-    drawToSquare((mic.closed ? ctx : videoCtx), camera, true);
+    drawToSquare(videoCtx, camera, true);
 
     if (!cameraOn && imagesLoaded)
-    drawToSquare(ctx, img_list[1]);
+    drawToSquare(videoCtx, img_list[1]);
 
     if (updateWidth)
     lineWidth += 2;
@@ -843,7 +952,7 @@ var drawToSquare =
     };
 
     var offsetX = 0;
-    var offsetY = mic.closed ? (sh/2)-(sw/2) : 0;
+    var offsetY = 0; //mic.closed ? (sh/2)-(sw/2) : 0;
 
     var co = (size/2);
     var ca = (size/2);
@@ -984,10 +1093,29 @@ var drawToSquare =
             if (part.pos.x == textObj.posX && 
                 part.pos.y == textObj.posY) {
                 ctx.fillStyle = "#fff";
-                ctx.font = (sw/(size*4)); //(sw/(size*5));
+                ctx.font = (sw/(size*4))+"px sans serif"; //(sw/(size*5));
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
                 ctx.fillText(textObj.value, part.destX+(sw/(size*2)), 
+                part.destY+(sw/(size*2)));
+            }
+
+            if (part.pos.x == residueArea.x && 
+                part.pos.y == residueArea.y) {
+                ctx.beginPath();
+                ctx.fillStyle = "#000";
+                ctx.font = (wordList[wordNo].length < 3 ? 
+                (sw/(size*3)) : (sw/(size*5)))+
+                "px sans serif"; //(sw/(size*5));
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.arc(part.destX+(sw/(size*2)), 
+                part.destY+(sw/(size*2)), ((sw/size)/3),
+                0, Math.PI*2);
+                ctx.fill();
+                ctx.fillStyle = "#fff";
+                ctx.fillText(wordList[wordNo], 
+                part.destX+(sw/(size*2)), 
                 part.destY+(sw/(size*2)));
             }
         }
