@@ -1,8 +1,4 @@
-var host_old = "wss://mapa-ws.herokuapp.com/";
-var host_ext = "ws://179.172.228.139:8090/";
-var host_stunnel = "ws://192.168.15.5:8090/";
-var host = "wss://websocket-sv.onrender.com/";
-var local_host = "ws://192.168.15.6:3000";
+var host = "wss://192.168.15.4:3000";
 
 var wsh = null;
 

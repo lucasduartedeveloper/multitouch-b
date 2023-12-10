@@ -439,6 +439,14 @@ $(document).ready(function() {
         viewerCountView.innerText = viewerCount + " viewers";
     };
 
+    remoteCanvas = document.createElement("canvas");
+    remoteCanvas.width = (sw/4);
+    remoteCanvas.height = (sw/4);
+
+    var remoteCtx = remoteCanvas.getContext("2d");
+    remoteCtx.fillStyle = "#000";
+    //remoteCtx.fillRect(0, 0, sw, sw);
+
     ws.onmessage = function(e) {
         var msg = e.data.split("|");
         if (msg[0] == "PAPER" &&
@@ -446,6 +454,16 @@ $(document).ready(function() {
             msg[2] == "new-text") {
             $("#title")[0].innerText = msg[3].replace("#", "\n");
             textView.innerText = msg[3].replace("#", "\n");
+        }
+        else if (msg[0] == "PAPER" &&
+            msg[1] != playerId &&
+            msg[2] == "image-data") {
+            var img = document.createElement("img");
+            img.onload = function() {
+                var remoteCtx = remoteCanvas.getContext("2d");
+                remoteCtx.drawImage(img, 0, 0, (sw/4), (sw/4));
+            };
+            img.src = msg[3];
         }
     };
 
@@ -691,7 +709,7 @@ var startList = function() {
 
         residueArea2.x = pos2.x;
         residueArea2.y = pos2.y;
-    }, 10000);
+    }, 15000);
 };
 
 var stopList = function() {
@@ -713,6 +731,10 @@ var viewerCount = 0;
 
 var sendText = function(text) {
     ws.send("PAPER|"+playerId+"|new-text|"+text);
+};
+
+var sendImage = function(dataURL) {
+    ws.send("PAPER|"+playerId+"|image-data|"+dataURL);
 };
 
 var drawAB = 
@@ -981,20 +1003,44 @@ var drawToSquare =
             height: vh
         }
         format = fitImageCover(video, canvas);
+        if (vw > vh) {
+            format = {
+                left: ((vw/2)-(vh/2)),
+                top: 0,
+                width: vh,
+                height: vh
+            };
+            var temp = video.width;
+            video.width = video.height;
+            video.height = temp;
 
-        if ((pause == 0 || pause == 2) && !(pause == 3))
-        squareCtx.drawImage(image, 
-        -format.left, -format.top, 
-        (video.width/2), video.width, 
-        format.left, 0, 
-        (format.width/2), format.width);
+            if ((pause == 0 || pause == 2) && !(pause == 3))
+            squareCtx.drawImage(image, 
+            format.left, format.top, 
+            (video.width/2), video.width, 
+            0, 0, (sw/2), sw);
 
-        if ((pause == 0 || pause == 1) && !(pause == 3))
-        squareCtx.drawImage(image, 
-        -format.left + (video.width/2), -format.top, 
-        (video.width/2), video.width, 
-        format.left + (sw/2), 0, 
-        (format.width/2), format.width);
+            if ((pause == 0 || pause == 1) && !(pause == 3))
+            squareCtx.drawImage(image, 
+            format.left + (video.width/2), format.top, 
+            (video.width/2), video.width, 
+            (sw/2), 0, (sw/2), sw);
+        }
+        else {
+            if ((pause == 0 || pause == 2) && !(pause == 3))
+            squareCtx.drawImage(image, 
+            -format.left, -format.top, 
+            (video.width/2), video.width, 
+            format.left, 0, 
+            (format.width/2), format.width);
+
+            if ((pause == 0 || pause == 1) && !(pause == 3))
+            squareCtx.drawImage(image, 
+            -format.left + (video.width/2), -format.top, 
+            (video.width/2), video.width, 
+            format.left + (sw/2), 0, 
+            (format.width/2), format.width);
+        }
 
         /*
         var video = {
@@ -1013,6 +1059,7 @@ var drawToSquare =
     }
 
     squareCtx.restore();
+    sendImage(squareCanvas.toDataURL());
 
     var circles = [];
     for (var n = 0; n < (size/2); n++) {
@@ -1179,16 +1226,18 @@ var drawToSquare =
                 ctx.beginPath();
                 ctx.fillStyle = "#000";
                 ctx.font = 
-                (sw/(size*3))+
+                (sw/(size*4))+
                 "px sans serif"; //(sw/(size*5));
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
                 ctx.arc(part.destX+(sw/(size*2)), 
                 part.destY+(sw/(size*2)), ((sw/size)/3),
                 0, Math.PI*2);
+                ctx.rect(part.destX, 
+                part.destY, (sw/size), (sw/size));
                 ctx.fill();
                 ctx.fillStyle = "#fff";
-                ctx.fillText(wordNo1, 
+                ctx.fillText("START", 
                 part.destX+(sw/(size*2)), 
                 part.destY+(sw/(size*2)));
             }
@@ -1198,36 +1247,26 @@ var drawToSquare =
                 ctx.beginPath();
                 ctx.fillStyle = "#000";
                 ctx.font = 
-                (sw/(size*3))+
+                (sw/(size*4))+
                 "px sans serif"; //(sw/(size*5));
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
                 ctx.arc(part.destX+(sw/(size*2)), 
                 part.destY+(sw/(size*2)), ((sw/size)/3),
                 0, Math.PI*2);
+                ctx.rect(part.destX, 
+                part.destY, (sw/size), (sw/size));
                 ctx.fill();
                 ctx.fillStyle = "#fff";
-                ctx.fillText(wordNo2, 
+                ctx.fillText("FINISH", 
                 part.destX+(sw/(size*2)), 
                 part.destY+(sw/(size*2)));
             }
 
-            for (var w = 0; w < textureMap.length; w++) {
-                if (part.pos.x == textureMap[w].x && 
-                part.pos.y == textureMap[w].y) {
-                    var textureCanvas = 
-                    document.createElement("canvas");
-                    textureCanvas.width = (sw/size);
-                    textureCanvas.height = (sw/size);
-
-                    var textureCtx = textureCanvas.getContext("2d");
-
-                    textureCtx.drawImage(canvas, part.srcX, part.srcY, 
-                (sw/size), (sw/size),
-                    0, 0, (sw/size), (sw/size));
-
-                    setTexture(w, textureCanvas.toDataURL());
-                }
+            if (part.pos.x == 0 && 
+                part.pos.y == 0) {
+                ctx.drawImage(remoteCanvas, part.destX, part.destY, 
+                (sw/size), (sw/size));
             }
         }
 
