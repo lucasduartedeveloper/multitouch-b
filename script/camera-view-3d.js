@@ -115,6 +115,7 @@ $(document).ready(function() {
     buttonView.style.position = "absolute";
     buttonView.style.color = "#000";
     buttonView.innerText = "PAUSE";
+    buttonView.style.fontSize = "15px";
     buttonView.style.fontFamily = "Khand";
     buttonView.style.left = (10)+"px";
     buttonView.style.top = (sh-110)+"px";
@@ -129,7 +130,8 @@ $(document).ready(function() {
     var pauseArr = [
         [ 0, 1, 2, 3 ],
         [ 0, 2, 1, 3 ],
-        [ 0, 3, 1, 2 ]
+        [ 0, 3, 1, 2 ],
+        [ 0, 4 ]
     ];
 
     pause = 0;
@@ -138,7 +140,9 @@ $(document).ready(function() {
             beepMilestone.play();
 
             thresholdReached = false;
-            pauseNo = (pauseNo+1) < 4 ? (pauseNo+1) : 0;
+            pauseNo = 
+            (pauseNo+1) < pauseArr[pauseOrder].length ? 
+            (pauseNo+1) : 0;
             pause = pauseArr[pauseOrder][pauseNo];
 
             if (pause == 0) 
@@ -149,6 +153,8 @@ $(document).ready(function() {
             buttonView.innerText = "PAUSE >";
             else if (pause == 3) 
             buttonView.innerText = "PAUSE ><";
+            else if (pause == 4) 
+            buttonView.innerText = "PAUSE 50%";
         //}, 5000);
     };
 
@@ -169,7 +175,9 @@ $(document).ready(function() {
     document.body.appendChild(buttonOrderView);
 
     buttonOrderView.onclick = function() {
-        pauseOrder = (pauseOrder+1) < 3 ? (pauseOrder+1) : 0;
+        pauseOrder = 
+        (pauseOrder+1) < pauseArr.length ? 
+        (pauseOrder+1) : 0;
         buttonOrderView.innerText = 
         "PAUSE ORDER: "+pauseOrder;
     };
@@ -773,16 +781,18 @@ $(document).ready(function() {
     animate();
 });
 
+var avatarEnabled = false;
 var avatarNo = 0;
 var avatarText = "";
 var textList = [
-    { avatar: 0, text: "SÃO DOIS BALÕEZINHOS SÓ..." },
+    { avatar: 0, text: "SÃO DOIS BALŌEZINHOS SÓ..." },
     { avatar: 0, text: "O PRIMEIRO BALÃOZINHO PRECISA SER MEDIDO DUAS VEZES PARA SOBRAR ESPAÇO." },
     { avatar: 2, text: "EMPREGAMOS ELA." },
 ];
 
 var avatarTextInterval = false;
 var startAvatarText = function() {
+    if (!avatarEnabled) return;
     avatarTextView.style.display = "initial";
 
     var currentText = 0;
@@ -1135,6 +1145,10 @@ var drawToSquare =
     var canvas = squareCanvas;
     var squareCtx = canvas.getContext("2d");
 
+    if (pause == 0)
+    squareCtx.clearRect(0, 0, sw, sw);
+    ctx.clearRect(0, 0, sw, sw);
+
     squareCtx.save();
     if (inFront && cameraOn) {
         squareCtx.scale(-1, 1);
@@ -1158,6 +1172,8 @@ var drawToSquare =
         (format.width/2), format.height);
     }
     else {
+        ctx.globalAlpha = pause == 4 ? 0.5 : 1;
+
         var video = {
             width: vw,
             height: vh
@@ -1174,27 +1190,27 @@ var drawToSquare =
             video.width = video.height;
             video.height = temp;
 
-            if ((pause == 0 || pause == 2 || pause == 3))
+            if ((pause == 0 || pause == 2 || pause == 4))
             squareCtx.drawImage(image, 
             format.left, format.top, 
             (video.width/2), video.width, 
             0, 0, (sw/2), sw);
 
-            if ((pause == 0 || pause == 1 || pause == 3))
+            if ((pause == 0 || pause == 1 || pause == 4))
             squareCtx.drawImage(image, 
             format.left + (video.width/2), format.top, 
             (video.width/2), video.width, 
             (sw/2), 0, (sw/2), sw);
         }
         else {
-            if ((pause == 0 || pause == 2 || pause == 3))
+            if ((pause == 0 || pause == 2 || pause == 4))
             squareCtx.drawImage(image, 
             -format.left, -format.top, 
             (video.width/2), video.width, 
             format.left, 0, 
             (format.width/2), format.width);
 
-            if ((pause == 0 || pause == 1 || pause == 3))
+            if ((pause == 0 || pause == 1 || pause == 4))
             squareCtx.drawImage(image, 
             -format.left + (video.width/2), -format.top, 
             (video.width/2), video.width, 
@@ -1362,7 +1378,7 @@ var drawToSquare =
             }
             }
 
-            if ((!rotated || !defined) && pause != 3)
+            if ((!rotated || !defined))
             ctx.drawImage(canvas, part.srcX, part.srcY, 
             (sw/size), (sw/size),
             part.destX, part.destY, (sw/size), (sw/size));
@@ -1430,7 +1446,8 @@ var drawToSquare =
             }
             }
 
-            if (!mic.closed && 
+            if (avatarEnabled && 
+                !mic.closed && 
                 ((avatarNo == 0 && 
                 part.pos.x == 0 && part.pos.y == 3) ||
                 (avatarNo == 2 && 
@@ -1452,7 +1469,7 @@ var drawToSquare =
         //ctx.stroke();
     };
 
-    if (!mic.closed) {
+    if (avatarEnabled && !mic.closed) {
         ctx.fillStyle = "#fff";
         ctx.strokeStyle = "#000";
         ctx.lineWidth = 2;
