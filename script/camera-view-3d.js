@@ -282,6 +282,8 @@ $(document).ready(function() {
          (new Date().getTime() - micStartTime) > 2000;
 
         if (mic.closed) {
+            startAvatarText();
+
             mic.open();
             buttonMicView.innerText = "mic: on";
 
@@ -289,6 +291,8 @@ $(document).ready(function() {
             htmlRecorder.start();
         }
         else {
+            stopAvatarText();
+
             mic.close();
             buttonMicView.innerText = "mic: off";
 
@@ -741,6 +745,23 @@ $(document).ready(function() {
         }
     };
 
+    avatarTextView = document.createElement("span");
+    avatarTextView.style.position = "absolute";
+    avatarTextView.style.display = "none";
+    avatarTextView.style.background = "#fff";
+    avatarTextView.style.color = "#000";
+    avatarTextView.style.textAlign = "left";
+    avatarTextView.innerText = "";
+    avatarTextView.style.fontSize = "15px";
+    avatarTextView.style.left = ((sw/4)+20)+"px";
+    avatarTextView.style.top = 
+    ((sh/2)-(sw/2)+((sw/4)*3)+20)+"px";
+    avatarTextView.style.width = (((sw/4)*3)-40)+"px";
+    avatarTextView.style.height = ((sw/4)-40)+"px";
+    //avatarTextView.style.border = "1px solid white";
+    avatarTextView.style.zIndex = "25";
+    //document.body.appendChild(avatarTextView);
+
     loadImages();
 
     wordList = [];
@@ -751,6 +772,46 @@ $(document).ready(function() {
     load3D();
     animate();
 });
+
+var avatarNo = 0;
+var avatarText = "";
+var textList = [
+    { avatar: 0, text: "SÃO DOIS BALÕEZINHOS SÓ..." },
+    { avatar: 0, text: "O PRIMEIRO BALÃOZINHO PRECISA SER MEDIDO DUAS VEZES PARA SOBRAR ESPAÇO." },
+    { avatar: 2, text: "EMPREGAMOS ELA." },
+];
+
+var avatarTextInterval = false;
+var startAvatarText = function() {
+    avatarTextView.style.display = "initial";
+
+    var currentText = 0;
+    var currentChar = 0;
+    var text = "";
+    avatarTextInterval = setInterval(function() {
+        if (currentChar > (textList[currentText].text.length-1)) {
+            currentText = (currentText+1) < textList.length ? 
+            (currentText+1) : 0;
+            currentChar = 0;
+            avatarNo = textList[currentText].avatar;
+        }
+        text = "";
+        for (var n = 0; n < (currentChar+1); n++) {
+            text += textList[currentText].text[n];
+        }
+        avatarText = text;
+        avatarTextView.innerText = text;
+        currentChar += 1;
+    }, (1000/5));
+};
+
+var stopAvatarText = function() {
+    avatarTextView.style.display = "none";
+
+    if (avatarTextInterval)
+    clearInterval(avatarTextInterval);
+    avatarTextView.innerText = "";
+};
 
 var wordList = [];
 var wordNo1 = 0;
@@ -1370,10 +1431,12 @@ var drawToSquare =
             }
 
             if (!mic.closed && 
-                part.pos.x == 0 && 
-                part.pos.y == 3 ) {
+                ((avatarNo == 0 && 
+                part.pos.x == 0 && part.pos.y == 3) ||
+                (avatarNo == 2 && 
+                part.pos.x == 3 && part.pos.y == 3))) {
                 var image = micAvgValue <= 0.3 ? 
-                img_list[2] : img_list[3];
+                img_list[2+(avatarNo*2)] : img_list[3+(avatarNo*2)];
                 ctx.drawImage(image, part.destX, part.destY, 
                 (sw/size), (sw/size));
             }
@@ -1391,11 +1454,20 @@ var drawToSquare =
 
     if (!mic.closed) {
         ctx.fillStyle = "#fff";
+        ctx.strokeStyle = "#000";
+        ctx.lineWidth = 2;
+
+        ctx.save();
+        if (avatarNo == 2) {
+            ctx.scale(-1, 1);
+            ctx.translate(-sw, 0);
+        }
 
         ctx.beginPath();
         ctx.roundRect((sw/size)+10, ((sw/size)*3)+10, 
         ((sw/size)*3)-20, (sw/size)-20, 15);
         ctx.fill();
+        ctx.stroke();
 
         ctx.beginPath();
         ctx.moveTo((sw/size), ((sw/size)*3)+25);
@@ -1404,6 +1476,40 @@ var drawToSquare =
         ctx.lineTo((sw/size), ((sw/size)*3)+25);
         ctx.closePath();
         ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo((sw/size), ((sw/size)*3)+25);
+        ctx.lineTo((sw/size)+15, ((sw/size)*3)+14);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo((sw/size), ((sw/size)*3)+25);
+        ctx.lineTo((sw/size)+10, ((sw/size)*3)+25);
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.fillStyle = "#000";
+        ctx.font = "15px VT323";
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle";
+
+        var avatarTextArr = avatarText.split(" ");
+        var avatarTextLines = [];
+
+        var text = "";
+        for (var n = 0; n < avatarTextArr.length; n++) {
+            text += avatarTextArr[n] + " ";
+            if (text.length > 30 || n == (avatarTextArr.length-1)) {
+                text = text.trim();
+                avatarTextLines.push(text);
+                text = "";
+            };
+        }
+
+        for (var n = 0; n < avatarTextLines.length; n++) {
+            ctx.fillText(avatarTextLines[n], 
+            (avatarNo == 0 ? (sw/size) : 0) +20, ((sw/size)*3)+30+(n*20));
+        }
     }
 };
 
@@ -1411,7 +1517,7 @@ var visibilityChange;
 if (typeof document.hidden !== "undefined") { // Opera 12.10 and Firefox 18 and later support
   visibilityChange = "visibilitychange";
 } else if (typeof document.msHidden !== "undefined") {
-  visibilityChange = "msvisibilitychange";
+  visibilityChange = "msvisivbilitychange";
 } else if (typeof document.webkitHidden !== "undefined") {
   visibilityChange = "webkitvisibilitychange";
 }
