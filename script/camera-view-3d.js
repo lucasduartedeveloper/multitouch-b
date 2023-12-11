@@ -1388,6 +1388,23 @@ var drawToSquare =
         ctx.arc(obj.x, obj.y, obj.radius*(sw/size), 0, Math.PI*2);
         //ctx.stroke();
     };
+
+    if (!mic.closed) {
+        ctx.fillStyle = "#fff";
+
+        ctx.beginPath();
+        ctx.roundRect((sw/size)+10, ((sw/size)*3)+10, 
+        ((sw/size)*3)-20, (sw/size)-20, 15);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo((sw/size), ((sw/size)*3)+25);
+        ctx.lineTo((sw/size)+25, ((sw/size)*3)+10);
+        ctx.lineTo((sw/size)+25, ((sw/size)*3)+25);
+        ctx.lineTo((sw/size), ((sw/size)*3)+25);
+        ctx.closePath();
+        ctx.fill();
+    }
 };
 
 var visibilityChange;
