@@ -146,7 +146,7 @@ $(document).ready(function() {
 
     pause = 0;
     buttonView.onclick = function() {
-        setTimeout(function() {
+        //setTimeout(function() {
             beepMilestone.play();
 
             thresholdReached = false;
@@ -161,7 +161,7 @@ $(document).ready(function() {
             buttonView.innerText = "PAUSE >";
             else if (pause == 3) 
             buttonView.innerText = "PAUSE ><";
-        }, 5000);
+        //}, 5000);
     };
 
     pauseOrder = 0;
@@ -447,6 +447,8 @@ $(document).ready(function() {
     remoteCtx.fillStyle = "#000";
     //remoteCtx.fillRect(0, 0, sw, sw);
 
+    receivedImageCount = 0;
+    remoteImageRendered = true;
     ws.onmessage = function(e) {
         var msg = e.data.split("|");
         if (msg[0] == "PAPER" &&
@@ -458,10 +460,16 @@ $(document).ready(function() {
         else if (msg[0] == "PAPER" &&
             msg[1] != playerId &&
             msg[2] == "image-data") {
+            receivedImageCount += 1;
+            videoBackgroundTitleView.innerText = 
+            "RECEIVED: "+receivedImageCount;
+            if (!remoteImageRendered) return;
+
             var img = document.createElement("img");
             img.onload = function() {
                 var remoteCtx = remoteCanvas.getContext("2d");
                 remoteCtx.drawImage(img, 0, 0, (sw/4), (sw/4));
+                remoteImageRendered = true;
             };
             img.src = msg[3];
         }
@@ -655,6 +663,36 @@ $(document).ready(function() {
         wordList.push(n.toString());
     }
 
+    buttonDownloadView = document.createElement("button");
+    buttonDownloadView.style.position = "absolute";
+    buttonDownloadView.style.color = "#000";
+    buttonDownloadView.innerText = "DOWNLOAD";
+    buttonDownloadView.style.fontFamily = "Khand";
+    buttonDownloadView.style.fontSize = "15px";
+    buttonDownloadView.style.left = (120)+"px";
+    buttonDownloadView.style.top = (sh-50)+"px";
+    buttonDownloadView.style.width = (100)+"px";
+    buttonDownloadView.style.height = (25)+"px";
+    buttonDownloadView.style.border = "1px solid white";
+    buttonDownloadView.style.borderRadius = "25px";
+    buttonDownloadView.style.zIndex = "15";
+    document.body.appendChild(buttonOrderView);
+
+    buttonDownloadView.onclick = function() {
+        const name = file_name || 'download.png';
+        const url = videoCanvas.toDataURL();
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = name;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }, 100);
+    };
+
     load3D();
     animate();
 });
@@ -801,7 +839,13 @@ var resumeWave = function(freqArray) {
 
 var img_list = [
     "img/image-5.png",
-    "img/image-105.png"
+    "img/image-105.png",
+    "img/avatar-state-0.png",
+    "img/avatar-state-1.png",
+    "img/avatar-1_state-0.png",
+    "img/avatar-1_state-1.png",
+    "img/avatar-2_state-0.png",
+    "img/avatar-2_state-1.png"
 ];
 
 var imagesLoaded = false;
@@ -1014,27 +1058,27 @@ var drawToSquare =
             video.width = video.height;
             video.height = temp;
 
-            if ((pause == 0 || pause == 2) && !(pause == 3))
+            if ((pause == 0 || pause == 2 || pause == 3))
             squareCtx.drawImage(image, 
             format.left, format.top, 
             (video.width/2), video.width, 
             0, 0, (sw/2), sw);
 
-            if ((pause == 0 || pause == 1) && !(pause == 3))
+            if ((pause == 0 || pause == 1 || pause == 3))
             squareCtx.drawImage(image, 
             format.left + (video.width/2), format.top, 
             (video.width/2), video.width, 
             (sw/2), 0, (sw/2), sw);
         }
         else {
-            if ((pause == 0 || pause == 2) && !(pause == 3))
+            if ((pause == 0 || pause == 2 || pause == 3))
             squareCtx.drawImage(image, 
             -format.left, -format.top, 
             (video.width/2), video.width, 
             format.left, 0, 
             (format.width/2), format.width);
 
-            if ((pause == 0 || pause == 1) && !(pause == 3))
+            if ((pause == 0 || pause == 1 || pause == 3))
             squareCtx.drawImage(image, 
             -format.left + (video.width/2), -format.top, 
             (video.width/2), video.width, 
@@ -1202,7 +1246,7 @@ var drawToSquare =
             }
             }
 
-            if (!rotated || !defined)
+            if ((!rotated || !defined) && pause != 3)
             ctx.drawImage(canvas, part.srcX, part.srcY, 
             (sw/size), (sw/size),
             part.destX, part.destY, (sw/size), (sw/size));
@@ -1235,11 +1279,11 @@ var drawToSquare =
                 0, Math.PI*2);
                 ctx.rect(part.destX, 
                 part.destY, (sw/size), (sw/size));
-                ctx.fill();
+                /*ctx.fill();
                 ctx.fillStyle = "#fff";
                 ctx.fillText("START", 
                 part.destX+(sw/(size*2)), 
-                part.destY+(sw/(size*2)));
+                part.destY+(sw/(size*2)));*/
             }
 
             if (part.pos.x == residueArea2.x && 
@@ -1256,17 +1300,47 @@ var drawToSquare =
                 0, Math.PI*2);
                 ctx.rect(part.destX, 
                 part.destY, (sw/size), (sw/size));
-                ctx.fill();
+                /*ctx.fill();
                 ctx.fillStyle = "#fff";
                 ctx.fillText("FINISH", 
                 part.destX+(sw/(size*2)), 
-                part.destY+(sw/(size*2)));
+                part.destY+(sw/(size*2)));*/
             }
 
-            if (part.pos.x == 0 && 
-                part.pos.y == 0) {
-                ctx.drawImage(remoteCanvas, part.destX, part.destY, 
+            if (cameraOn && 
+                part.pos.x == 0 && 
+                part.pos.y == 3 ) {
+                var image = micAvgValue <= 0.3 ? 
+                img_list[2] : img_list[3];
+                ctx.drawImage(image, part.destX, part.destY, 
                 (sw/size), (sw/size));
+            }
+
+            if (cameraOn && 
+                part.pos.x == 1 && 
+                part.pos.y == 3 ) {
+                var image = micAvgValue <= 0.5 ? 
+                img_list[4] : img_list[5];
+                ctx.drawImage(image, part.destX, part.destY, 
+                (sw/size), (sw/size));
+            }
+
+            if (cameraOn && 
+                part.pos.x == 2 && 
+                part.pos.y == 3 ) {
+                var image = micAvgValue <= 0.7 ? 
+                img_list[6] : img_list[7];
+                ctx.drawImage(image, part.destX, part.destY, 
+                (sw/size), (sw/size));
+            }
+
+            for (var w = 0; w < squareAngles.length; w++) {
+            if (squareAngles[w].rotatedX == part.pos.x && 
+            squareAngles[w].rotatedY == part.pos.y &&
+            squareAngles[w].angle != 0) {
+                 ctx.drawImage(canvas, part.srcX, part.srcY, 
+                 (sw/size), (sw/size),
+                 part.destX, part.destY, (sw/size), (sw/size));
             }
         }
 

@@ -33,7 +33,7 @@ var load3D = function() {
 
     scene = new THREE.Scene();
     //scene.background = null;
-    scene.background = new THREE.Color("#000"); 
+    //scene.background = new THREE.Color("#000"); 
 
     light = new THREE.PointLight(
         lightParams.color,
@@ -65,7 +65,7 @@ var load3D = function() {
 
     group = new THREE.Group();
     //group.rotation.x = -(Math.PI/2);
-    scene.add(group);
+    //scene.add(group);
 
     var geometry = new THREE.ConeGeometry( 5, 5, 4 ); 
     var material = new THREE.MeshStandardMaterial( {
@@ -146,15 +146,13 @@ var load3D = function() {
         //scene.add(part0);
     }
 
-    loadOBJ("img/box-template-0.obj", function(object) {
+    loadOBJ("img/box-model-0.obj", function(object) {
         object.position.y = 0;
-        object.rotation.x = -(Math.PI/2);
-        object.rotation.z = -(Math.PI);
 
         //object.scale.set(0.5, 0.5, 0.5);
 
-        object.loadTexture("img/box-template-0_texture.png");
-        //scene.add(object)
+        //object.loadTexture("img/box-template-0_texture.png");
+        scene.add(object)
     });
 
     var geometry = new THREE.BoxGeometry( 1, 1, 1 ); 
@@ -180,7 +178,7 @@ var load3D = function() {
     boxObj.position.y = 0;
     boxObj.position.z = 0;
 
-    scene.add(boxObj);
+    //scene.add(boxObj);
 
     var geometry = new THREE.CylinderGeometry( 0.05, 0.05, 5 ); 
     var material = new THREE.MeshBasicMaterial( {
