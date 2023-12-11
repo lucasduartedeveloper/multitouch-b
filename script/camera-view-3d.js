@@ -204,13 +204,19 @@ $(document).ready(function() {
     micThreshold = 0.5;
     thresholdReached = false;
 
+    recordingEnabled = false;
+
     mic = new EasyMicrophone();
     mic.onsuccess = function() { 
         mic.audio.pause();
-        //mic.audio.srcObject = mic.audioStream.mediaStream;
-        //mic.audio.play();
-        mic.record();
-        startList();
+        if (!recordingEnabled) {
+            mic.audio.srcObject = mic.audioStream.mediaStream;
+            mic.audio.play();
+        }
+        else {
+            mic.record();
+            startList();
+        }
     };
     mic.onupdate = function(freqArray, reachedFreq, avgValue) {
         micAvgValue = avgValue;
@@ -227,6 +233,7 @@ $(document).ready(function() {
         mic.audio.loop = true;
         mic.audio.play();
 
+        if (recordingEnabled)
         mic.download();
     };
     var ab = new Array(50);
@@ -265,19 +272,31 @@ $(document).ready(function() {
     buttonMicView.style.zIndex = "15";
     document.body.appendChild(buttonMicView);
 
-    buttonMicView.onclick = function() {
+    var micStartTime = 0;
+    buttonMicView.ontouchstart = function() {
+        micStartTime = new Date().getTime();
+    };
+
+    buttonMicView.ontouchend = function() {
+         recordingEnabled = recordingEnabled ||
+         (new Date().getTime() - micStartTime) > 2000;
+
         if (mic.closed) {
             mic.open();
             buttonMicView.innerText = "mic: on";
 
+            if (recordingEnabled)
             htmlRecorder.start();
         }
         else {
             mic.close();
             buttonMicView.innerText = "mic: off";
 
-            htmlRecorder.stop();
-            htmlRecorder.save("filename.webm");
+            if (recordingEnabled) {
+                htmlRecorder.stop();
+                htmlRecorder.save("filename.webm");
+                recordingEnabled = false;
+            }
         }
     };
 
@@ -1348,6 +1367,15 @@ var drawToSquare =
                  (sw/size), (sw/size),
                  part.destX, part.destY, (sw/size), (sw/size));
             }
+            }
+
+            if (!mic.closed && 
+                part.pos.x == 0 && 
+                part.pos.y == 3 ) {
+                var image = micAvgValue <= 0.3 ? 
+                img_list[2] : img_list[3];
+                ctx.drawImage(image, part.destX, part.destY, 
+                (sw/size), (sw/size));
             }
 
             ctx.strokeStyle = "#000";
