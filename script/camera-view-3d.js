@@ -85,18 +85,6 @@ $(document).ready(function() {
     imageView.style.zIndex = "15";
     document.body.appendChild(imageView);
 
-    deviceNo = 0;
-    imageView.onclick = function(e) {
-        if (cameraOn) {
-            flipX = !flipX;
-        }
-        else {
-            startCamera();
-        }
-        if (recordedVideo.paused)
-        recordedVideo.play();
-    };
-
     var startX = 0;
     var startY = 0;
     updateWidth = false;
@@ -684,6 +672,54 @@ $(document).ready(function() {
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
         }, 100);
+    };
+
+    buttonDeviceView = document.createElement("button");
+    buttonDeviceView.style.position = "absolute";
+    buttonDeviceView.style.color = "#000";
+    buttonDeviceView.innerText = "dvc: "+deviceNo;
+    buttonDeviceView.style.fontFamily = "Khand";
+    buttonDeviceView.style.fontSize = "15px";
+    buttonDeviceView.style.left = (230)+"px";
+    buttonDeviceView.style.top = (sh-50)+"px";
+    buttonDeviceView.style.width = (50)+"px";
+    buttonDeviceView.style.height = (25)+"px";
+    buttonDeviceView.style.border = "1px solid white";
+    buttonDeviceView.style.borderRadius = "25px";
+    buttonDeviceView.style.zIndex = "15";
+    document.body.appendChild(buttonDeviceView);
+
+    buttonDeviceView.onclick = function() {
+        deviceNo = (deviceNo+1) < videoDevices.length ? 
+        (deviceNo+1) : 0;
+        buttonDeviceView.innerText = "dvc: "+deviceNo;
+    };
+
+    buttonPowerView = document.createElement("button");
+    buttonPowerView.style.position = "absolute";
+    buttonPowerView.style.color = "#000";
+    buttonPowerView.innerText = "OFF";
+    buttonPowerView.style.fontFamily = "Khand";
+    buttonPowerView.style.fontSize = "15px";
+    buttonPowerView.style.left = (sw-60)+"px";
+    buttonPowerView.style.top = (sh-50)+"px";
+    buttonPowerView.style.width = (50)+"px";
+    buttonPowerView.style.height = (25)+"px";
+    buttonPowerView.style.border = "1px solid white";
+    buttonPowerView.style.borderRadius = "25px";
+    buttonPowerView.style.zIndex = "15";
+    document.body.appendChild(buttonPowerView);
+
+    deviceNo = 0;
+    buttonPowerView.onclick = function() {
+        if (cameraOn) {
+            buttonPowerView.innerText = "OFF";
+            stopCamera();
+        }
+        else {
+            buttonPowerView.innerText = "ON";
+            startCamera();
+        }
     };
 
     loadImages();
