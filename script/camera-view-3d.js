@@ -656,13 +656,6 @@ $(document).ready(function() {
         document.body.requestFullscreen();
     };
 
-    loadImages();
-
-    wordList = [];
-    for (var n = 0; n <= 1000; n++) {
-        wordList.push(n.toString());
-    }
-
     buttonDownloadView = document.createElement("button");
     buttonDownloadView.style.position = "absolute";
     buttonDownloadView.style.color = "#000";
@@ -676,10 +669,10 @@ $(document).ready(function() {
     buttonDownloadView.style.border = "1px solid white";
     buttonDownloadView.style.borderRadius = "25px";
     buttonDownloadView.style.zIndex = "15";
-    document.body.appendChild(buttonOrderView);
+    document.body.appendChild(buttonDownloadView);
 
     buttonDownloadView.onclick = function() {
-        const name = file_name || 'download.png';
+        const name = 'download.png';
         const url = videoCanvas.toDataURL();
         const a = document.createElement('a');
         a.style.display = 'none';
@@ -692,6 +685,13 @@ $(document).ready(function() {
             window.URL.revokeObjectURL(url);
         }, 100);
     };
+
+    loadImages();
+
+    wordList = [];
+    for (var n = 0; n <= 1000; n++) {
+        wordList.push(n.toString());
+    }
 
     load3D();
     animate();
@@ -1251,10 +1251,6 @@ var drawToSquare =
             (sw/size), (sw/size),
             part.destX, part.destY, (sw/size), (sw/size));
 
-            ctx.strokeStyle = "#000";
-            ctx.strokeRect(part.destX, part.destY, 
-            (sw/size), (sw/size));
-
             if (part.pos.x == textObj.posX && 
                 part.pos.y == textObj.posY) {
                 ctx.fillStyle = "#fff";
@@ -1307,33 +1303,7 @@ var drawToSquare =
                 part.destY+(sw/(size*2)));*/
             }
 
-            if (cameraOn && 
-                part.pos.x == 0 && 
-                part.pos.y == 3 ) {
-                var image = micAvgValue <= 0.3 ? 
-                img_list[2] : img_list[3];
-                ctx.drawImage(image, part.destX, part.destY, 
-                (sw/size), (sw/size));
-            }
-
-            if (cameraOn && 
-                part.pos.x == 1 && 
-                part.pos.y == 3 ) {
-                var image = micAvgValue <= 0.5 ? 
-                img_list[4] : img_list[5];
-                ctx.drawImage(image, part.destX, part.destY, 
-                (sw/size), (sw/size));
-            }
-
-            if (cameraOn && 
-                part.pos.x == 2 && 
-                part.pos.y == 3 ) {
-                var image = micAvgValue <= 0.7 ? 
-                img_list[6] : img_list[7];
-                ctx.drawImage(image, part.destX, part.destY, 
-                (sw/size), (sw/size));
-            }
-
+            if (!rotated)
             for (var w = 0; w < squareAngles.length; w++) {
             if (squareAngles[w].rotatedX == part.pos.x && 
             squareAngles[w].rotatedY == part.pos.y &&
@@ -1342,6 +1312,11 @@ var drawToSquare =
                  (sw/size), (sw/size),
                  part.destX, part.destY, (sw/size), (sw/size));
             }
+            }
+
+            ctx.strokeStyle = "#000";
+            ctx.strokeRect(part.destX, part.destY, 
+            (sw/size), (sw/size));
         }
 
         ctx.strokeStyle = "yellow";
