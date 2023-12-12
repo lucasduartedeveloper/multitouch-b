@@ -498,6 +498,10 @@ $(document).ready(function() {
     squareCanvas.width = sw;
     squareCanvas.height = sw;
 
+    squareZeroCanvas = document.createElement("canvas");
+    squareZeroCanvas.width = sw;
+    squareZeroCanvas.height = sw;
+
     videoCanvas = document.createElement("canvas");
     videoCanvas.width = sw;
     videoCanvas.height = sw;
@@ -584,6 +588,26 @@ $(document).ready(function() {
         "rotateZ("+(boardAngle*(180/Math.PI))+"deg)";
 
         boardAngleView.innerText = angle+"°";
+    };
+
+    buttonClearPoseView = document.createElement("button");
+    buttonClearPoseView.style.position = "absolute";
+    buttonClearPoseView.style.color = "#000";
+    buttonClearPoseView.innerText = "CLEAR POSE";
+    buttonClearPoseView.style.fontFamily = "Khand";
+    buttonClearPoseView.style.fontSize = "15px";
+    buttonClearPoseView.style.left = ((sw/2)-50)+"px";
+    buttonClearPoseView.style.top = ((sh/2)-(sw/2)-35)+"px";
+    buttonClearPoseView.style.width = (100)+"px";
+    buttonClearPoseView.style.height = (25)+"px";
+    buttonClearPoseView.style.border = "1px solid white";
+    buttonClearPoseView.style.borderRadius = "25px";
+    buttonClearPoseView.style.zIndex = "15";
+    document.body.appendChild(buttonClearPoseView);
+
+    buttonClearPoseView.onclick = function() {
+        var squareZeroCtx = squareZeroCanvas.getContext("2d");
+        squareZeroCtx.clearRect(0, 0, sw, sw);
     };
 
     videoBackgroundView = document.createElement("div");
@@ -1144,6 +1168,7 @@ var drawToSquare =
 
     var canvas = squareCanvas;
     var squareCtx = canvas.getContext("2d");
+    var squareZeroCtx = squareZeroCanvas.getContext("2d");
 
     if (pause == 0 || pause == 4)
     squareCtx.clearRect(0, 0, sw, sw);
@@ -1151,9 +1176,13 @@ var drawToSquare =
     ctx.clearRect(0, 0, sw, sw);
 
     squareCtx.save();
+    squareZeroCtx.save();
     if (inFront && cameraOn) {
         squareCtx.scale(-1, 1);
         squareCtx.translate(-sw, 0);
+
+        squareZeroCtx.scale(-1, 1);
+        squareZeroCtx.translate(-sw, 0);
     }
 
     var format;
@@ -1174,7 +1203,7 @@ var drawToSquare =
     }
     else {
         squareCtx.globalAlpha = pause == 4 ? 0.5 : 1;
-        console.log(pause);
+        squareZeroCtx.globalAlpha = pause == 4 ? 0.5 : 1;
 
         var video = {
             width: vw,
@@ -1204,6 +1233,21 @@ var drawToSquare =
             (video.width/2), video.width, 
             (sw/2), 0, (sw/2), sw);
 
+            if (pause == 4) {
+                squareZeroCtx.clearRect(0, 0, sw, sw);
+                squareZeroCtx.drawImage(image, 
+                format.left, format.top, 
+                video.width, video.width, 
+                0, 0, sw, sw);
+            }
+
+            if (pause == 0) {
+                squareCtx.restore();
+                squareZeroCtx.restore();
+                squareCtx.drawImage(squareZeroCanvas, 
+                0, 0, sw, sw);
+            }
+
             if (pause == 4) pause = 3;
         }
         else {
@@ -1220,6 +1264,21 @@ var drawToSquare =
             (video.width/2), video.width, 
             format.left + (sw/2), 0, 
             (format.width/2), format.width);
+
+            if (pause == 4) {
+                squareZeroCtx.clearRect(0, 0, sw, sw);
+                squareZeroCtx.drawImage(image, 
+                -format.left, -format.top, 
+                video.width, video.width, 
+                0, 0, sw, sw);
+            }
+
+            if (pause == 0) {
+                squareCtx.restore();
+                squareZeroCtx.restore();
+                squareCtx.drawImage(squareZeroCanvas, 
+                0, 0, sw, sw);
+            }
 
             if (pause == 4) pause = 3;
         }
@@ -1241,6 +1300,8 @@ var drawToSquare =
     }
 
     squareCtx.restore();
+    squareZeroCtx.restore();
+
     sendImage(squareCanvas.toDataURL());
 
     var circles = [];
