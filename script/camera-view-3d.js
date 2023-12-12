@@ -200,6 +200,12 @@ $(document).ready(function() {
     threejsEnabled = false;
     button3DView.onclick = function() {
         threejsEnabled = !threejsEnabled;
+        if (threejsEnabled) {
+            createLightMap_preloaded();
+            renderer.domElement.style.opacity = 
+            recordingEnabled ? "0" : "initial";
+        }
+
         renderer.domElement.style.display = 
         threejsEnabled ? "initial" : "none";
         modes.style.display = 
@@ -1142,6 +1148,10 @@ var drawImage = function() {
 
     if (!cameraOn && imagesLoaded)
     drawToSquare(videoCtx, img_list[1]);
+
+    if (threejsEnabled) {
+        videoCtx.drawImage(renderer.domElement, 0, 0, sw, sw);
+    }
 
     if (updateWidth)
     lineWidth += 2;

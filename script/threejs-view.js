@@ -254,21 +254,16 @@ var load3D = function() {
     axisZend.position.z = -1;
     axisZend.rotation.x = -(Math.PI/2);
 
-    /*var pos = new THREE.Vector3();
-    createPackaging(
-    "nicolediretora", "img/rect/texture-1.png", 1, pos);
-    pos.x = 5.5;
-    createPackaging(
-    "jinjinn00_", "img/rect/texture-2.png", 2, pos);*/
+    createPlane4();
 
     rec = new CanvasRecorder(renderer.domElement);
 
-    virtualCamera.position.set(0, 7.5, 17.5);
-    virtualCamera.lookAt(0, 7.5, 0);
+    virtualCamera.position.set(0, 5, 5);
+    virtualCamera.lookAt(0, 0, 0);
 
     controls = new THREE.OrbitControls(virtualCamera,
     renderer.domElement);
-    controls.target = new THREE.Vector3(0, 7.5, 0);
+    controls.target = new THREE.Vector3(0, 0, 0);
     controls.update();
 
     変数 = sw/1.2;
