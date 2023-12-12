@@ -1145,8 +1145,9 @@ var drawToSquare =
     var canvas = squareCanvas;
     var squareCtx = canvas.getContext("2d");
 
-    if (pause == 0)
+    if (pause == 0 || pause == 4)
     squareCtx.clearRect(0, 0, sw, sw);
+
     ctx.clearRect(0, 0, sw, sw);
 
     squareCtx.save();
@@ -1172,7 +1173,8 @@ var drawToSquare =
         (format.width/2), format.height);
     }
     else {
-        ctx.globalAlpha = pause == 4 ? 0.5 : 1;
+        squareCtx.globalAlpha = pause == 4 ? 0.5 : 1;
+        console.log(pause);
 
         var video = {
             width: vw,
@@ -1201,6 +1203,8 @@ var drawToSquare =
             format.left + (video.width/2), format.top, 
             (video.width/2), video.width, 
             (sw/2), 0, (sw/2), sw);
+
+            if (pause == 4) pause = 3;
         }
         else {
             if ((pause == 0 || pause == 2 || pause == 4))
@@ -1216,6 +1220,8 @@ var drawToSquare =
             (video.width/2), video.width, 
             format.left + (sw/2), 0, 
             (format.width/2), format.width);
+
+            if (pause == 4) pause = 3;
         }
 
         /*
