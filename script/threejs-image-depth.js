@@ -56,7 +56,37 @@ var set = function() {
     render = true;
 };
 
+var img_depth = [
+    "img/image_depth.png"
+];
+
+var imageDepthLoaded = false;
+var loadImageDepth_array = function(callback) {
+    var count = 0;
+    for (var n = 0; n < img_depth.length; n++) {
+        var img = document.createElement("img");
+        img.n = n;
+        img.onload = function() {
+            count += 1;
+            img_depth[this.n] = this;
+            if (count == img_depth.length) {
+                imageDepthLoaded = true;
+                callback();
+            }
+        };
+        var rnd = Math.random();
+        img.src = img_depth[n]+"?f="+rnd;
+    }
+};
+
 var createLightMap_preloaded = function(callback) {
+    var imageDepthCanvas = document.createElement("canvas");
+    resolutionCanvas.width = numPixels;
+    resolutionCanvas.height = numPixels;
+    
+    var imageDepthCtx = imageDepthCanvas.getContext("2d");
+    imageDepthCtx.drawImage(img_depth[0], 0, 0, numPixels, numPixels);
+
     var resolutionCanvas = document.createElement("canvas");
     resolutionCanvas.width = numPixels;
     resolutionCanvas.height = numPixels;
@@ -82,6 +112,10 @@ var createLightMap_preloaded = function(callback) {
 
     var ctx = squareCanvas.getContext("2d");
 
+    var depthImgData = 
+    imageDepthCtx.getImageData(0, 0, numPixels, numPixels);
+    var depthData = depthImgData.data;
+
     var imgData = 
     resolutionCtx.getImageData(0, 0, numPixels, numPixels);
     var data = imgData.data;
@@ -99,11 +133,11 @@ var createLightMap_preloaded = function(callback) {
     newArray = new Array();
     for (var i = 0; i < data.length; i += 4) {
         // red
-        red = data[i];
+        red = depthData[i] != 0 ? (depthData[i] + data[i])/2 : 0;
         // green
-        green = data[i + 1];
+        green = depthData[i] != 0 ? (depthData[i + 1] + data[i + 1])/2 : 0;
         // blue
-        blue = data[i + 2];
+        blue = depthData[i] != 0 ? (depthData[i + 2] + data[i + 2])/2 : 0;
         //console.log(red+","+green+","+blue);
         var sum = redFactor + greenFactor + blueFactor;
         //console.log(sum);

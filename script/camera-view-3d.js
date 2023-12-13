@@ -826,6 +826,7 @@ $(document).ready(function() {
     avatarTextView.style.zIndex = "25";
     //document.body.appendChild(avatarTextView);
 
+    loadImageDepth_array();
     loadImages();
 
     wordList = [];
