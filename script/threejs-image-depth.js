@@ -81,8 +81,8 @@ var loadImageDepth_array = function(callback) {
 
 var createLightMap_preloaded = function(callback) {
     var imageDepthCanvas = document.createElement("canvas");
-    resolutionCanvas.width = numPixels;
-    resolutionCanvas.height = numPixels;
+    imageDepthCanvas.width = numPixels;
+    imageDepthCanvas.height = numPixels;
     
     var imageDepthCtx = imageDepthCanvas.getContext("2d");
     imageDepthCtx.drawImage(img_depth[0], 0, 0, numPixels, numPixels);
