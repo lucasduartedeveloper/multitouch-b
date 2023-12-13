@@ -58,7 +58,8 @@ var set = function() {
 
 var img_depth = [
     "img/image_color_height.png",
-    "img/image_depth.png"
+    "img/image_depth.png",
+    "img/image_light_angle.png"
 ];
 
 var imageDepthLoaded = false;
@@ -100,6 +101,13 @@ var createLightMap_preloaded = function(callback) {
     var imageDepthCtx = imageDepthCanvas.getContext("2d");
     imageDepthCtx.drawImage(img_depth[1], 0, 0, numPixels, numPixels);
 
+    var lightAngleCanvas = document.createElement("canvas");
+    lightAngleCanvas.width = numPixels;
+    lightAngleCanvas.height = numPixels;
+    
+    var lightAngleCtx = lightAngleCanvas.getContext("2d");
+    lightAngleCtx.drawImage(img_depth[2], 0, 0, numPixels, numPixels);
+
     var resolutionCanvas = document.createElement("canvas");
     resolutionCanvas.width = numPixels;
     resolutionCanvas.height = numPixels;
@@ -120,16 +128,20 @@ var createLightMap_preloaded = function(callback) {
     imageDepthCtx.getImageData(0, 0, numPixels, numPixels);
     var depthData = depthImgData.data;
 
+    var angleImgData = 
+    lightAngleCtx.getImageData(0, 0, numPixels, numPixels);
+    var angleData = angleImgData.data;
+
     var imgData = 
     resolutionCtx.getImageData(0, 0, numPixels, numPixels);
     var data = imgData.data;
 
     var newImageArray = new Uint8ClampedArray(data);
     for (var i = 0; i < data.length; i += 4) {
-        newImageArray[i] = colorHeightImgData[i] != 0 ? data[i] : 0;
-        newImageArray[i + 1] = colorHeightImgData[i + 1] != 0 ? data[i + 1] : 0;
-        newImageArray[i + 2] = colorHeightImgData[i + 2] != 0 ? data[i + 2] : 0;
-        newImageArray[i + 3] = 255;
+        newImageArray[i] = colorHeightData[i] != 0 ? data[i] : 0;
+        newImageArray[i + 1] = colorHeightData[i + 1] != 0 ? data[i + 1] : 0;
+        newImageArray[i + 2] = colorHeightData[i + 2] != 0 ? data[i + 2] : 0;
+        //newImageArray[i + 3] = colorHeightData[i] != 0 ? 255 : 0;
     }
     var newImageData = new ImageData(newImageArray, numPixels, numPixels);
     resolutionCtx.putImageData(newImageData, 0, 0);
@@ -160,14 +172,17 @@ var createLightMap_preloaded = function(callback) {
     newArray = new Array();
     for (var i = 0; i < data.length; i += 4) {
         // red
-        red = depthData[i] != 0 ? 
-        colorHeightData[i] + ((depthData[i] + data[i])/2) : 0;
+        red = /*angleData[i] + */ 
+        (depthData[i] != 0 ? 
+        colorHeightData[i] + ((depthData[i] + data[i])/2) : 0);
         // green
-        green = depthData[i] != 0 ? 
-        colorHeightData[i + 1] + ((depthData[i + 1] + data[i + 1])/2) : 0;
+        green = /*angleData[i + 1] + */
+        (depthData[i] != 0 ? 
+        colorHeightData[i + 1] + ((depthData[i + 1] + data[i + 1])/2) : 0);
         // blue
-        blue = depthData[i] != 0 ? 
-        colorHeightData[i + 2] + ((depthData[i + 2] + data[i + 2])/2) : 0;
+        blue = /*angleData[i + 2] + */
+        (depthData[i] != 0 ? 
+        colorHeightData[i + 2] + ((depthData[i + 2] + data[i + 2])/2) : 0);
         //console.log(red+","+green+","+blue);
         var sum = redFactor + greenFactor + blueFactor;
         //console.log(sum);

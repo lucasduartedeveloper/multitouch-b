@@ -136,7 +136,7 @@ $(document).ready(function() {
 
     pause = 0;
     buttonView.onclick = function() {
-        //setTimeout(function() {
+        setTimeout(function() {
             beepMilestone.play();
 
             thresholdReached = false;
@@ -155,7 +155,7 @@ $(document).ready(function() {
             buttonView.innerText = "PAUSE ><";
             else if (pause == 4) 
             buttonView.innerText = "PAUSE 50%";
-        //}, 5000);
+        }, (timerValue*1000));
     };
 
     pauseOrder = 0;
@@ -207,6 +207,11 @@ $(document).ready(function() {
             renderer.domElement.style.opacity = 
             recordingEnabled ? "0" : "initial";
         }
+
+        if (threejsEnabled)
+        imageDepthPositionerView.style.display = "none";
+        else
+        imageDepthPositionerView.style.display = "initial";
 
         renderer.domElement.style.display = 
         threejsEnabled ? "initial" : "none";
@@ -565,6 +570,21 @@ $(document).ready(function() {
         }
     };
 
+    imageDepthPositionerView = document.createElement("img");
+    imageDepthPositionerView.style.position = "absolute";
+    imageDepthPositionerView.style.display = "none";
+    imageDepthPositionerView.width = sw;
+    imageDepthPositionerView.height = sw;
+    imageDepthPositionerView.style.left = (0)+"px";
+    imageDepthPositionerView.style.top = ((sh/2)-(sw/2))+"px";
+    imageDepthPositionerView.style.width = (sw)+"px";
+    imageDepthPositionerView.style.height = (sw)+"px";
+    imageDepthPositionerView.style.zIndex = "25";
+    document.body.appendChild(imageDepthPositionerView);
+    
+    var rnd = Math.random();
+    imageDepthPositionerView.src = "img/image_depth_positioner.png?rnd="+rnd;
+
     var htmlRecorder = new CanvasRecorder(videoCanvas);
 
     boardAngle = 0;
@@ -599,12 +619,12 @@ $(document).ready(function() {
         boardAngleView.innerText = angle+"°";
     };
 
-    auto3D = true;
+    auto3D = false;
     buttonAutoNavigateView = 
     document.createElement("button");
     buttonAutoNavigateView.style.position = "absolute";
     buttonAutoNavigateView.style.color = "#000";
-    buttonAutoNavigateView.innerText = "AUTO 3D";
+    buttonAutoNavigateView.innerText = "FREE 3D";
     buttonAutoNavigateView.style.fontFamily = "Khand";
     buttonAutoNavigateView.style.fontSize = "15px";
     buttonAutoNavigateView.style.left = ((sw/2)-50)+"px";
@@ -618,8 +638,34 @@ $(document).ready(function() {
 
     buttonAutoNavigateView.onclick = function() {
         auto3D = !auto3D;
+        if (auto3D)
+        imageDepthPositionerView.style.display = "initial";
+        else
+        imageDepthPositionerView.style.display = "none";
+
         buttonAutoNavigateView.innerText = auto3D ?
         "AUTO 3D" : "FREE 3D";
+    };
+
+    var timerValue = 0;
+    buttonTimerConfigView = document.createElement("button");
+    buttonTimerConfigView.style.position = "absolute";
+    buttonTimerConfigView.style.color = "#000";
+    buttonTimerConfigView.innerText = timerValue + " s";
+    buttonTimerConfigView.style.fontFamily = "Khand";
+    buttonTimerConfigView.style.fontSize = "15px";
+    buttonTimerConfigView.style.left = ((sw/2)-110)+"px";
+    buttonTimerConfigView.style.top = ((sh/2)-(sw/2)-35)+"px";
+    buttonTimerConfigView.style.width = (50)+"px";
+    buttonTimerConfigView.style.height = (25)+"px";
+    buttonTimerConfigView.style.border = "1px solid white";
+    buttonTimerConfigView.style.borderRadius = "25px";
+    buttonTimerConfigView.style.zIndex = "15";
+    document.body.appendChild(buttonTimerConfigView);
+
+    buttonTimerConfigView.onclick = function() {
+        timerValue = (timerValue+5) < 20 ? (timerValue+5) : 0;
+        buttonTimerConfigView.innerText = timerValue + " s";
     };
 
     buttonClearPoseView = document.createElement("button");
