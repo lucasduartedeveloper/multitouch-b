@@ -25,7 +25,8 @@ $thirdpart_script = [
     4 => "script/thirdpart/StereoscopicEffects.js",
     5 => "script/thirdpart/csg-lib.js",
     6 => "script/thirdpart/three-csg.js",
-    7 => "script/thirdpart/CanvasRecorder.js"
+    7 => "script/thirdpart/CanvasRecorder.js",
+    8 => "script/thirdpart/OBJExporter.js"
 ];
 
 $script = [

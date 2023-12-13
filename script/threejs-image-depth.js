@@ -1,4 +1,4 @@
-var numPixels = 150;
+var numPixels = 200;
 
 var createPlane4 = function() { //vertices, faces) {
     var planeGeometry = 
@@ -57,6 +57,7 @@ var set = function() {
 };
 
 var img_depth = [
+    "img/image_color_height.png",
     "img/image_depth.png"
 ];
 
@@ -79,13 +80,25 @@ var loadImageDepth_array = function(callback) {
     }
 };
 
+var colorHeight = [
+    { r: 130, g: 60, b: 255, height: 1 },
+    { r: 255, g: 255, b: 0, height: 2 },
+];
+
 var createLightMap_preloaded = function(callback) {
+    var imageColorHeightCanvas = document.createElement("canvas");
+    imageColorHeightCanvas.width = numPixels;
+    imageColorHeightCanvas.height = numPixels;
+    
+    var imageColorHeightCtx = imageColorHeightCanvas.getContext("2d");
+    imageColorHeightCtx.drawImage(img_depth[0], 0, 0, numPixels, numPixels);
+
     var imageDepthCanvas = document.createElement("canvas");
     imageDepthCanvas.width = numPixels;
     imageDepthCanvas.height = numPixels;
     
     var imageDepthCtx = imageDepthCanvas.getContext("2d");
-    imageDepthCtx.drawImage(img_depth[0], 0, 0, numPixels, numPixels);
+    imageDepthCtx.drawImage(img_depth[1], 0, 0, numPixels, numPixels);
 
     var resolutionCanvas = document.createElement("canvas");
     resolutionCanvas.width = numPixels;
@@ -97,6 +110,30 @@ var createLightMap_preloaded = function(callback) {
     resolutionCtx.drawImage(squareCanvas,
     0, 0, numPixels, numPixels);
 
+    var ctx = squareCanvas.getContext("2d");
+
+    var colorHeightImgData = 
+    imageColorHeightCtx.getImageData(0, 0, numPixels, numPixels);
+    var colorHeightData = colorHeightImgData.data;
+    
+    var depthImgData = 
+    imageDepthCtx.getImageData(0, 0, numPixels, numPixels);
+    var depthData = depthImgData.data;
+
+    var imgData = 
+    resolutionCtx.getImageData(0, 0, numPixels, numPixels);
+    var data = imgData.data;
+
+    var newImageArray = new Uint8ClampedArray(data);
+    for (var i = 0; i < data.length; i += 4) {
+        newImageArray[i] = colorHeightImgData[i] != 0 ? data[i] : 0;
+        newImageArray[i + 1] = colorHeightImgData[i + 1] != 0 ? data[i + 1] : 0;
+        newImageArray[i + 2] = colorHeightImgData[i + 2] != 0 ? data[i + 2] : 0;
+        newImageArray[i + 3] = 255;
+    }
+    var newImageData = new ImageData(newImageArray, numPixels, numPixels);
+    resolutionCtx.putImageData(newImageData, 0, 0);
+
     var textureCanvas = document.createElement("canvas");
     textureCanvas.width = 512;
     textureCanvas.height = 512;
@@ -106,19 +143,9 @@ var createLightMap_preloaded = function(callback) {
 
     textureCtx.drawImage(resolutionCanvas,
     0, 0, 512, 512);
-
+    
     lightMap.loadTexture(textureCanvas.toDataURL(), callback);
     //lightMap.loadTexture("img/box-template-0_texture.png");
-
-    var ctx = squareCanvas.getContext("2d");
-
-    var depthImgData = 
-    imageDepthCtx.getImageData(0, 0, numPixels, numPixels);
-    var depthData = depthImgData.data;
-
-    var imgData = 
-    resolutionCtx.getImageData(0, 0, numPixels, numPixels);
-    var data = imgData.data;
 
     var red = 0;
     var green = 0;
@@ -133,11 +160,14 @@ var createLightMap_preloaded = function(callback) {
     newArray = new Array();
     for (var i = 0; i < data.length; i += 4) {
         // red
-        red = depthData[i] != 0 ? (depthData[i] + data[i])/2 : 0;
+        red = depthData[i] != 0 ? 
+        colorHeightData[i] + ((depthData[i] + data[i])/2) : 0;
         // green
-        green = depthData[i] != 0 ? (depthData[i + 1] + data[i + 1])/2 : 0;
+        green = depthData[i] != 0 ? 
+        colorHeightData[i + 1] + ((depthData[i + 1] + data[i + 1])/2) : 0;
         // blue
-        blue = depthData[i] != 0 ? (depthData[i + 2] + data[i + 2])/2 : 0;
+        blue = depthData[i] != 0 ? 
+        colorHeightData[i + 2] + ((depthData[i + 2] + data[i + 2])/2) : 0;
         //console.log(red+","+green+","+blue);
         var sum = redFactor + greenFactor + blueFactor;
         //console.log(sum);
