@@ -1,9 +1,10 @@
-var numPixels = 50;
+var numPixels = 150;
 
 var createPlane4 = function() { //vertices, faces) {
     var planeGeometry = 
     new THREE.PlaneGeometry(5, 5, numPixels, numPixels);
     var planeMaterial = new THREE.MeshStandardMaterial({
+        side: THREE.DoubleSide,
         color: 0xaaaaaa, //wireframe: true
     });
     lightMap = new THREE.Mesh(planeGeometry, planeMaterial);
@@ -13,9 +14,9 @@ var createPlane4 = function() { //vertices, faces) {
     lightMap.modes = 
     ["blank", "textured", "wireframe", "textured-volume"];
     lightMap.position.x = 0;
-    lightMap.position.y = 0.9;
+    //lightMap.position.y = 0.9;
     lightMap.position.z = 0;
-    lightMap.rotation.x = -Math.PI/2;
+    //lightMap.rotation.x = -Math.PI/2;
 
     // wireframe
     var geo = new THREE.EdgesGeometry( lightMap.geometry ); 
@@ -55,7 +56,7 @@ var set = function() {
     render = true;
 };
 
-var createLightMap_preloaded = function() {
+var createLightMap_preloaded = function(callback) {
     var resolutionCanvas = document.createElement("canvas");
     resolutionCanvas.width = numPixels;
     resolutionCanvas.height = numPixels;
@@ -76,7 +77,8 @@ var createLightMap_preloaded = function() {
     textureCtx.drawImage(resolutionCanvas,
     0, 0, 512, 512);
 
-    lightMap.loadTexture(textureCanvas.toDataURL());
+    lightMap.loadTexture(textureCanvas.toDataURL(), callback);
+    //lightMap.loadTexture("img/box-template-0_texture.png");
 
     var ctx = squareCanvas.getContext("2d");
 

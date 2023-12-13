@@ -258,7 +258,7 @@ var load3D = function() {
 
     rec = new CanvasRecorder(renderer.domElement);
 
-    virtualCamera.position.set(0, 5, 5);
+    virtualCamera.position.set(0, 0, 5);
     virtualCamera.lookAt(0, 0, 0);
 
     controls = new THREE.OrbitControls(virtualCamera,
@@ -314,6 +314,14 @@ var load3D = function() {
     stereofx.setEyeSeparation(eyeSep.value);
     document.body.appendChild(eyeSep);
 
+    var rotationX = 0;
+    var speedX = (Math.PI*2)/90;
+
+    var rotationY = 0;
+    var speedY = (Math.PI*2)/180;
+
+    var canTexture = false;
+
     render = true;
     iterations = 9999999999;
     animateThreejs = function() {
@@ -321,10 +329,41 @@ var load3D = function() {
         if (iterations > 0 && render)
         req = requestAnimationFrame( animateThreejs );
 
-        //if (!motionSensorAvailable)
-        //group.rotation.z += 0.01;
+        rotationX += speedX;
+        if (rotationX > ((Math.PI*2)/32))
+        speedX *= -1;
+        if (rotationX < -((Math.PI*2)/32))
+        speedX *= -1;
 
-        //group.rotation.x -= 0.01;
+        rotationY = rotationY > ((Math.PI*2)/32) ?
+        ((Math.PI*2)/32) : rotationY;
+        rotationY = rotationY < -((Math.PI*2)/32) ?
+        -((Math.PI*2)/32) : rotationY;
+
+        rotationY += speedY;
+        if (rotationY > ((Math.PI*2)/32))
+        speedY *= -1;
+        if (rotationY < -((Math.PI*2)/32))
+        speedY *= -1;
+
+        rotationY = rotationY > ((Math.PI*2)/32) ?
+        ((Math.PI*2)/32) : rotationY;
+        rotationY = rotationY < -((Math.PI*2)/32) ?
+        -((Math.PI*2)/32) : rotationY;
+
+        //lightMap.rotation.x = rotationX;
+        if (auto3D) {
+            lightMap.rotation.x = 0;
+            lightMap.rotation.y = rotationY;
+            lightMap.rotation.z = 0;
+        }
+
+        if (canTexture) {
+            canTexture = false;
+            createLightMap_preloaded(function() {
+                canTexture = true;
+            });
+        }
 
         var hyp = 1+(lineWidth/50);
         for (var n = 0; n < 8; n++) {
@@ -520,7 +559,7 @@ var loadRectangle = function(url, size, group) {
 };
 
 THREE.Object3D.prototype.loadTexture = 
-function(url, type="D") {
+function(url, callback, type="D") {
 var rnd = Math.random();
 new THREE.TextureLoader().load(url, 
     texture => {
@@ -561,6 +600,9 @@ new THREE.TextureLoader().load(url,
             this.children[0].material.needsUpdate = true;
         }
         }
+
+        if (callback)
+        callback();
     },
     xhr => {
        //Download Progress

@@ -199,6 +199,8 @@ $(document).ready(function() {
 
     threejsEnabled = false;
     button3DView.onclick = function() {
+        //setTimeout(function() {
+        //beepMilestone.play();
         threejsEnabled = !threejsEnabled;
         if (threejsEnabled) {
             createLightMap_preloaded();
@@ -212,6 +214,7 @@ $(document).ready(function() {
         threejsEnabled ? "initial" : "none";
         eyeSep.style.display = 
         threejsEnabled ? "initial" : "none";
+        //}, 5000);
     };
 
     micAvgValue = 0;
@@ -594,6 +597,29 @@ $(document).ready(function() {
         "rotateZ("+(boardAngle*(180/Math.PI))+"deg)";
 
         boardAngleView.innerText = angle+"°";
+    };
+
+    auto3D = true;
+    buttonAutoNavigateView = 
+    document.createElement("button");
+    buttonAutoNavigateView.style.position = "absolute";
+    buttonAutoNavigateView.style.color = "#000";
+    buttonAutoNavigateView.innerText = "AUTO 3D";
+    buttonAutoNavigateView.style.fontFamily = "Khand";
+    buttonAutoNavigateView.style.fontSize = "15px";
+    buttonAutoNavigateView.style.left = ((sw/2)-50)+"px";
+    buttonAutoNavigateView.style.top = ((sh/2)-(sw/2)-70)+"px";
+    buttonAutoNavigateView.style.width = (100)+"px";
+    buttonAutoNavigateView.style.height = (25)+"px";
+    buttonAutoNavigateView.style.border = "1px solid white";
+    buttonAutoNavigateView.style.borderRadius = "25px";
+    buttonAutoNavigateView.style.zIndex = "15";
+    document.body.appendChild(buttonAutoNavigateView);
+
+    buttonAutoNavigateView.onclick = function() {
+        auto3D = !auto3D;
+        buttonAutoNavigateView.innerText = auto3D ?
+        "AUTO 3D" : "FREE 3D";
     };
 
     buttonClearPoseView = document.createElement("button");
@@ -1199,17 +1225,37 @@ var drawToSquare =
     if (!camera) {
         format = fitImageCover(image, canvas);
 
-        squareCtx.drawImage(image, 
-        -format.left, -format.top, 
-        (image.width/2), image.width, 
-        format.left, format.top, 
-        (format.width/2), format.height);
+        if (image.width > image.height) {
+            format = {
+                left: ((image.width/2)-(image.height/2)),
+                top: 0,
+                width: image.height,
+                height: image.height
+            };
 
-        squareCtx.drawImage(image, 
-        -format.left + (image.width/2), -format.top, 
-        (image.width/2), image.width, 
-        format.left + (sw/2), format.top, 
-        (format.width/2), format.height);
+            squareCtx.drawImage(image, 
+            format.left, format.top, 
+            (format.width/2), format.width, 
+            0, 0, (sw/2), sw);
+    
+            squareCtx.drawImage(image, 
+            format.left + (format.width/2), format.top, 
+            (format.width/2), format.width, 
+            (sw/2), 0, (sw/2), sw);
+        }
+        else {
+            squareCtx.drawImage(image, 
+            -format.left, -format.top, 
+            (image.width/2), image.width, 
+            format.left, format.top, 
+            (format.width/2), format.height);
+    
+            squareCtx.drawImage(image, 
+            -format.left + (image.width/2), -format.top, 
+            (image.width/2), image.width, 
+            format.left + (sw/2), format.top, 
+            (format.width/2), format.height);
+        }
     }
     else {
         squareCtx.globalAlpha = pause == 4 ? 0.5 : 1;
