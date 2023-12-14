@@ -581,7 +581,7 @@ $(document).ready(function() {
     imageDepthPositionerView.style.height = (sw)+"px";
     imageDepthPositionerView.style.zIndex = "25";
     document.body.appendChild(imageDepthPositionerView);
-    
+
     var rnd = Math.random();
     imageDepthPositionerView.src = "img/image_depth_positioner.png?rnd="+rnd;
 
@@ -611,10 +611,6 @@ $(document).ready(function() {
 
         var angle = boardAngle*(180/Math.PI);
         angle = angle < -90 ? -angle-180 : angle;
-
-        if (!rotated)
-        videoCanvas.style.transform = 
-        "rotateZ("+(boardAngle*(180/Math.PI))+"deg)";
 
         boardAngleView.innerText = angle+"°";
     };
@@ -666,6 +662,33 @@ $(document).ready(function() {
     buttonTimerConfigView.onclick = function() {
         timerValue = (timerValue+5) < 20 ? (timerValue+5) : 0;
         buttonTimerConfigView.innerText = timerValue + " s";
+    };
+
+    buttonGrayscaleView = document.createElement("button");
+    buttonGrayscaleView.style.position = "absolute";
+    buttonGrayscaleView.style.color = "#000";
+    buttonGrayscaleView.innerText = "OFF";
+    buttonGrayscaleView.style.fontFamily = "Khand";
+    buttonGrayscaleView.style.fontSize = "15px";
+    buttonGrayscaleView.style.left = ((sw/2)-110)+"px";
+    buttonGrayscaleView.style.top = ((sh/2)-(sw/2)-70)+"px";
+    buttonGrayscaleView.style.width = (50)+"px";
+    buttonGrayscaleView.style.height = (25)+"px";
+    buttonGrayscaleView.style.border = "1px solid white";
+    buttonGrayscaleView.style.borderRadius = "25px";
+    buttonGrayscaleView.style.zIndex = "15";
+    document.body.appendChild(buttonGrayscaleView);
+
+    buttonGrayscaleView.onclick = function() {
+        grayscaleEnabled = !grayscaleEnabled;
+
+        if (grayscaleEnabled) {
+            buttonGrayscaleView.innerText = 
+            "ON: "+(grayscaleNo);
+        }
+        else {
+            buttonGrayscaleView.innerText = "OFF";
+        }
     };
 
     buttonClearPoseView = document.createElement("button");
@@ -1268,6 +1291,16 @@ var drawToSquare =
         squareZeroCtx.translate(-sw, 0);
     }
 
+    if (!rotated) {
+        squareCtx.translate((sw/2), (sw/2));
+        squareCtx.rotate(boardAngle);
+        squareCtx.translate(-(sw/2), -(sw/2));
+
+        squareZeroCtx.translate((sw/2), (sw/2));
+        squareZeroCtx.rotate(boardAngle);
+        squareZeroCtx.translate(-(sw/2), -(sw/2));
+    }
+
     var format;
     if (!camera) {
         format = fitImageCover(image, canvas);
@@ -1404,6 +1437,9 @@ var drawToSquare =
 
     squareCtx.restore();
     squareZeroCtx.restore();
+
+    if (grayscaleEnabled)
+    grayscaleCanvas(squareCanvas);
 
     sendImage(squareCanvas.toDataURL());
 
@@ -1698,6 +1734,35 @@ var drawToSquare =
             (avatarNo == 0 ? (sw/size) : 0) +20, ((sw/size)*3)+30+(n*20));
         }
     }
+};
+
+var grayscaleEnabled = false;
+var grayscaleNo = 0;
+var grayscaleRatio = [
+    [ 0.33, 0.33, 0.33 ], // Normal balance
+    [ 0.4, 0.3, 0.4 ] // Color affective
+];
+
+var grayscaleCanvas = function(canvas) {
+    var ctx = canvas.getContext("2d");
+
+    var imgData = 
+    ctx.getImageData(0, 0, canvas.width, canvas.height);
+    var data = imgData.data;
+
+    var newImageArray = new Uint8ClampedArray(data);
+    for (var i = 0; i < data.length; i += 4) {
+        var brightness = 
+        ((data[i] * grayscaleRatio[grayscaleNo][0]) + 
+        (data[i + 1] * grayscaleRatio[grayscaleNo][1]) + 
+        (data[i + 2] * grayscaleRatio[grayscaleNo][2]));
+
+        newImageArray[i] = brightness;
+        newImageArray[i + 1] = brightness;
+        newImageArray[i + 2] = brightness;
+    }
+    var newImageData = new ImageData(newImageArray, canvas.width, canvas.width);
+    ctx.putImageData(newImageData, 0, 0);
 };
 
 var visibilityChange;
