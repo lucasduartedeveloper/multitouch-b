@@ -33,6 +33,7 @@ class EasyMicrophone {
         this.frequencyLength = 0;
 
         // recording setup
+        this.recordingQueue = [];
         this.audio = new Audio();
         this.mediaRecorder = 0;
         this.audioBlob = [];
@@ -105,6 +106,8 @@ class EasyMicrophone {
     }
 
     record() {
+        var queueInterval = false;
+
         this.mediaRecorder = 
         new MediaRecorder(this.audioStream.mediaStream);
 
@@ -115,13 +118,54 @@ class EasyMicrophone {
         }.bind(this);
         this.mediaRecorder.onstop = 
         function(e) {
-            var url = URL.createObjectURL(
-            new Blob(this.audioBlob, { type: mimeType }));
             this.audioBlob = [];
-            this.audio = new Audio(url);
+            this.recordingQueue.push(this.audioBlob);
+
+            console.log(
+            "recording ended: queue length: "+
+            this.recordingQueue.length);
         }.bind(this);
 
-        this.mediaRecorder.start();
+        queueInterval = setInterval(
+        function() {
+            this.mediaRecorder.stop();
+            this.mediaRecorder.start();
+        }.bind(this), 5000);
+
+        this.playQueue();
+    }
+
+    playQueue() {
+        var dequeueInterval = false;
+        var audioEnded = true;
+
+        this.audio.onended = function() {
+             console.log(
+             "audio ended: queue length: "+
+             this.recordingQueue.length);
+             audioEnded = true;
+        }.bind(this);
+
+        dequeueInterval = setInterval(
+        function() {
+            console.log(audioEnded, this.recordingQueue.length);
+            if (this.recordingQueue.length < 2) return;
+            if (audioEnded) {
+                var audioBlob = 
+                this.recordingQueue.splice(0, 1)[0];
+                console.log(
+                "dequeued audio: queue length: "+
+                this.recordingQueue.length);
+
+                var url = URL.createObjectURL(
+                new Blob(audioBlob, 
+                { type: "audio/webm;codecs=opus" }));
+
+                audioEnded = false;
+                this.audio.src = url;
+                this.audio.play();
+            }
+        }.bind(this), 5000);
     }
 
     animate() {

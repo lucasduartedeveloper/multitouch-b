@@ -252,8 +252,8 @@ $(document).ready(function() {
         resumedWave = resumeWave(freqArray);
     };
     mic.onclose = function() { 
-        mic.audio.loop = true;
-        mic.audio.play();
+        //mic.audio.loop = true;
+        //mic.audio.play();
 
         if (recordingEnabled)
         mic.download();
@@ -1733,6 +1733,27 @@ var drawToSquare =
             ctx.fillText(avatarTextLines[n], 
             (avatarNo == 0 ? (sw/size) : 0) +20, ((sw/size)*3)+30+(n*20));
         }
+    }
+
+    var colors = [
+        "rgba(70, 235, 52, 1)",
+        "rgba(70, 235, 52, 1)",
+        "rgba(70, 235, 52, 1)",
+        "rgba(197, 255, 61, 1)",
+        "rgba(255, 245, 61, 1)",
+        "rgba(255, 245, 61, 1)",
+        "rgba(255, 181, 61, 1)",
+        "rgba(255, 181, 61, 1)",
+        "rgba(255, 61, 61, 1)",
+        "rgba(255, 61, 61, 1)"
+    ];
+
+    for (var n = 0; n < (micAvgValue*10); n++) {
+        ctx.fillStyle = colors[n];
+
+        ctx.beginPath();
+        ctx.roundRect(10, (sw-10)-((n+1)*20)-(n*10), 50, 20, 5);
+        ctx.fill();
     }
 };
 
