@@ -615,6 +615,28 @@ $(document).ready(function() {
         boardAngleView.innerText = angle+"°";
     };
 
+    buttonGridView = document.createElement("button");
+    buttonGridView.style.position = "absolute";
+    buttonGridView.style.color = "#000";
+    buttonGridView.innerText = "GRID: ON";
+    buttonGridView.style.fontFamily = "Khand";
+    buttonGridView.style.fontSize = "15px";
+    buttonGridView.style.left = ((sw/2)-50)+"px";
+    buttonGridView.style.top = ((sh/2)-(sw/2)-105)+"px";
+    buttonGridView.style.width = (100)+"px";
+    buttonGridView.style.height = (25)+"px";
+    buttonGridView.style.border = "1px solid white";
+    buttonGridView.style.borderRadius = "25px";
+    buttonGridView.style.zIndex = "15";
+    document.body.appendChild(buttonGridView);
+
+    gridEnabled = true;
+    buttonGridView.onclick = function() {
+        gridEnabled = !gridEnabled;
+        buttonGridView.innerText = gridEnabled ? 
+        "GRID: ON" : "GRID: OFF";
+    };
+
     auto3D = false;
     buttonAutoNavigateView = 
     document.createElement("button");
@@ -1268,6 +1290,13 @@ var textureMap = [
     { x: 2, y: 0, no: 5 }
 ];
 
+var applyCurve = function(value) {
+     var c = { x: 0, y: 0 };
+     var p = { x: 0, y: 1 };
+     var rp = _rotate2d(c, p, -(value*90));
+     return rp.y;
+};
+
 var drawToSquare = 
     function(ctx, image, camera=false, size=4) {
     ctx.lineWidth = 1;
@@ -1439,7 +1468,15 @@ var drawToSquare =
     squareZeroCtx.restore();
 
     if (grayscaleEnabled)
-    grayscaleCanvas(squareCanvas);
+    lowHeightCanvas(squareCanvas);
+    //grayscaleCanvas(squareCanvas);
+
+    if (!mic.closed) {
+        var alignment = applyCurve(micAvgValue);
+        squareCtx.fillStyle = 
+        "rgba(0, 0, 0, "+alignment+")";
+        squareCtx.fillRect(0, 0, sw, sw);
+    }
 
     sendImage(squareCanvas.toDataURL());
 
@@ -1664,9 +1701,11 @@ var drawToSquare =
                 (sw/size), (sw/size));
             }
 
-            ctx.strokeStyle = "#000";
-            ctx.strokeRect(part.destX, part.destY, 
-            (sw/size), (sw/size));
+            if (gridEnabled) {
+                ctx.strokeStyle = "#000";
+                ctx.strokeRect(part.destX, part.destY, 
+                (sw/size), (sw/size));
+            }
         }
 
         ctx.strokeStyle = "yellow";
@@ -1748,13 +1787,14 @@ var drawToSquare =
         "rgba(255, 61, 61, 1)"
     ];
 
+    /*
     for (var n = 0; n < (micAvgValue*10); n++) {
         ctx.fillStyle = colors[n];
 
         ctx.beginPath();
         ctx.roundRect(10, (sw-10)-((n+1)*20)-(n*10), 50, 20, 5);
         ctx.fill();
-    }
+    }*/
 };
 
 var grayscaleEnabled = false;
@@ -1781,6 +1821,55 @@ var grayscaleCanvas = function(canvas) {
         newImageArray[i] = brightness;
         newImageArray[i + 1] = brightness;
         newImageArray[i + 2] = brightness;
+    }
+    var newImageData = new ImageData(newImageArray, canvas.width, canvas.width);
+    ctx.putImageData(newImageData, 0, 0);
+};
+
+var getColor = function(brightness) {
+    var rgb = [ 0, 0, 255 ];
+    if (brightness < 0.25) {
+        rgb[1] = ((1/0.25)*brightness) * (255);
+    }
+    else if (brightness < 0.50) {
+        rgb = [ 0, 255, 255 ];
+        rgb[2] = (1-((1/0.25)*(brightness-0.25))) * (255);
+    }
+    else if (brightness < 0.75) {
+        rgb = [ 0, 255, 0 ];
+        rgb[0] = ((1/0.25)*(brightness-0.5)) * (255);
+    }
+    else if (brightness <= 1) {
+        rgb = [ 255, 255, 0 ];
+        rgb[1] = (1-((1/0.25)*(brightness-0.75))) * (255);
+    }
+    return rgb;
+};
+
+/*
+for (var n = 0; n <= 1; n+=0.1) {
+    getColor(n);
+}*/
+
+var lowHeightCanvas = function(canvas) {
+    var ctx = canvas.getContext("2d");
+
+    var imgData = 
+    ctx.getImageData(0, 0, canvas.width, canvas.height);
+    var data = imgData.data;
+
+    var newImageArray = new Uint8ClampedArray(data);
+    for (var i = 0; i < data.length; i += 4) {
+        var brightness = 
+        ((data[i] * grayscaleRatio[grayscaleNo][0]) + 
+        (data[i + 1] * grayscaleRatio[grayscaleNo][1]) + 
+        (data[i + 2] * grayscaleRatio[grayscaleNo][2]));
+
+        var rgb = getColor((1/255)*brightness);
+
+        newImageArray[i] = rgb[0];
+        newImageArray[i + 1] = rgb[1];
+        newImageArray[i + 2] = rgb[2];
     }
     var newImageData = new ImageData(newImageArray, canvas.width, canvas.width);
     ctx.putImageData(newImageData, 0, 0);
