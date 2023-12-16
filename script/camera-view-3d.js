@@ -246,7 +246,6 @@ $(document).ready(function() {
 
         if (avgValue >= micThreshold && !thresholdReached) {
             thresholdReached = true;
-            pause = 3;
         }
 
         lineWidth = (avgValue*50);
@@ -1297,41 +1296,39 @@ var drawImage = function() {
         videoCtx.drawImage(renderer.domElement, 0, 0, sw, sw);
     }
 
-    var per = ((sw-5)*2)*Math.PI;
-    var angle = ((1/per)*5)*360;
+    var hyp = Math.sqrt(1+1);
+    var radius = ((micAvgValue*(sw*hyp))/2);
 
-    var c = { x: (sw), y: (sw) };
-    var p = { x: (sw), y: (5) };
-    var rp = _rotate2d(c, p, angle); 
-
-    var co = (sw-rp.x);
-    var ca = (rp.y-5);
-
-    var r = (1/co)*5;
-    co = r*(sw-rp.x);
-    ca = r*(rp.y-5);
-
-    var c = { x: (sw), y: (sw) };
-    var p = { x: (sw), y: (5) };
-    var rp = { x: (sw-co), y: (5+ca) };
-
-    co = 5;
-    ca = (sw-rp.y);
-    angle = (Math.PI-_angle2d(co, ca))*(180/Math.PI);
-
-    var c = { x: (sw), y: (sw) };
-    var p = { x: (sw), y: (5) };
-    var rp = _rotate2d(c, p, angle);
-
-    var c = { x: (sw), y: (sw) };
-    var p = { x: (sw), y: (5) };
-    var rp = _rotate2d(c, p, angle+(micAvgValue*(90-angle)));
-
+    videoCtx.save();
     videoCtx.fillStyle = "#fff";
     videoCtx.beginPath();
-    videoCtx.arc(rp.x, rp.y, 5, 0, Math.PI*2);
+    videoCtx.moveTo(0, 0);
+    videoCtx.lineTo((sw/2), 0);
+
+    for (var n = 0; n <= 360; n++) {
+        var c = { x: (sw/2), y: (sw/2) };
+        var p = { x: (sw/2), y: (sw/2)-radius };
+        var rp = _rotate2d(c, p, n);
+        videoCtx.lineTo(rp.x, rp.y);
+    };
+
+    videoCtx.lineTo((sw/2), 0);
+    videoCtx.lineTo((sw), 0);
+    videoCtx.lineTo((sw), (sw));
+    videoCtx.lineTo(0, (sw));
+    videoCtx.lineTo(0, 0);
+    videoCtx.closePath();
+
     if (!mic.closed)
-    videoCtx.fill();
+    videoCtx.clip();
+
+    if (!mic.closed) {
+        var alignment = applyCurve(micAvgValue);
+        videoCtx.fillStyle = 
+        "rgba(0, 0, 0, "+alignment+")";
+        videoCtx.fillRect(0, 0, sw, sw);
+    }
+    videoCtx.restore();
 
     if (updateWidth)
     lineWidth += 2;
@@ -1532,13 +1529,6 @@ var drawToSquare =
     if (grayscaleEnabled)
     lowHeightCanvas(squareCanvas);
     //grayscaleCanvas(squareCanvas);
-
-    if (!mic.closed) {
-        var alignment = applyCurve(micAvgValue);
-        squareCtx.fillStyle = 
-        "rgba(0, 0, 0, "+alignment+")";
-        squareCtx.fillRect(0, 0, sw, sw);
-    }
 
     sendImage(squareCanvas.toDataURL());
 
