@@ -246,7 +246,8 @@ $(document).ready(function() {
 
         if (avgValue >= micThreshold && !thresholdReached) {
             thresholdReached = true;
-            buttonView.click();
+            pause = 3;
+            buttonView.innerText = "REBOOT";
         }
 
         lineWidth = (avgValue*50);
@@ -1330,7 +1331,18 @@ var drawImage = function() {
     videoCtx.fillStyle = "#fff";
     videoCtx.beginPath();
     videoCtx.arc(rp.x, rp.y, 5, 0, Math.PI*2);
+    if (!mic.closed)
     videoCtx.fill();
+
+    var c = { x: (sw), y: (sw) };
+    var p = { x: (sw), y: (5) };
+    var rp = _rotate2d(c, p, 45);
+
+    videoCtx.strokeStyle = "#fff";
+    videoCtx.beginPath();
+    videoCtx.arc(rp.x, rp.y, 7, 0, Math.PI*2);
+    if (!mic.closed)
+    videoCtx.stroke();
 
     if (updateWidth)
     lineWidth += 2;
