@@ -233,6 +233,7 @@ $(document).ready(function() {
         mic.audio.pause();
         if (!recordingEnabled) {
             mic.audio.srcObject = mic.audioStream.mediaStream;
+            if (outputEnabled)
             mic.audio.play();
         }
         else {
@@ -324,6 +325,31 @@ $(document).ready(function() {
                 recordingEnabled = false;
             }
         }
+    };
+
+    buttonOutputView = document.createElement("i");
+    buttonOutputView.style.position = "absolute"; 
+    buttonOutputView.style.background = "#fff";
+    buttonOutputView.style.color = "#000";
+    buttonOutputView.className = "fa-solid fa-volume-high";
+    buttonOutputView.style.fontSize = "15px";
+    buttonOutputView.style.lineHeight = "25px";
+    buttonOutputView.style.left = (sw-135)+"px";
+    buttonOutputView.style.top = (sh-110)+"px";
+    buttonOutputView.style.width = (25)+"px";
+    buttonOutputView.style.height = (25)+"px";
+    buttonOutputView.style.border = "1px solid white";
+    buttonOutputView.style.borderRadius = "25px";
+    buttonOutputView.style.zIndex = "15";
+    document.body.appendChild(buttonOutputView);
+
+    outputEnabled = true;
+    buttonOutputView.onclick = function() {
+        outputEnabled = !outputEnabled;
+        buttonOutputView.className = 
+        outputEnabled ?
+        "fa-solid fa-volume-high" : 
+        "fa-solid fa-volume-xmark";
     };
 
     buttonEffectView = document.createElement("button");
@@ -1270,6 +1296,41 @@ var drawImage = function() {
     if (threejsEnabled) {
         videoCtx.drawImage(renderer.domElement, 0, 0, sw, sw);
     }
+
+    var per = ((sw-5)*2)*Math.PI;
+    var angle = ((1/per)*5)*360;
+
+    var c = { x: (sw), y: (sw) };
+    var p = { x: (sw), y: (5) };
+    var rp = _rotate2d(c, p, angle); 
+
+    var co = (sw-rp.x);
+    var ca = (rp.y-5);
+
+    var r = (1/co)*5;
+    co = r*(sw-rp.x);
+    ca = r*(rp.y-5);
+
+    var c = { x: (sw), y: (sw) };
+    var p = { x: (sw), y: (5) };
+    var rp = { x: (sw-co), y: (5+ca) };
+
+    co = 5;
+    ca = (sw-rp.y);
+    angle = (Math.PI-_angle2d(co, ca))*(180/Math.PI);
+
+    var c = { x: (sw), y: (sw) };
+    var p = { x: (sw), y: (5) };
+    var rp = _rotate2d(c, p, angle);
+
+    var c = { x: (sw), y: (sw) };
+    var p = { x: (sw), y: (5) };
+    var rp = _rotate2d(c, p, angle+(micAvgValue*(90-angle)));
+
+    videoCtx.fillStyle = "#fff";
+    videoCtx.beginPath();
+    videoCtx.arc(rp.x, rp.y, 5, 0, Math.PI*2);
+    videoCtx.fill();
 
     if (updateWidth)
     lineWidth += 2;
