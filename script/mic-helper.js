@@ -81,7 +81,7 @@ class EasyMicrophone {
         navigator.mediaDevices.getUserMedia({
             audio: audioDevices.length == 1 ? true : {
             deviceId: { 
-               exact: audioDevices[deviceNo].deviceId
+               exact: audioDevices[audioDevice].deviceId
             } }, 
         }).
         then((stream) => {
@@ -119,6 +119,7 @@ class EasyMicrophone {
             var url = URL.createObjectURL(
             new Blob(this.audioBlob, 
                 { type: "audio/webm;codecs=opus" }));
+
             this.audioBlob = [];
             callback(url);
         }.bind(this);

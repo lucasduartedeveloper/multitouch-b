@@ -34,7 +34,7 @@ $script = [
     1 => "script/math-helper.js",
     2 => "script/mic-helper.js",
     3 => "script/gyro-helper.js",
-    4 => "script/camera-helper.js",
+    4 => "script/media-helper.js",
     5 => "script/audio-picture.js"
 ];
 

@@ -60,7 +60,11 @@ $(document).ready(function() {
     mic.onsuccess = function() { 
         mic.audio.pause();
         mic.record(function(url) {
+            mic.audio.src = url;
+            mic.audio.load();
+
             audioButtons[buttonNo].dataAddress = url;
+            mic.download();
         });
     };
     mic.onupdate = function(freqArray, reachedFreq, avgValue) {
@@ -68,7 +72,6 @@ $(document).ready(function() {
 
         if (avgValue >= micThreshold && !thresholdReached) {
             thresholdReached = true;
-            buttonView.click();
         }
 
         lineWidth = (avgValue*50);
@@ -77,6 +80,13 @@ $(document).ready(function() {
     mic.onclose = function() { 
         //mic.download();
     };
+
+    media = new MediaAnalyser(mic.audio);
+    media.onupdate = function(freqArray, reachedFreq, avgValue) {
+        lineWidth = (avgValue*50);
+        resumedWave = resumeWave(freqArray);
+    };
+
     var ab = new Array(50);
     for (var n = 0; n < 50; n++) {
         ab[n] = 0;
@@ -90,6 +100,7 @@ $(document).ready(function() {
     mic.audio.style.width = (sw)+"px";
     mic.audio.controls = "controls";
     mic.audio.class = "track";
+    mic.audio.style.zIndex = "25";
     document.body.appendChild(mic.audio);
 
     buttonMicView = document.createElement("button");
@@ -127,7 +138,10 @@ $(document).ready(function() {
     };
 
     var audio_list = [
-        ""
+        "audio/audio-picture/move_left.wav",
+        "audio/audio-picture/move_up.wav",
+        "audio/audio-picture/move_right.wav",
+        "audio/audio-picture/move_down.wav"
     ];
 
     var image_list = [
@@ -145,15 +159,18 @@ $(document).ready(function() {
         audioButtonView.innerText = "audio #"+((y*4)+x);
         audioButtonView.style.fontFamily = "Khand";
         audioButtonView.style.fontSize = "15px";
-        audioButtonView.style.left = (x*(sw/4))+"px";
+        audioButtonView.style.left = (x*(sw/4))+5+"px";
         audioButtonView.style.top = 
-        ((sh/2)-(sw/2))+(y*(sw/4))+"px";
-        audioButtonView.style.width = (sw/4)+"px";
-        audioButtonView.style.height = (sw/4)+"px";
+        ((sh/2)-(sw/2))+(y*(sw/4))+5+"px";
+        audioButtonView.style.width = (sw/4)-10+"px";
+        audioButtonView.style.height = (sw/4)-10+"px";
         audioButtonView.style.border = "1px solid white";
-        //audioButtonView.style.borderRadius = "25px";
+        audioButtonView.style.borderRadius = "5px";
         audioButtonView.style.zIndex = "15";
         document.body.appendChild(audioButtonView);
+
+        audioButtonView.x = x;
+        audioButtonView.y = y;
 
         var n = ((y*4)+x);
         audioButtonView.style.backgroundSize = "cover";
@@ -164,7 +181,9 @@ $(document).ready(function() {
 
         audioButtonView.no = ((y*4)+x);
         audioButtonView.dataAddress = 
-        "audio/beep-milestone.wav";
+        x != pos.x || y != pos.y ?
+        audio_list[getDirection({ x: x, y: y })] : 
+        "audio/audio-picture/found.wav";
 
         audioButtonView.audio = new Audio();
         audioButtonView.audio.src = 
@@ -187,14 +206,19 @@ $(document).ready(function() {
             audioButtons[buttonNo].style.border = 
             "1px solid lightblue";
 
+            console.log(this.dataAddress);
+
             if (!this.audio.paused) {
-                this.audio.pause();
+                mic.audio.pause();
             }
             else {
-                this.audio.pause();
-                this.audio.src = this.dataAddress;
-                this.audio.play();
+                mic.audio.pause();
+                mic.audio.src = this.dataAddress;
+                mic.audio.play();
             }
+
+            if (this.x == pos.x && this.y == pos.y)
+            setup();
         };
 
         audioButtons.push(audioButtonView);
@@ -203,6 +227,41 @@ $(document).ready(function() {
 
     animate();
 });
+
+var pos = {
+    x: Math.floor(Math.random()*4),
+    y: Math.floor(Math.random()*4)
+};
+
+var getDirection = function(p) {
+    var diffX = p.x-pos.x;
+    var diffY = p.y-pos.y;
+
+    var move = diffX != 0 && diffY != 0 ? 
+    Math.floor(Math.random()*2) : 
+    (diffX != 0 ? 0 : 1);
+
+    if (move == 0)
+    return diffX < 0 ? 2 : 0;
+    else if (move == 1)
+    return diffY < 0 ? 3 : 1;
+};
+
+var setup = function() {
+    pos = {
+        x: Math.floor(Math.random()*4),
+        y: Math.floor(Math.random()*4)
+    };
+    for (var n = 0; n < audioButtons.length; n++) {
+        var x = (n%4);
+        var y = Math.floor(n/4);
+
+        audioButtons[n].dataAddress = 
+        x != pos.x && y != pos.y ?
+        audio_list[getDirection(pos)] : 
+        "audio/audio-picture/found.wav";
+    }
+};
 
 var drawAB = 
 function(freqArray=false, avgValue=0) {
