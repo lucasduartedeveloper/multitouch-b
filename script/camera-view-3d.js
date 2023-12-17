@@ -534,12 +534,26 @@ $(document).ready(function() {
     };
 
     squareCanvas = document.createElement("canvas");
+    squareCanvas.style.position = "absolute";
     squareCanvas.width = sw;
     squareCanvas.height = sw;
+    squareCanvas.style.left = ((sw/2))+"px";
+    squareCanvas.style.top = ((sh/2)-(sw/2)-(sw/4))+"px";
+    squareCanvas.style.width = (sw/4)+"px";
+    squareCanvas.style.height = (sw/4)+"px";
+    squareCanvas.style.zIndex = "25";
+    //document.body.appendChild(squareCanvas);
 
     squareZeroCanvas = document.createElement("canvas");
+    squareZeroCanvas.style.position = "absolute";
     squareZeroCanvas.width = sw;
     squareZeroCanvas.height = sw;
+    squareZeroCanvas.style.left = ((sw/2)-(sw/4))+"px";
+    squareZeroCanvas.style.top = ((sh/2)-(sw/2)-(sw/4))+"px";
+    squareZeroCanvas.style.width = (sw/4)+"px";
+    squareZeroCanvas.style.height = (sw/4)+"px";
+    squareZeroCanvas.style.zIndex = "25";
+    //document.body.appendChild(squareZeroCanvas);
 
     videoCanvas = document.createElement("canvas");
     videoCanvas.width = sw;
@@ -756,6 +770,7 @@ $(document).ready(function() {
     buttonClearPoseView.onclick = function() {
         var squareZeroCtx = squareZeroCanvas.getContext("2d");
         squareZeroCtx.clearRect(0, 0, sw, sw);
+        storedPosition = false;
     };
 
     videoBackgroundView = document.createElement("div");
@@ -1356,6 +1371,8 @@ var applyCurve = function(value) {
      return rp.y;
 };
 
+var storedPosition = false;
+
 var drawToSquare = 
     function(ctx, image, camera=false, size=4) {
     ctx.lineWidth = 1;
@@ -1363,6 +1380,11 @@ var drawToSquare =
     var canvas = squareCanvas;
     var squareCtx = canvas.getContext("2d");
     var squareZeroCtx = squareZeroCanvas.getContext("2d");
+
+    var previousImgData = 
+    squareCtx.getImageData(0, 0, 
+    squareCanvas.width, squareCanvas.height);
+    var previousData = previousImgData.data;
 
     if (pause == 0 || pause == 4)
     squareCtx.clearRect(0, 0, sw, sw);
@@ -1495,9 +1517,10 @@ var drawToSquare =
                 -format.left, -format.top, 
                 video.width, video.width, 
                 0, 0, sw, sw);
+                storedPosition = true;
             }
 
-            if (pause == 0) {
+            if (pause == 0 && storedPosition) {
                 squareCtx.restore();
                 squareZeroCtx.restore();
                 squareCtx.drawImage(squareZeroCanvas, 
@@ -1526,9 +1549,15 @@ var drawToSquare =
     squareCtx.restore();
     squareZeroCtx.restore();
 
+    squareZeroCtx.clearRect(0, 0, sw, sw);
+    squareZeroCtx.putImageData(previousImgData, 
+    0, 0);
+
+    /*
     if (grayscaleEnabled)
-    lowHeightCanvas(squareCanvas);
-    //grayscaleCanvas(squareCanvas);
+    updateCanvas(squareCanvas, previousData);
+    //lowHeightCanvas(squareCanvas);
+    //grayscaleCanvas(squareCanvas); */
 
     sendImage(squareCanvas.toDataURL());
 
@@ -1826,27 +1855,38 @@ var drawToSquare =
         }
     }
 
-    var colors = [
-        "rgba(70, 235, 52, 1)",
-        "rgba(70, 235, 52, 1)",
-        "rgba(70, 235, 52, 1)",
-        "rgba(197, 255, 61, 1)",
-        "rgba(255, 245, 61, 1)",
-        "rgba(255, 245, 61, 1)",
-        "rgba(255, 181, 61, 1)",
-        "rgba(255, 181, 61, 1)",
-        "rgba(255, 61, 61, 1)",
-        "rgba(255, 61, 61, 1)"
-    ];
+    if (grayscaleEnabled)
+    updateCanvas(videoCanvas, squareCanvas, previousData);
+};
 
-    /*
-    for (var n = 0; n < (micAvgValue*10); n++) {
-        ctx.fillStyle = colors[n];
+var updateCanvas = 
+    function(canvas, srcCanvas, previousData) {
+    var ctx = srcCanvas.getContext("2d");
 
-        ctx.beginPath();
-        ctx.roundRect(10, (sw-10)-((n+1)*20)-(n*10), 50, 20, 5);
-        ctx.fill();
-    }*/
+    var imgData = 
+    ctx.getImageData(0, 0, 
+    canvas.width, canvas.height);
+    var data = imgData.data;
+
+    var newImageArray = new Uint8ClampedArray(data);
+    for (var i = 0; i < data.length; i += 4) {
+        if (data[i] != previousData[i] && 
+            data[i + 1] != previousData[i + 1] && 
+            data[i + 2] != previousData[i + 2]) {
+            newImageArray[i] = data[i];
+            newImageArray[i + 1] = data[i + 1];
+            newImageArray[i + 2] = data[i + 2];
+        }
+        else {
+            newImageArray[i] = 0;
+            newImageArray[i + 1] = 0;
+            newImageArray[i + 2] = 0;
+        }
+    }
+
+    var ctx = canvas.getContext("2d")
+    var newImageData = new ImageData(newImageArray, canvas.width, canvas.width);
+    ctx.putImageData(newImageData, 0, 0);
 };
 
 var grayscaleEnabled = false;

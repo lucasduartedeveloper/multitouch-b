@@ -39,6 +39,28 @@ $(document).ready(function() {
         sendText(text);
     };
 
+    voiceMode = 1;
+    voiceModeView = document.createElement("span");
+    voiceModeView.style.position = "absolute";
+    voiceModeView.style.color = "#fff";
+    voiceModeView.innerText = 
+    voiceMode == 0 ? "MALE" : "FEMALE";
+    voiceModeView.style.left = ((sw/2)-50)+"px";
+    voiceModeView.style.top = (100)+"px";
+    voiceModeView.style.width = (100)+"px";
+    voiceModeView.style.height = (50)+"px";
+    voiceModeView.style.zIndex = "25";
+    document.body.appendChild(voiceModeView);
+
+    voiceModeView.onclick = function() {
+        voiceMode = (voiceMode+1) < 2 ? 
+        (voiceMode+1) : 0;
+        voiceModeView.innerText = 
+        voiceMode == 0 ? "MALE" : "FEMALE";
+
+        setup();
+    };
+
     imageView = document.createElement("canvas");
     imageView.style.position = "absolute";
     imageView.width = sw;
@@ -137,13 +159,6 @@ $(document).ready(function() {
         }
     };
 
-    var audio_list = [
-        "audio/audio-picture/move_left.wav",
-        "audio/audio-picture/move_up.wav",
-        "audio/audio-picture/move_right.wav",
-        "audio/audio-picture/move_down.wav"
-    ];
-
     var image_list = [
         ""
     ];
@@ -182,8 +197,9 @@ $(document).ready(function() {
         audioButtonView.no = ((y*4)+x);
         audioButtonView.dataAddress = 
         x != pos.x || y != pos.y ?
+        audioPreffix[voiceMode]+
         audio_list[getDirection({ x: x, y: y })] : 
-        "audio/audio-picture/found.wav";
+        audioPreffix[voiceMode]+"found.wav";
 
         audioButtonView.audio = new Audio();
         audioButtonView.audio.src = 
@@ -233,6 +249,18 @@ var pos = {
     y: Math.floor(Math.random()*4)
 };
 
+var audioPreffix = [
+    "audio/audio-picture/m_",
+    "audio/audio-picture/f_"
+];
+
+var audio_list = [
+    "move_left.wav",
+    "move_up.wav",
+    "move_right.wav",
+    "move_down.wav"
+];
+
 var getDirection = function(p) {
     var diffX = p.x-pos.x;
     var diffY = p.y-pos.y;
@@ -257,9 +285,17 @@ var setup = function() {
         var y = Math.floor(n/4);
 
         audioButtons[n].dataAddress = 
-        x != pos.x && y != pos.y ?
-        audio_list[getDirection(pos)] : 
-        "audio/audio-picture/found.wav";
+        x != pos.x || y != pos.y ?
+        audioPreffix[voiceMode]+
+        audio_list[getDirection({ x: x, y: y })] : 
+        audioPreffix[voiceMode]+"found.wav";
+    }
+};
+
+var listAudios = function() {
+    for (var n = 0; n < audioButtons.length; n++) {
+        console.log(
+        audioButtons[n].dataAddress);
     }
 };
 

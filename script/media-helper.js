@@ -22,9 +22,16 @@ class MediaAnalyser {
             this.start();
         }.bind(this);
 
+        this.audio.onpause = function() {
+            this.onstop();
+        }.bind(this);
+
         this.onsuccess = function() { };
         this.onupdate = function() { };
         this.closed = true;
+
+        this.onstart = function() { };
+        this.onstop = function() { };
 
         this.debug = false;
     }
@@ -65,6 +72,8 @@ class MediaAnalyser {
         // enter rendering loop
         this.onsuccess();
         this.animate();
+
+        this.onstart();
     }
 
     // closed: needs more information to be done
@@ -111,6 +120,8 @@ class MediaAnalyser {
 
     stop() {
         this.closed = true;
+
+        this.onstop();
     }
 
     record() {
