@@ -605,7 +605,7 @@ $(document).ready(function() {
     buttonRecordGestureView.style.zIndex = "15";
     document.body.appendChild(buttonRecordGestureView);
 
-    gestureRecordingTime = new Date().getTime();
+    gestureRecordingTime = 0;
     gestureData = [];
 
     recordingGesture = false;
@@ -620,6 +620,7 @@ $(document).ready(function() {
             var gestureCtx = gestureCanvas.getContext("2d");
             gestureCtx.clearRect(0, 0, sw, sw);
 
+            gestureRecordingTime = new Date().getTime();
             playingGesture = false;
             gestureData = [];
             var obj = { 
@@ -1506,6 +1507,7 @@ var drawImage = function() {
 
         if (gestureNo == (gestureData.length-1)) {
             gestureCtx.clearRect(0, 0, sw, sw);
+            gesturePlayingTime = 0;
             gestureNo = 0;
         }
     }
