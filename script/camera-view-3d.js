@@ -619,7 +619,18 @@ $(document).ready(function() {
             buttonRecordGestureView.innerText = "REC";
             gestureRecorder.start();
 
+            var gestureCtx = gestureCanvas.getContext("2d");
+            gestureCtx.clearRect(0, 0, sw, sw);
+
+            playingGesture = false;
             gestureData = [];
+            var obj = { 
+                type: "start",
+                x: startX, 
+                y: startY, 
+                time: new Date().getTime() - gestureRecordingTime 
+            };
+            gestureData.push(obj);
         }
         else {
             gestureCanvas.style.display = "none";
@@ -627,6 +638,14 @@ $(document).ready(function() {
             gestureRecorder.stop();
             recordedVideo.src = gestureRecorder.output();
             recordedVideo.load();
+
+            var gestureCtx = gestureCanvas.getContext("2d");
+            gestureCtx.clearRect(0, 0, sw, sw);
+
+            gesturePlayingTime = 0;
+            gestureNo = 0; //-1;
+            gestureLastTime = new Date().getTime();
+            playingGesture = true;
         }
     };
 
@@ -640,7 +659,7 @@ $(document).ready(function() {
         var ctx = gestureCanvas.getContext("2d");
 
         ctx.strokeStyle = "#fff";
-        ctx.lineWidth = 5;
+        ctx.lineWidth = 3;
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
 
@@ -1467,8 +1486,61 @@ var drawImage = function() {
     }
     videoCtx.restore();
 
+    if (playingGesture) {
+        var gestureCtx = gestureCanvas.getContext("2d");
+
+        var gestureArr = currentGesture();
+        if (gestureArr.length > 0) {
+            var gesture = gestureArr[0];
+            if (gesture.type == "pointerdown") {
+                gestureCtx.beginPath();
+                gestureCtx.moveTo(gesture.x, gesture.y);
+            }
+            else if (gesture.type == "pointermove") {
+                gestureCtx.lineTo(gesture.x, gesture.y);
+                gestureCtx.stroke();
+            }
+            else if (gesture.type == "clear") {
+                gestureCtx.clearRect(0, 0, sw, sw);
+            }
+        }
+
+        videoCtx.filter = "blur(2px)";
+        videoCtx.drawImage(gestureCanvas, 0, 0, sw, sw);
+        videoCtx.filter = "none";
+
+        if (gestureNo == (gestureData.length-1)) {
+            gestureCtx.clearRect(0, 0, sw, sw);
+            gestureNo = 0;
+        }
+    }
+
     if (updateWidth)
     lineWidth += 2;
+};
+
+var playingGesture = false;
+var gestureLastTime = 0;
+var gesturePlayingTime = 0;
+var gestureNo = 0;
+var currentGesture = function() {
+    gesturePlayingTime += 
+    new Date().getTime() - gestureLastTime;
+
+    var gestureArr = [];
+    //var n = gestureNo;
+
+    for (var n = 0; n < gestureData.length; n++) { 
+        if (n > gestureNo && 
+            gesturePlayingTime > gestureData[n].time) {
+            gestureNo = n;
+            gestureArr.push(gestureData[n]);
+            break;
+        }
+    }
+
+    gestureLastTime = new Date().getTime();
+    return gestureArr;
 };
 
 var textObj = {
@@ -1491,11 +1563,6 @@ var applyCurve = function(value) {
      var p = { x: 0, y: 1 };
      var rp = _rotate2d(c, p, -(value*90));
      return rp.y;
-};
-
-var path = [];
-var createPath = function() {
-    
 };
 
 var storedPosition = false;
@@ -1671,31 +1738,6 @@ var drawToSquare =
 
     var format = fitImageCover(
     img_list[9], squareCanvas);
-
-    var video = {
-        width: recordedVideo.videoWidth,
-        height: recordedVideo.videoHeight
-    }
-    format = fitImageCover(video, canvas);
-
-    if (!recordedVideo.paused && 
-        (pause == 0 || pause == 1) && !(pause == 3)) {
-        var gestureCtx = gestureCanvas.getContext("2d");
-
-        gestureCtx.drawImage(recordedVideo, 
-        -format.left, -format.top, 
-        video.height, video.height, 
-        0, format.top, 
-        format.height, format.height);
-
-        removeBackground(gestureCanvas);
-        gestureCtx.filter = "blur(2px)";
-
-        squareCtx.drawImage(gestureCanvas, 
-        0, 0, gestureCanvas.width, gestureCanvas.height);
-
-        gestureCtx.filter = "none";
-    }
 
     /*
     if (cameraOn && pause == 0)
