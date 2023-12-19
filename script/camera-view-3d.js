@@ -1448,40 +1448,6 @@ var drawImage = function() {
         videoCtx.drawImage(renderer.domElement, 0, 0, sw, sw);
     }
 
-    var hyp = Math.sqrt(1+1);
-    var radius = ((micAvgValue*(sw*hyp))/2);
-
-    videoCtx.save();
-    videoCtx.fillStyle = "#fff";
-    videoCtx.beginPath();
-    videoCtx.moveTo(0, 0);
-    videoCtx.lineTo((sw/2), 0);
-
-    for (var n = 0; n <= 360; n++) {
-        var c = { x: (sw/2), y: (sw/2) };
-        var p = { x: (sw/2), y: (sw/2)-radius };
-        var rp = _rotate2d(c, p, n);
-        videoCtx.lineTo(rp.x, rp.y);
-    };
-
-    videoCtx.lineTo((sw/2), 0);
-    videoCtx.lineTo((sw), 0);
-    videoCtx.lineTo((sw), (sw));
-    videoCtx.lineTo(0, (sw));
-    videoCtx.lineTo(0, 0);
-    videoCtx.closePath();
-
-    if (!mic.closed)
-    videoCtx.clip();
-
-    if (!mic.closed) {
-        var alignment = applyCurve(micAvgValue);
-        videoCtx.fillStyle = 
-        "rgba(0, 0, 0, "+alignment+")";
-        videoCtx.fillRect(0, 0, sw, sw);
-    }
-    videoCtx.restore();
-
     if (playingGesture) {
         var gestureCtx = gestureCanvas.getContext("2d");
 
@@ -1512,8 +1478,64 @@ var drawImage = function() {
         }
     }
 
+    if (!mic.closed)
+    drawAB_rounded(resumedWave);
+
     if (updateWidth)
     lineWidth += 2;
+};
+
+var drawAB_rounded = 
+function(freqArray=false, avgValue=0) {
+    var canvas = videoCanvas;
+    var ctx = canvas.getContext("2d");
+
+    var offset = 0;
+    var polygon = [];
+
+    // create waveform A
+    if (freqArray) 
+    for (var n = 0; n < freqArray.length; n++) {
+        var c = { 
+            x: (sw/2),
+            y: (sw/2)
+        };
+        var p0 = { 
+            x: (sw/2),
+            y: (sw/2)-(sw/4)
+        };
+        var p1 = { 
+            x: (sw/2),
+            y: (sw/2)-(sw/4)-(freqArray[n]*25)
+        };
+
+        var rp0 = _rotate2d(c, p0, -(n*(360/freqArray.length)));
+        var rp1 = _rotate2d(c, p1, -(n*(360/freqArray.length)));
+
+        var obj = {
+            x0: rp0.x,
+            y0: rp0.y,
+            x1: rp1.x,
+            y1: rp1.y
+        };
+        polygon.push(obj);
+    }
+
+    // draw waveform A
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 3;
+
+    if (freqArray) {
+        ctx.beginPath();
+        ctx.moveTo(polygon[0].x1, polygon[0].y1);
+    }
+    if (freqArray)
+    for (var n = 1; n < polygon.length; n++) {
+        ctx.lineTo(polygon[n].x1, polygon[n].y1);
+    }
+
+    ctx.lineTo(polygon[0].x1, polygon[0].y1);
+    ctx.stroke();
 };
 
 var playingGesture = false;
