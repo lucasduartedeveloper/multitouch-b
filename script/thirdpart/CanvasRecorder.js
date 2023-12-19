@@ -5,6 +5,7 @@
 function CanvasRecorder(canvas, video_bits_per_sec) {
     this.start = startRecording;
     this.stop = stopRecording;
+    this.output = output;
     this.save = download;
 
     var recordedBlobs = [];
@@ -76,6 +77,13 @@ function CanvasRecorder(canvas, video_bits_per_sec) {
         mediaRecorder.stop();
         console.log('Recorded Blobs: ', recordedBlobs);
         video.controls = true;
+    }
+
+    function output() {
+        var blob = 
+        new Blob(recordedBlobs, { type: supportedType });
+        var url = window.URL.createObjectURL(blob);
+        return url;
     }
 
     function download(file_name) {

@@ -61,6 +61,7 @@ $(document).ready(function() {
     recordedVideo.style.position = "absolute";
     recordedVideo.autoplay = true;
     recordedVideo.controls = true;
+    recordedVideo.loop = true;
     recordedVideo.style.objectFit = "cover";
     recordedVideo.width = (sw/2);
     recordedVideo.height = (sw); 
@@ -206,6 +207,10 @@ $(document).ready(function() {
             createLightMap_preloaded();
             renderer.domElement.style.opacity = 
             recordingEnabled ? "0" : "initial";
+            startAnimation();
+        }
+        else {
+            pauseAnimation();
         }
 
         if (threejsEnabled)
@@ -555,7 +560,13 @@ $(document).ready(function() {
     squareZeroCanvas.style.zIndex = "25";
     //document.body.appendChild(squareZeroCanvas);
 
+    var squareZeroCanvasCtx = 
+    squareZeroCanvas.getContext("2d");
+
+    squareZeroCanvasCtx.imageSmoothingEnabled = false;
+
     videoCanvas = document.createElement("canvas");
+    videoCanvas.style.position = "absolute";
     videoCanvas.width = sw;
     videoCanvas.height = sw;
     videoCanvas.style.left = (0)+"px";
@@ -564,6 +575,102 @@ $(document).ready(function() {
     videoCanvas.style.height = (sw)+"px";
     videoCanvas.style.zIndex = "25";
     document.body.appendChild(videoCanvas);
+
+    gestureCanvas = document.createElement("canvas");
+    gestureCanvas.style.position = "absolute";
+    gestureCanvas.style.display = "none";
+    gestureCanvas.width = sw;
+    gestureCanvas.height = sw;
+    gestureCanvas.style.left = (0)+"px";
+    gestureCanvas.style.top = ((sh/2)-(sw/2))+"px";
+    gestureCanvas.style.width = (sw)+"px";
+    gestureCanvas.style.height = (sw)+"px";
+    gestureCanvas.style.zIndex = "25";
+    document.body.appendChild(gestureCanvas);
+
+    buttonRecordGestureView = 
+    document.createElement("button");
+    buttonRecordGestureView.style.position = "absolute";
+    buttonRecordGestureView.style.color = "#000";
+    buttonRecordGestureView.innerText = "OFF";
+    buttonRecordGestureView.style.fontFamily = "Khand";
+    buttonRecordGestureView.style.fontSize = "15px";
+    buttonRecordGestureView.style.left = ((sw/2)-110)+"px";
+    buttonRecordGestureView.style.top = 
+    ((sh/2)-(sw/2)-105)+"px";
+    buttonRecordGestureView.style.width = (50)+"px";
+    buttonRecordGestureView.style.height = (25)+"px";
+    buttonRecordGestureView.style.border = "1px solid white";
+    buttonRecordGestureView.style.borderRadius = "25px";
+    buttonRecordGestureView.style.zIndex = "15";
+    document.body.appendChild(buttonRecordGestureView);
+
+    gestureRecordingTime = new Date().getTime();
+    gestureData = [];
+    gestureRecorder = new CanvasRecorder(gestureCanvas);
+
+    recordingGesture = false;
+    buttonRecordGestureView.onclick = function() {
+        recordingGesture = !recordingGesture;
+
+        if (recordingGesture) {
+            recordedVideo.src = null;
+            gestureCanvas.style.display = "initial";
+            buttonRecordGestureView.innerText = "REC";
+            gestureRecorder.start();
+
+            gestureData = [];
+        }
+        else {
+            gestureCanvas.style.display = "none";
+            buttonRecordGestureView.innerText = "OFF";
+            gestureRecorder.stop();
+            recordedVideo.src = gestureRecorder.output();
+            recordedVideo.load();
+        }
+    };
+
+    var startX = 0;
+    var startY = 0;
+
+    gestureCanvas.ontouchstart = function(e) {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY-((sh/2)-(sw/2));
+
+        var ctx = gestureCanvas.getContext("2d");
+
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 5;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+
+        var obj = { 
+            type: "pointerdown",
+            x: startX, 
+            y: startY, 
+            time: new Date().getTime() - gestureRecordingTime 
+        };
+        gestureData.push(obj);
+    };
+    gestureCanvas.ontouchmove = function(e) {
+        var moveX = e.touches[0].clientX;
+        var moveY = e.touches[0].clientY-((sh/2)-(sw/2));
+
+        var ctx = gestureCanvas.getContext("2d");
+        ctx.lineTo(moveX, moveY);
+        ctx.stroke();
+
+        var obj = { 
+            type: "pointermove",
+            x: moveX, 
+            y: moveY, 
+            time: new Date().getTime() - gestureRecordingTime 
+        };
+        gestureData.push(obj);
+    };
 
     squareAngles = [];
 
@@ -771,6 +878,19 @@ $(document).ready(function() {
         var squareZeroCtx = squareZeroCanvas.getContext("2d");
         squareZeroCtx.clearRect(0, 0, sw, sw);
         storedPosition = false;
+
+        var gestureCtx = gestureCanvas.getContext("2d");
+        gestureCtx.clearRect(0, 0, sw, sw);
+
+        if (recordingGesture) {
+            var obj = { 
+                type: "clear",
+                x: (sw/2), 
+                y: (sw/2), 
+                time: new Date().getTime() - gestureRecordingTime 
+            };
+            gestureData.push(obj);
+        }
     };
 
     videoBackgroundView = document.createElement("div");
@@ -1159,7 +1279,9 @@ var img_list = [
     "img/avatar-1_state-0.png",
     "img/avatar-1_state-1.png",
     "img/avatar-2_state-0.png",
-    "img/avatar-2_state-1.png"
+    "img/avatar-2_state-1.png",
+    "img/background-store/video-background-0.png",
+    "img/bubble-0.png"
 ];
 
 var imagesLoaded = false;
@@ -1371,6 +1493,11 @@ var applyCurve = function(value) {
      return rp.y;
 };
 
+var path = [];
+var createPath = function() {
+    
+};
+
 var storedPosition = false;
 
 var drawToSquare = 
@@ -1380,11 +1507,6 @@ var drawToSquare =
     var canvas = squareCanvas;
     var squareCtx = canvas.getContext("2d");
     var squareZeroCtx = squareZeroCanvas.getContext("2d");
-
-    var previousImgData = 
-    squareCtx.getImageData(0, 0, 
-    squareCanvas.width, squareCanvas.height);
-    var previousData = previousImgData.data;
 
     if (pause == 0 || pause == 4)
     squareCtx.clearRect(0, 0, sw, sw);
@@ -1529,35 +1651,64 @@ var drawToSquare =
 
             if (pause == 4) pause = 3;
         }
-
-        /*
-        var video = {
-            width: recordedVideo.videoWidth,
-            height: recordedVideo.videoHeight
-        }
-        format = fitImageCover(video, canvas);
-
-        if ((pause == 0 || pause == 1) && !(pause == 3))
-        squareCtx.drawImage(recordedVideo, 
-        -format.left + (video.height/2) - (video.height/4), 
-        -format.top, 
-        (video.height/2), video.height, 
-        0, format.top, 
-        (format.height/2), format.height);*/
     }
 
     squareCtx.restore();
     squareZeroCtx.restore();
 
+    var format = fitImageCover(
+    img_list[8], squareZeroCanvas);
+
     squareZeroCtx.clearRect(0, 0, sw, sw);
-    squareZeroCtx.putImageData(previousImgData, 
-    0, 0);
+    squareZeroCtx.drawImage(img_list[8], 
+    format.left, format.top, 
+    format.width, format.width);
+
+    var previousImgData = 
+    squareZeroCtx.getImageData(0, 0, 
+    squareZeroCanvas.width, squareZeroCanvas.height);
+    var previousData = previousImgData.data;
+
+    var format = fitImageCover(
+    img_list[9], squareCanvas);
+
+    var video = {
+        width: recordedVideo.videoWidth,
+        height: recordedVideo.videoHeight
+    }
+    format = fitImageCover(video, canvas);
+
+    if (!recordedVideo.paused && 
+        (pause == 0 || pause == 1) && !(pause == 3)) {
+        var gestureCtx = gestureCanvas.getContext("2d");
+
+        gestureCtx.drawImage(recordedVideo, 
+        -format.left, -format.top, 
+        video.height, video.height, 
+        0, format.top, 
+        format.height, format.height);
+
+        removeBackground(gestureCanvas);
+        gestureCtx.filter = "blur(2px)";
+
+        squareCtx.drawImage(gestureCanvas, 
+        0, 0, gestureCanvas.width, gestureCanvas.height);
+
+        gestureCtx.filter = "none";
+    }
+
+    /*
+    if (cameraOn && pause == 0)
+    squareCtx.drawImage(img_list[9], 
+    format.left, format.top, 
+    format.width, format.width);*/
 
     /*
     if (grayscaleEnabled)
-    updateCanvas(squareCanvas, previousData);
+    grayscaleCanvas2(squareCanvas);*/
+    //updateCanvas(squareCanvas, previousData);
     //lowHeightCanvas(squareCanvas);
-    //grayscaleCanvas(squareCanvas); */
+    //grayscaleCanvas(squareCanvas); 
 
     sendImage(squareCanvas.toDataURL());
 
@@ -1870,21 +2021,40 @@ var updateCanvas =
 
     var newImageArray = new Uint8ClampedArray(data);
     for (var i = 0; i < data.length; i += 4) {
-        if (data[i] != previousData[i] && 
-            data[i + 1] != previousData[i + 1] && 
-            data[i + 2] != previousData[i + 2]) {
+        if (previousData[i] == 255 && 
+            previousData[i + 1] == 0 && 
+            previousData[i + 2] == 255) {
             newImageArray[i] = data[i];
             newImageArray[i + 1] = data[i + 1];
             newImageArray[i + 2] = data[i + 2];
         }
         else {
-            newImageArray[i] = 0;
-            newImageArray[i + 1] = 0;
-            newImageArray[i + 2] = 0;
+            newImageArray[i] = previousData[i];
+            newImageArray[i + 1] = previousData[i + 1];
+            newImageArray[i + 2] = previousData[i + 2];
         }
     }
 
     var ctx = canvas.getContext("2d")
+    var newImageData = new ImageData(newImageArray, canvas.width, canvas.width);
+    ctx.putImageData(newImageData, 0, 0);
+};
+
+var removeBackground = function(canvas) {
+    var ctx = canvas.getContext("2d");
+
+    var imgData = 
+    ctx.getImageData(0, 0, canvas.width, canvas.height);
+    var data = imgData.data;
+
+    var newImageArray = new Uint8ClampedArray(data);
+    for (var i = 0; i < data.length; i += 4) {
+        if (data[i] < 100 && 
+             data[i + 1] < 100 && 
+             data[i + 2] < 100) {
+             newImageArray[i + 3] = 0;
+        }
+    }
     var newImageData = new ImageData(newImageArray, canvas.width, canvas.width);
     ctx.putImageData(newImageData, 0, 0);
 };
@@ -1913,6 +2083,38 @@ var grayscaleCanvas = function(canvas) {
         newImageArray[i] = brightness;
         newImageArray[i + 1] = brightness;
         newImageArray[i + 2] = brightness;
+    }
+    var newImageData = new ImageData(newImageArray, canvas.width, canvas.width);
+    ctx.putImageData(newImageData, 0, 0);
+};
+
+var applyCurve2 = function(value) {
+     var c = { x: 0, y: 0 };
+     var p = { x: -1, y: 0 };
+     var rp = _rotate2d(c, p, -(value*90));
+     rp.y = rp.y *2;
+     rp.y = rp.y < -1 ? -1 : rp.y;
+     return -rp.y;
+};
+
+var grayscaleCanvas2 = function(canvas) {
+    var ctx = canvas.getContext("2d");
+
+    var imgData = 
+    ctx.getImageData(0, 0, canvas.width, canvas.height);
+    var data = imgData.data;
+
+    var newImageArray = new Uint8ClampedArray(data);
+    for (var i = 0; i < data.length; i += 4) {
+        var brightness = 
+        (((1/255)*(data[i] * grayscaleRatio[grayscaleNo][0])) + 
+        ((1/255)*(data[i + 1] * grayscaleRatio[grayscaleNo][1])) + 
+        ((1/255)*(data[i + 2] * grayscaleRatio[grayscaleNo][2])));
+
+        newImageArray[i] = data[i] != 0 ? 0 : 0;
+        newImageArray[i + 1] = data[i + 1] != 0 ? 
+        applyCurve2(brightness)*255 : 0;
+        newImageArray[i + 2] = data[i + 2] != 0 ? 0 : 0;
     }
     var newImageData = new ImageData(newImageArray, canvas.width, canvas.width);
     ctx.putImageData(newImageData, 0, 0);
@@ -1965,6 +2167,30 @@ var lowHeightCanvas = function(canvas) {
     }
     var newImageData = new ImageData(newImageArray, canvas.width, canvas.width);
     ctx.putImageData(newImageData, 0, 0);
+};
+
+var downloadBackgroundColor = function() {
+    var canvas = document.createElement("canvas");
+    canvas.width = sw;
+    canvas.height = sw;
+
+    var ctx = canvas.getContext("2d");
+
+    ctx.fillStyle = "rgba(255, 0, 255, 1)";
+    ctx.fillRect(0, 0, sw, sw);
+
+    var name = 'download.png';
+    var url = canvas.toDataURL();
+    var a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    }, 100);
 };
 
 var visibilityChange;

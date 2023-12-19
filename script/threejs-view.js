@@ -382,7 +382,7 @@ var load3D = function() {
             else stereofx.render( scene, virtualCamera );
         }
     };
-    animateThreejs();
+    //animateThreejs();
 }
 
 var setTexture = function(no, dataURL) {
