@@ -1516,7 +1516,8 @@ function(freqArray=false, avgValue=0) {
             x0: rp0.x,
             y0: rp0.y,
             x1: rp1.x,
-            y1: rp1.y
+            y1: rp1.y,
+            value: freqArray[n]
         };
         polygon.push(obj);
     }
@@ -1530,7 +1531,9 @@ function(freqArray=false, avgValue=0) {
     }
     if (freqArray)
     for (var n = 1; n < polygon.length; n++) {
-        ctx.strokeStyle = getColor((1/(polygon.length-1))*n, true);
+        ctx.strokeStyle = 
+        getColor((1/(polygon.length-1))*n, true, 
+        (1-polygon[n].value));
 
         ctx.beginPath();
         ctx.moveTo(polygon[n-1].x1, polygon[n-1].y1);
@@ -1538,7 +1541,8 @@ function(freqArray=false, avgValue=0) {
         ctx.stroke();
     }
 
-    ctx.strokeStyle = getColor(1, true);
+    ctx.strokeStyle = 
+    getColor(1, true, (1-polygon[0].value));
 
     ctx.beginPath();
     ctx.moveTo(
@@ -2191,7 +2195,7 @@ var grayscaleCanvas2 = function(canvas) {
     ctx.putImageData(newImageData, 0, 0);
 };
 
-var getColor = function(brightness, toString) {
+var getColor = function(brightness, toString, opacity=1) {
     var rgb = [ 0, 0, 255 ];
     if (brightness < 0.25) {
         rgb[1] = ((1/0.25)*brightness) * (255);
@@ -2210,7 +2214,7 @@ var getColor = function(brightness, toString) {
     }
 
     if (toString)
-    rgb = "rgb("+rgb[0]+","+rgb[1]+","+rgb[2]+")";
+    rgb = "rgba("+rgb[0]+","+rgb[1]+","+rgb[2]+","+opacity+")";
 
     return rgb;
 };
