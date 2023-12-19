@@ -607,7 +607,6 @@ $(document).ready(function() {
 
     gestureRecordingTime = new Date().getTime();
     gestureData = [];
-    gestureRecorder = new CanvasRecorder(gestureCanvas);
 
     recordingGesture = false;
     buttonRecordGestureView.onclick = function() {
@@ -617,7 +616,6 @@ $(document).ready(function() {
             recordedVideo.src = null;
             gestureCanvas.style.display = "initial";
             buttonRecordGestureView.innerText = "REC";
-            gestureRecorder.start();
 
             var gestureCtx = gestureCanvas.getContext("2d");
             gestureCtx.clearRect(0, 0, sw, sw);
@@ -635,9 +633,6 @@ $(document).ready(function() {
         else {
             gestureCanvas.style.display = "none";
             buttonRecordGestureView.innerText = "OFF";
-            gestureRecorder.stop();
-            recordedVideo.src = gestureRecorder.output();
-            recordedVideo.load();
 
             var gestureCtx = gestureCanvas.getContext("2d");
             gestureCtx.clearRect(0, 0, sw, sw);
