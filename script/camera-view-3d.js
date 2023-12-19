@@ -1522,7 +1522,6 @@ function(freqArray=false, avgValue=0) {
     }
 
     // draw waveform A
-    ctx.strokeStyle = "#fff";
     ctx.lineWidth = 3;
 
     if (freqArray) {
@@ -1531,9 +1530,20 @@ function(freqArray=false, avgValue=0) {
     }
     if (freqArray)
     for (var n = 1; n < polygon.length; n++) {
+        ctx.strokeStyle = getColor((1/(polygon.length-1))*n, true);
+
+        ctx.beginPath();
+        ctx.moveTo(polygon[n-1].x1, polygon[n-1].y1);
         ctx.lineTo(polygon[n].x1, polygon[n].y1);
+        ctx.stroke();
     }
 
+    ctx.strokeStyle = getColor(1, true);
+
+    ctx.beginPath();
+    ctx.moveTo(
+        polygon[polygon.length-1].x1, 
+        polygon[polygon.length-1].y1);
     ctx.lineTo(polygon[0].x1, polygon[0].y1);
     ctx.stroke();
 };
@@ -2181,7 +2191,7 @@ var grayscaleCanvas2 = function(canvas) {
     ctx.putImageData(newImageData, 0, 0);
 };
 
-var getColor = function(brightness) {
+var getColor = function(brightness, toString) {
     var rgb = [ 0, 0, 255 ];
     if (brightness < 0.25) {
         rgb[1] = ((1/0.25)*brightness) * (255);
@@ -2198,6 +2208,10 @@ var getColor = function(brightness) {
         rgb = [ 255, 255, 0 ];
         rgb[1] = (1-((1/0.25)*(brightness-0.75))) * (255);
     }
+
+    if (toString)
+    rgb = "rgb("+rgb[0]+","+rgb[1]+","+rgb[2]+")";
+
     return rgb;
 };
 
