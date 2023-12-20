@@ -255,16 +255,16 @@ var load3D = function() {
     axisZend.rotation.x = -(Math.PI/2);
 
     createPlane4();
-    lightMap.visible = false;
+    //lightMap.visible = false;
 
-    var geometry = new THREE.RingGeometry( 0, 10, 32, 250 );
+    var geometry = new THREE.RingGeometry( 0, 10, 64, 26 );
     var material = new THREE.MeshStandardMaterial( { 
         color: 0xcccccc, 
         side: THREE.DoubleSide, 
         //wireframe: true
     } );
     frequencyGraph = new THREE.Mesh( geometry, material );
-    scene.add( frequencyGraph );
+    //scene.add( frequencyGraph );
     frequencyGraph.castShadow = true;
     frequencyGraph.receiveShadows = true;
 
@@ -651,11 +651,22 @@ var loadOBJ = function(path, callback) {
     );
 };
 
-var updatePhiSegmentState = function(n, value) {
+var updatePhiSegmentState = function(n, freqArray) {
     var vertexArray = 
     frequencyGraph.geometry.getAttribute("position").array;
 
-    n = (250-n);
+    n = ((250-n)/10);
+
+    var blockArr = [];
+    for (var w = 0; w < 25; w++) {
+        var value = 0;
+        for (var k = 0; k < 10; k++) {
+            value += freqArray[(w*10)+k];
+        }
+        blockArr.push(value/10);
+    }
+
+    var value = blockArr[n];
 
     //var n = 0;
     //setInterval(function() {
@@ -663,7 +674,7 @@ var updatePhiSegmentState = function(n, value) {
         for (var k = 0; k <= 32; k++) {
             //var v = (n*3);
             var v = ((n*33)*3)+(k*3);
-            vertexArray[v+2] = value;
+            vertexArray[v+2] = (value*5);
         }
 
         frequencyGraph.geometry.
@@ -677,16 +688,25 @@ var updatePhiSegmentState = function(n, value) {
 
 var createTexture = function(freqArray) {
     var canvas = document.createElement("canvas");
-    canvas.width = 500;
-    canvas.height = 500;
+    canvas.width = 50;
+    canvas.height = 50;
 
     var ctx = canvas.getContext("2d");
     ctx.lineWidth = 1;
 
-    for (var n = 0; n < 250; n++) {
-        ctx.strokeStyle = getColor(freqArray[n], true);
+    var blockArr = [];
+    for (var n = 0; n < 25; n++) {
+        var value = 0;
+        for (var k = 0; k < 10; k++) {
+            value += freqArray[(n*10)+k];
+        }
+        blockArr.push(value/10);
+    }
+
+    for (var n = 0; n < 25; n++) {
+        ctx.fillStyle = getColor(blockArr[n], true);
         ctx.beginPath();
-        ctx.arc(250, 250, (250-n), 0, (Math.PI*2));
+        ctx.arc(50, 50, (25-n), 0, (Math.PI*2));
         ctx.fill();
     }
 

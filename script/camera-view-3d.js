@@ -1521,7 +1521,7 @@ function(freqArray=false, avgValue=0) {
         };
         polygon.push(obj);
 
-        updatePhiSegmentState(n, freqArray[n]);
+        //updatePhiSegmentState(n, freqArray);
     }
 
     // draw waveform A
