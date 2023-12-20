@@ -255,6 +255,26 @@ var load3D = function() {
     axisZend.rotation.x = -(Math.PI/2);
 
     createPlane4();
+    lightMap.visible = false;
+
+    var geometry = new THREE.RingGeometry( 0, 10, 32, 250 );
+    var material = new THREE.MeshStandardMaterial( { 
+        color: 0xcccccc, 
+        side: THREE.DoubleSide, 
+        //wireframe: true
+    } );
+    frequencyGraph = new THREE.Mesh( geometry, material );
+    scene.add( frequencyGraph );
+    frequencyGraph.castShadow = true;
+    frequencyGraph.receiveShadows = true;
+
+    // wireframe
+    var geo = 
+    new THREE.EdgesGeometry( frequencyGraph.geometry ); 
+    // or WireframeGeometry
+    var mat = new THREE.LineBasicMaterial( { color: 0x000000 } );
+    var wireframe = new THREE.LineSegments( geo, mat );
+    //frequencyGraph.add( wireframe );
 
     rec = new CanvasRecorder(renderer.domElement);
 
@@ -629,6 +649,48 @@ var loadOBJ = function(path, callback) {
             console.log( 'An error happened' );
         }
     );
+};
+
+var updatePhiSegmentState = function(n, value) {
+    var vertexArray = 
+    frequencyGraph.geometry.getAttribute("position").array;
+
+    n = (250-n);
+
+    //var n = 0;
+    //setInterval(function() {
+        //var k = 0;
+        for (var k = 0; k <= 32; k++) {
+            //var v = (n*3);
+            var v = ((n*33)*3)+(k*3);
+            vertexArray[v+2] = value;
+        }
+
+        frequencyGraph.geometry.
+        getAttribute("position").needsUpdate = true;
+
+        //n += 1;
+    //}, 1000);
+
+    //frequencyGraph.loadTexture(createTexture(resumedWave));
+};
+
+var createTexture = function(freqArray) {
+    var canvas = document.createElement("canvas");
+    canvas.width = 500;
+    canvas.height = 500;
+
+    var ctx = canvas.getContext("2d");
+    ctx.lineWidth = 1;
+
+    for (var n = 0; n < 250; n++) {
+        ctx.strokeStyle = getColor(freqArray[n], true);
+        ctx.beginPath();
+        ctx.arc(250, 250, (250-n), 0, (Math.PI*2));
+        ctx.fill();
+    }
+
+    return canvas.toDataURL();
 };
 
 var charList = "abcd";

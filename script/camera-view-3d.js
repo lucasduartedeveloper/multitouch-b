@@ -1444,7 +1444,7 @@ var drawImage = function() {
     if (!cameraOn && imagesLoaded)
     drawToSquare(videoCtx, img_list[1]);
 
-    if (threejsEnabled) {
+    if (threejsEnabled && recordingEnabled) {
         videoCtx.drawImage(renderer.domElement, 0, 0, sw, sw);
     }
 
@@ -1520,6 +1520,8 @@ function(freqArray=false, avgValue=0) {
             value: freqArray[n]
         };
         polygon.push(obj);
+
+        updatePhiSegmentState(n, freqArray[n]);
     }
 
     // draw waveform A
