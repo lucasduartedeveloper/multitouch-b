@@ -1092,6 +1092,41 @@ $(document).ready(function() {
     avatarTextView.style.zIndex = "25";
     //document.body.appendChild(avatarTextView);
 
+    buttonBackgroundView = document.createElement("button");
+    buttonBackgroundView.style.position = "absolute";
+    buttonBackgroundView.style.color = "#000";
+    buttonBackgroundView.innerText = "BG";
+    buttonBackgroundView.style.fontFamily = "Khand";
+    buttonBackgroundView.style.fontSize = "15px";
+    buttonBackgroundView.style.left = ((sw/2)+60)+"px";
+    buttonBackgroundView.style.top = ((sh/2)-(sw/2)-35)+"px";
+    buttonBackgroundView.style.width = (25)+"px";
+    buttonBackgroundView.style.height = (25)+"px";
+    buttonBackgroundView.style.border = "1px solid white";
+    buttonBackgroundView.style.borderRadius = "25px";
+    buttonBackgroundView.style.zIndex = "15";
+    document.body.appendChild(buttonBackgroundView);
+
+    backgroundStored = false;
+    buttonBackgroundView.onclick = function() {
+        var squareZeroCtx = squareZeroCanvas.getContext("2d");
+
+        backgroundStored = !backgroundStored;
+        if (backgroundStored) {
+            squareZeroCtx.drawImage(videoCanvas, 0, 0, 
+            sw, sw);
+            buttonBackgroundView.style.background = 
+            "lightblue";
+        }
+        else {
+            squareZeroCtx.clearRect(0, 0, sw, sw);
+            buttonBackgroundView.style.background = 
+            "";
+        }
+    };
+
+    img_list.push(drawGradient());
+
     loadImageDepth_array();
     loadImages();
 
@@ -1307,6 +1342,7 @@ var loadImages = function(callback) {
         img.n = n;
         img.onload = function() {
             count += 1;
+            console.log("loading ("+count+"/"+img_list.length+")");
             img_list[this.n] = this;
             if (count == img_list.length) {
                 imagesLoaded = true;
@@ -1314,7 +1350,9 @@ var loadImages = function(callback) {
             }
         };
         var rnd = Math.random();
-        img.src = img_list[n]+"?f="+rnd;
+        img.src = img_list[n].includes("img") ? 
+        img_list[n]+"?f="+rnd : 
+        img_list[n];
     }
 };
 
@@ -1389,6 +1427,21 @@ var animate = function() {
     requestAnimationFrame(animate);
 };
 
+var drawGradient = function() {
+    var canvas = document.createElement("canvas");
+    canvas.width = sw;
+    canvas.height = sw;
+
+    var ctx = canvas.getContext("2d");
+    ctx.lineWidth = 10;
+    ctx.lineJoin = "round";
+
+    ctx.fillStyle = "#050"
+    ctx.fillRect(0, 0, sw, sw);
+
+    return canvas.toDataURL();
+};
+
 var lineWidth = 0;
 var flipX = true;
 var drawImage = function() {
@@ -1442,7 +1495,7 @@ var drawImage = function() {
     drawToSquare(videoCtx, camera, true);
 
     if (!cameraOn && imagesLoaded)
-    drawToSquare(videoCtx, img_list[1]);
+    drawToSquare(videoCtx, img_list[10]);
 
     if (threejsEnabled && recordingEnabled) {
         videoCtx.drawImage(renderer.domElement, 0, 0, sw, sw);
@@ -1480,6 +1533,11 @@ var drawImage = function() {
 
     if (!mic.closed)
     drawAB_rounded(resumedWave);
+
+    if (!cameraOn && backgroundStored)
+    videoCtx.drawImage(squareZeroCanvas, 0, 0, sw, sw);
+    else if (backgroundStored)
+    drawOutline();
 
     if (updateWidth)
     lineWidth += 2;
@@ -1761,10 +1819,12 @@ var drawToSquare =
     var format = fitImageCover(
     img_list[8], squareZeroCanvas);
 
-    squareZeroCtx.clearRect(0, 0, sw, sw);
-    squareZeroCtx.drawImage(img_list[8], 
-    format.left, format.top, 
-    format.width, format.width);
+    if (!backgroundStored) {
+        squareZeroCtx.clearRect(0, 0, sw, sw);
+        squareZeroCtx.drawImage(img_list[8], 
+        format.left, format.top, 
+        format.width, format.width);
+    }
 
     var previousImgData = 
     squareZeroCtx.getImageData(0, 0, 
@@ -2085,6 +2145,57 @@ var drawToSquare =
 
     if (grayscaleEnabled)
     updateCanvas(videoCanvas, squareCanvas, previousData);
+
+    var imgData = 
+    ctx.getImageData(0, 0, 
+    videoCanvas.width, videoCanvas.height);
+    var data = imgData.data;
+
+    var x0 = (sw/4);
+    var y0 = (sw/4)*3;
+    var x1 = (sw/4);
+    var y1 = (sw/4);
+    var x2 = (sw/4)*3;
+    var y2 = (sw/4);
+    var x3 = (sw/4)*3;
+    var y3 = (sw/4)*3;
+
+    var n0 = ((y0*sw)+x0)*4;
+    var n1 = ((y1*sw)+x1)*4;
+    var n2 = ((y2*sw)+x2)*4;
+    var n3 = ((y3*sw)+x3)*4;
+
+    var rgb0 = [ data[n0], data[n0+1], data[n0+2] ];
+    var rgb1 = [ data[n1], data[n1+1], data[n1+2] ];
+    var rgb2 = [ data[n2], data[n2+1], data[n2+2] ];
+    var rgb3 = [ data[n3], data[n3+1], data[n3+2] ];
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo((sw/4)*2, 0);
+    ctx.lineTo((sw/4)*2, (sw/4));
+    ctx.lineTo((sw/4), (sw/4));
+    ctx.lineTo((sw/4), (sw/4)*3);
+    ctx.lineTo((sw/4)*3, (sw/4)*3);
+    ctx.lineTo((sw/4)*3, (sw/4));
+    ctx.lineTo((sw/4)*2, (sw/4));
+    ctx.lineTo((sw/4)*2, 0);
+    ctx.lineTo((sw), 0);
+    ctx.lineTo((sw), (sw));
+    ctx.lineTo(0, (sw));
+    ctx.clip();
+
+    var rgb = "rgb("+
+    ((rgb0[0]+rgb1[0]+rgb2[0]+rgb3[0])/4)+","+
+    ((rgb0[1]+rgb1[1]+rgb2[1]+rgb3[1])/4)+","+
+    ((rgb0[2]+rgb1[2]+rgb2[2]+rgb3[2])/4)+")";
+
+    ctx.fillStyle = rgb;
+    ctx.filter = "blur(25px)";
+    if (effect)
+    ctx.drawImage(videoCanvas, 0, 0, sw, sw);
+    ctx.restore();
 };
 
 var updateCanvas = 
@@ -2198,7 +2309,7 @@ var grayscaleCanvas2 = function(canvas) {
 };
 
 var getColor = function(brightness, toString, opacity=1) {
-    var rgb = [ 0, 0, 255 ];
+    var rgb = [ 0, 0, 255 ];l
     if (brightness < 0.25) {
         rgb[1] = ((1/0.25)*brightness) * (255);
     }
@@ -2219,6 +2330,57 @@ var getColor = function(brightness, toString, opacity=1) {
     rgb = "rgba("+rgb[0]+","+rgb[1]+","+rgb[2]+","+opacity+")";
 
     return rgb;
+};
+
+// store background data
+// compare to video data
+// draw outline
+
+var drawOutline = function() {
+    var squareZeroCtx = squareZeroCanvas.getContext("2d");
+
+    var squareZeroImgData = 
+    squareZeroCtx.getImageData(0, 0, 
+        squareZeroCanvas.width, 
+        squareZeroCanvas.height);
+
+    var squareZeroData = squareZeroImgData.data;
+
+    var videoCtx = videoCanvas.getContext("2d");
+
+    var videoImgData = 
+        videoCtx.getImageData(0, 0, 
+        videoCanvas.width, videoCanvas.height);
+
+    var videoData = videoImgData.data;
+
+    var newImageArray = 
+    new Uint8ClampedArray(squareZeroData);
+    for (var i = 0; i < squareZeroData.length; i += 4) {
+        // 0.5 = 0.7
+        var value = 
+        (1/(videoData[i] +
+        videoData[i+1] +
+        videoData[i+2]) * (255*3)) - 
+        (1/(squareZeroData[i] +
+        squareZeroData[i+1] +
+        squareZeroData[i+2]) * (255*3));
+
+        if (Math.abs(value) > 0.05) {
+            newImageArray[i] = videoData[i];
+            newImageArray[i+1] = videoData[i+1];
+            newImageArray[i+2] = videoData[i+2];
+        }
+        else {
+            newImageArray[i] = 0; //squareZeroData[i];
+            newImageArray[i+1] = 255; //squareZeroData[i+1];
+            newImageArray[i+2] = 0; //squareZeroData[i+2];
+        }
+    }
+    var newImageData = 
+    new ImageData(newImageArray, 
+    videoCanvas.width, videoCanvas.width);
+    videoCtx.putImageData(newImageData, 0, 0);
 };
 
 /*
