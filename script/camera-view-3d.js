@@ -2354,15 +2354,31 @@ var drawOutline = function() {
 
     var videoData = videoImgData.data;
 
-    var newImageArray = 
-    new Uint8ClampedArray(videoData.length);
-    for (var i = 0; i < videoData.length; i+=4) {
-        newImageArray[i+3] = 255;
-    }
+    var canvas = document.createElement("canvas");
+    canvas.width = sw;
+    canvas.height = sw;
 
-    for (var y = (sw/2)-5; y < (sw/2)+5; y++) {
-    for (var x = 0; x < sw; x++) {
-        var i = ((y*sw)+x)*4;
+    var ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#0f0";
+
+    ctx.beginPath();
+    ctx.arc((sw/2), (sw/2), 10, 0, Math.PI*2);
+    ctx.fill();
+
+    var imgData = 
+        ctx.getImageData(0, 0, 
+        canvas.width, canvas.height);
+
+    var data = imgData.data;
+
+    var newImageArray = 
+    new Uint8ClampedArray(data.length);
+    for (var y = 0; y < sw; y++) {
+    for (var x = 0; x < (sw/2); x++) {
+        var n = ((y*sw)+(x))*4;
+        var i = ((y*sw)+((sw/4)+x))*4;
+
+        newImageArray[n+3] = 255;
 
         // 0.5 = 0.7
         var value = 
@@ -2374,35 +2390,51 @@ var drawOutline = function() {
         squareZeroData[i+2]) * (255*3));
 
         if (Math.abs(value) > 0.05) {
-            newImageArray[i] = 0; //videoData[i];
-            newImageArray[i+1] = 0; //videoData[i+1];
-            newImageArray[i+2] = 0; //videoData[i+2];
+            newImageArray[n] = videoData[i];
+            newImageArray[n+1] = videoData[i+1];
+            newImageArray[n+2] = videoData[i+2];
         }
         else {
-            newImageArray[i] = 0; //squareZeroData[i];
-            newImageArray[i+1] = 255; //squareZeroData[i+1];
-            newImageArray[i+2] = 0; //squareZeroData[i+2];
+            newImageArray[n] = squareZeroData[i]*0.5;
+            newImageArray[n+1] = squareZeroData[i+1]*0.5;
+            newImageArray[n+2] = squareZeroData[i+2]*0.5;
         }
     }
     }
 
-    for (var y = (sw/2)+5; y < (sw/2)+15; y++) {
-    for (var x = 0; x < sw; x++) {
-        var i = ((y*sw)+x)*4;
+    for (var y = 0; y < sw; y++) {
+    for (var x = (sw/2); x < (sw); x++) {
+        var n = ((y*sw)+(x))*4;
+        var i = ((y*sw)+(x-(sw/4)))*4;
 
-        newImageArray[i] = squareZeroData[i];
-        newImageArray[i+1] = squareZeroData[i+1];
-        newImageArray[i+2] = squareZeroData[i+2];
-    }
-    }
+        newImageArray[n+3] = 255;
 
-    for (var y = (sw/2)+15; y < (sw/2)+25; y++) {
-    for (var x = 0; x < sw; x++) {
-        var i = ((y*sw)+x)*4;
+        // 0.5 = 0.7
+        var value = 
+        (1/(videoData[i] +
+        videoData[i+1] +
+        videoData[i+2]) * (255*3)) - 
+        (1/(squareZeroData[i] +
+        squareZeroData[i+1] +
+        squareZeroData[i+2]) * (255*3));
 
-        newImageArray[i] = videoData[i];
-        newImageArray[i+1] = videoData[i+1];
-        newImageArray[i+2] = videoData[i+2];
+        if (data[i] != 0 && 
+            data[i+1] != 0 && 
+            data[i+2] != 0) {
+            newImageArray[n] = videoData[i];
+            newImageArray[n+1] = videoData[i+1];
+            newImageArray[n+2] = videoData[i+2];
+        }
+        else if (Math.abs(value) > 0.05) {
+            newImageArray[n] = 0; //videoData[i];
+            newImageArray[n+1] = 0; //videoData[i+1];
+            newImageArray[n+2] = 0; //videoData[i+2];
+        }
+        else {
+            newImageArray[n] = 0; //squareZeroData[i];
+            newImageArray[n+1] = 255; //squareZeroData[i+1];
+            newImageArray[n+2] = 0; //squareZeroData[i+2];
+        }
     }
     }
 
