@@ -2309,7 +2309,7 @@ var grayscaleCanvas2 = function(canvas) {
 };
 
 var getColor = function(brightness, toString, opacity=1) {
-    var rgb = [ 0, 0, 255 ];l
+    var rgb = [ 0, 0, 255 ];
     if (brightness < 0.25) {
         rgb[1] = ((1/0.25)*brightness) * (255);
     }
@@ -2355,8 +2355,15 @@ var drawOutline = function() {
     var videoData = videoImgData.data;
 
     var newImageArray = 
-    new Uint8ClampedArray(squareZeroData);
-    for (var i = 0; i < squareZeroData.length; i += 4) {
+    new Uint8ClampedArray(videoData.length);
+    for (var i = 0; i < videoData.length; i+=4) {
+        newImageArray[i+3] = 255;
+    }
+
+    for (var y = (sw/2)-5; y < (sw/2)+5; y++) {
+    for (var x = 0; x < sw; x++) {
+        var i = ((y*sw)+x)*4;
+
         // 0.5 = 0.7
         var value = 
         (1/(videoData[i] +
@@ -2367,9 +2374,9 @@ var drawOutline = function() {
         squareZeroData[i+2]) * (255*3));
 
         if (Math.abs(value) > 0.05) {
-            newImageArray[i] = videoData[i];
-            newImageArray[i+1] = videoData[i+1];
-            newImageArray[i+2] = videoData[i+2];
+            newImageArray[i] = 0; //videoData[i];
+            newImageArray[i+1] = 0; //videoData[i+1];
+            newImageArray[i+2] = 0; //videoData[i+2];
         }
         else {
             newImageArray[i] = 0; //squareZeroData[i];
@@ -2377,6 +2384,28 @@ var drawOutline = function() {
             newImageArray[i+2] = 0; //squareZeroData[i+2];
         }
     }
+    }
+
+    for (var y = (sw/2)+5; y < (sw/2)+15; y++) {
+    for (var x = 0; x < sw; x++) {
+        var i = ((y*sw)+x)*4;
+
+        newImageArray[i] = squareZeroData[i];
+        newImageArray[i+1] = squareZeroData[i+1];
+        newImageArray[i+2] = squareZeroData[i+2];
+    }
+    }
+
+    for (var y = (sw/2)+15; y < (sw/2)+25; y++) {
+    for (var x = 0; x < sw; x++) {
+        var i = ((y*sw)+x)*4;
+
+        newImageArray[i] = videoData[i];
+        newImageArray[i+1] = videoData[i+1];
+        newImageArray[i+2] = videoData[i+2];
+    }
+    }
+
     var newImageData = 
     new ImageData(newImageArray, 
     videoCanvas.width, videoCanvas.width);
