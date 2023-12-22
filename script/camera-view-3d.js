@@ -1545,12 +1545,32 @@ var drawImage = function() {
     else if (backgroundStored)
     drawOutline();
 
-    if (!cameraOn) {
+    if (!cameraOn && imagesLoaded) {
+        videoCtx.lineWidth = 2;
         videoCtx.strokeStyle = "#0f0";
 
         var c = { x: (sw/2), y: (sw/2) };
         var p = { x: c.x, y: c.y-(sw/2) };
+        var rp0 = _rotate2d(c, p, angle+2);
+        var rp1 = _rotate2d(c, p, angle+1);
         var rp = _rotate2d(c, p, angle);
+
+        videoCtx.filter = "blur(4px)";
+
+        videoCtx.beginPath();
+        videoCtx.moveTo(c.x, c.y);
+        videoCtx.lineTo(rp0.x, rp0.y);
+        videoCtx.stroke();
+
+        videoCtx.filter = "blur(2px)";
+
+        videoCtx.beginPath();
+        videoCtx.moveTo(c.x, c.y);
+        videoCtx.lineTo(rp1.x, rp1.y);
+        videoCtx.stroke();
+
+        videoCtx.filter = "none";
+
         videoCtx.beginPath();
         videoCtx.moveTo(c.x, c.y);
         videoCtx.lineTo(rp.x, rp.y);
