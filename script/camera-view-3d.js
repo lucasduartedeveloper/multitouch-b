@@ -1,3 +1,6 @@
+var bgButton_done = 
+new Audio("audio/ui-audio/bg-button_done.wav");
+
 var beepDone = new Audio("audio/beep-done.wav");
 var beepMilestone = new Audio("audio/beep-milestone.wav");
 
@@ -1113,6 +1116,8 @@ $(document).ready(function() {
 
         backgroundStored = !backgroundStored;
         if (backgroundStored) {
+            bgButton_done.play();
+
             squareZeroCtx.drawImage(videoCanvas, 0, 0, 
             sw, sw);
             buttonBackgroundView.style.background = 
@@ -1442,6 +1447,7 @@ var drawGradient = function() {
     return canvas.toDataURL();
 };
 
+var angle = 0;
 var lineWidth = 0;
 var flipX = true;
 var drawImage = function() {
@@ -1538,6 +1544,20 @@ var drawImage = function() {
     videoCtx.drawImage(squareZeroCanvas, 0, 0, sw, sw);
     else if (backgroundStored)
     drawOutline();
+
+    if (!cameraOn) {
+        videoCtx.strokeStyle = "#0f0";
+
+        var c = { x: (sw/2), y: (sw/2) };
+        var p = { x: c.x, y: c.y-(sw/2) };
+        var rp = _rotate2d(c, p, angle);
+        videoCtx.beginPath();
+        videoCtx.moveTo(c.x, c.y);
+        videoCtx.lineTo(rp.x, rp.y);
+        videoCtx.stroke();
+
+        angle = (angle+1) < 360 ? (angle-1) : 0;
+    }
 
     if (updateWidth)
     lineWidth += 2;
@@ -2359,11 +2379,19 @@ var drawOutline = function() {
     canvas.height = sw;
 
     var ctx = canvas.getContext("2d");
+    ctx.strokeStyle = "#0f0";
     ctx.fillStyle = "#0f0";
 
-    ctx.beginPath();
-    ctx.arc((sw/2), (sw/2), 10, 0, Math.PI*2);
-    ctx.fill();
+    for (var n = 0; n < 100; n++) {
+        var c = { x: (sw/2), y: (sw/2) };
+        var p = { x: c.x, y: c.y-(sw*Math.sqrt(2)) };
+        var rp = _rotate2d(c, p, n*(360/100));
+
+        ctx.beginPath();
+        ctx.moveTo(rp.x, rp.y);
+        ctx.lineTo(c.x, c.y);
+        ctx.stroke();
+    }
 
     var imgData = 
         ctx.getImageData(0, 0, 
@@ -2389,7 +2417,7 @@ var drawOutline = function() {
         squareZeroData[i+1] +
         squareZeroData[i+2]) * (255*3));
 
-        if (Math.abs(value) > 0.05) {
+        if (Math.abs(value) > 0.15) {
             newImageArray[n] = videoData[i];
             newImageArray[n+1] = videoData[i+1];
             newImageArray[n+2] = videoData[i+2];
