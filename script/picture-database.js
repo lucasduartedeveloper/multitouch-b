@@ -190,6 +190,10 @@ $(document).ready(function() {
     };
 
     loadList(function() {
+        /*
+        pictureArr = pictureArr.sort(function(a, b) {
+            return a.n < b.n ? -1 : 1;
+        });*/
         loadImages();
     });
     animate();
@@ -220,7 +224,7 @@ var loadList = function(callback) {
 
             this.width = this.naturalWidth;
             this.height = this.naturalHeight;
-            pictureArr.push(this);
+            pictureArr[this.n] = this;
 
             var labelView = document.createElement("span");
             labelView.style.position = "absolute";
@@ -320,7 +324,7 @@ var drawImage = function() {
         ctx.restore();
     }
     else {
-        if (track < pictureArr.length) {
+        if (track < pictureArr.length && pictureArr[track]) {
              var image = pictureArr[track];
              var size = {
                  width: image.naturalWidth,
@@ -348,7 +352,7 @@ var getSquare = function(item) {
 };
 
 var updatePicture = function(no, dataURL) {
-    if (no < (pictureArr.length-1)) {
+    if (no < (pictureArr.length-1) && pictureArr[no]) {
         pictureArr[no].src = dataURL;
         return;
     }
