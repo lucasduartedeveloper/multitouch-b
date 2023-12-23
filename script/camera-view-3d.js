@@ -691,6 +691,7 @@ $(document).ready(function() {
     };
 
     squareAngles = [];
+    positionArr = [];
 
     rotatedX = -1;
     rotatedY = -1;
@@ -726,6 +727,11 @@ $(document).ready(function() {
                 angle: 0
             });
         }
+
+        positionArr.push({
+            x: (e.clientX-offsetX),
+            y: (e.clientY-offsetY)
+        });
 
         if (!rotated) {
             textObj.value = prompt();
@@ -908,6 +914,41 @@ $(document).ready(function() {
                 time: new Date().getTime() - gestureRecordingTime 
             };
             gestureData.push(obj);
+        }
+    };
+
+    buttonBackgroundView = document.createElement("button");
+    buttonBackgroundView.style.position = "absolute";
+    buttonBackgroundView.style.color = "#000";
+    buttonBackgroundView.innerText = "BG";
+    buttonBackgroundView.style.fontFamily = "Khand";
+    buttonBackgroundView.style.fontSize = "15px";
+    buttonBackgroundView.style.left = ((sw/2)+60)+"px";
+    buttonBackgroundView.style.top = ((sh/2)-(sw/2)-35)+"px";
+    buttonBackgroundView.style.width = (25)+"px";
+    buttonBackgroundView.style.height = (25)+"px";
+    buttonBackgroundView.style.border = "1px solid white";
+    buttonBackgroundView.style.borderRadius = "25px";
+    buttonBackgroundView.style.zIndex = "15";
+    document.body.appendChild(buttonBackgroundView);
+
+    backgroundStored = false;
+    buttonBackgroundView.onclick = function() {
+        var squareZeroCtx = squareZeroCanvas.getContext("2d");
+
+        backgroundStored = !backgroundStored;
+        if (backgroundStored) {
+            bgButton_done.play();
+
+            squareZeroCtx.drawImage(videoCanvas, 0, 0, 
+            sw, sw);
+            buttonBackgroundView.style.background = 
+            "lightblue";
+        }
+        else {
+            squareZeroCtx.clearRect(0, 0, sw, sw);
+            buttonBackgroundView.style.background = 
+            "";
         }
     };
 
@@ -1094,41 +1135,6 @@ $(document).ready(function() {
     //avatarTextView.style.border = "1px solid white";
     avatarTextView.style.zIndex = "25";
     //document.body.appendChild(avatarTextView);
-
-    buttonBackgroundView = document.createElement("button");
-    buttonBackgroundView.style.position = "absolute";
-    buttonBackgroundView.style.color = "#000";
-    buttonBackgroundView.innerText = "BG";
-    buttonBackgroundView.style.fontFamily = "Khand";
-    buttonBackgroundView.style.fontSize = "15px";
-    buttonBackgroundView.style.left = ((sw/2)+60)+"px";
-    buttonBackgroundView.style.top = ((sh/2)-(sw/2)-35)+"px";
-    buttonBackgroundView.style.width = (25)+"px";
-    buttonBackgroundView.style.height = (25)+"px";
-    buttonBackgroundView.style.border = "1px solid white";
-    buttonBackgroundView.style.borderRadius = "25px";
-    buttonBackgroundView.style.zIndex = "15";
-    document.body.appendChild(buttonBackgroundView);
-
-    backgroundStored = false;
-    buttonBackgroundView.onclick = function() {
-        var squareZeroCtx = squareZeroCanvas.getContext("2d");
-
-        backgroundStored = !backgroundStored;
-        if (backgroundStored) {
-            bgButton_done.play();
-
-            squareZeroCtx.drawImage(videoCanvas, 0, 0, 
-            sw, sw);
-            buttonBackgroundView.style.background = 
-            "lightblue";
-        }
-        else {
-            squareZeroCtx.clearRect(0, 0, sw, sw);
-            buttonBackgroundView.style.background = 
-            "";
-        }
-    };
 
     img_list.push(drawGradient());
 
@@ -1874,6 +1880,14 @@ var drawToSquare =
     var format = fitImageCover(
     img_list[9], squareCanvas);
 
+    for (var n = 0; n < positionArr.length; n++) {
+        squareCtx.fillStyle = "#fb0";
+        squareCtx.beginPath();
+        squareCtx.arc(positionArr[n].x, positionArr[n].y, 5, 
+        0, Math.PI*2);
+        squareCtx.fill();
+    }
+
     /*
     if (cameraOn && pause == 0)
     squareCtx.drawImage(img_list[9], 
@@ -2422,9 +2436,9 @@ var drawOutline = function() {
     var newImageArray = 
     new Uint8ClampedArray(data.length);
     for (var y = 0; y < sw; y++) {
-    for (var x = 0; x < (sw/2); x++) {
+    for (var x = 0; x < sw; x++) {
         var n = ((y*sw)+(x))*4;
-        var i = ((y*sw)+((sw/4)+x))*4;
+        var i = ((y*sw)+(sw+x))*4;
 
         newImageArray[n+3] = 255;
 
@@ -2437,51 +2451,15 @@ var drawOutline = function() {
         squareZeroData[i+1] +
         squareZeroData[i+2]) * (255*3));
 
-        if (Math.abs(value) > 0.15) {
-            newImageArray[n] = videoData[i];
-            newImageArray[n+1] = videoData[i+1];
-            newImageArray[n+2] = videoData[i+2];
+        if (Math.abs(value) > 0.5) {
+            newImageArray[n] = 255;
+            newImageArray[n+1] = 210;
+            newImageArray[n+2] = 0;
         }
         else {
-            newImageArray[n] = squareZeroData[i]*0.5;
-            newImageArray[n+1] = squareZeroData[i+1]*0.5;
-            newImageArray[n+2] = squareZeroData[i+2]*0.5;
-        }
-    }
-    }
-
-    for (var y = 0; y < sw; y++) {
-    for (var x = (sw/2); x < (sw); x++) {
-        var n = ((y*sw)+(x))*4;
-        var i = ((y*sw)+(x-(sw/4)))*4;
-
-        newImageArray[n+3] = 255;
-
-        // 0.5 = 0.7
-        var value = 
-        (1/(videoData[i] +
-        videoData[i+1] +
-        videoData[i+2]) * (255*3)) - 
-        (1/(squareZeroData[i] +
-        squareZeroData[i+1] +
-        squareZeroData[i+2]) * (255*3));
-
-        if (data[i] != 0 && 
-            data[i+1] != 0 && 
-            data[i+2] != 0) {
-            newImageArray[n] = videoData[i];
-            newImageArray[n+1] = videoData[i+1];
-            newImageArray[n+2] = videoData[i+2];
-        }
-        else if (Math.abs(value) > 0.05) {
-            newImageArray[n] = 0; //videoData[i];
-            newImageArray[n+1] = 0; //videoData[i+1];
-            newImageArray[n+2] = 0; //videoData[i+2];
-        }
-        else {
-            newImageArray[n] = 0; //squareZeroData[i];
-            newImageArray[n+1] = 255; //squareZeroData[i+1];
-            newImageArray[n+2] = 0; //squareZeroData[i+2];
+            newImageArray[n] = 0;
+            newImageArray[n+1] = 95;
+            newImageArray[n+2] = 0;
         }
     }
     }
@@ -2490,6 +2468,48 @@ var drawOutline = function() {
     new ImageData(newImageArray, 
     videoCanvas.width, videoCanvas.width);
     videoCtx.putImageData(newImageData, 0, 0);
+
+    for (var x = 0; x < 4; x++) {
+        for (var y = 0; y < 4; y++) {
+            videoCtx.lineWidth = 2;
+            videoCtx.strokeStyle = "#000";
+            videoCtx.beginPath();
+            videoCtx.rect(x*(sw/4), y*(sw/4), (sw/4), (sw/4));
+            videoCtx.stroke();
+        }
+    }
+
+    videoCtx.lineWidth = 2;
+    videoCtx.strokeStyle = "#0f0";
+
+    var c = { x: (sw/2), y: (sw/2) };
+    var p = { x: c.x, y: c.y-(sw/2) };
+    var rp0 = _rotate2d(c, p, angle+2);
+    var rp1 = _rotate2d(c, p, angle+1);
+    var rp = _rotate2d(c, p, angle);
+
+    videoCtx.filter = "blur(4px)";
+
+    videoCtx.beginPath();
+    videoCtx.moveTo(c.x, c.y);
+    videoCtx.lineTo(rp0.x, rp0.y);
+    videoCtx.stroke();
+
+    videoCtx.filter = "blur(2px)";
+
+    videoCtx.beginPath();
+    videoCtx.moveTo(c.x, c.y);
+    videoCtx.lineTo(rp1.x, rp1.y);
+    videoCtx.stroke();
+
+    videoCtx.filter = "none";
+
+    videoCtx.beginPath();
+    videoCtx.moveTo(c.x, c.y);
+    videoCtx.lineTo(rp.x, rp.y);
+    videoCtx.stroke();
+
+    angle = (angle+1) < 360 ? (angle-1) : 0;
 };
 
 /*
