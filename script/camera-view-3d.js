@@ -1551,40 +1551,6 @@ var drawImage = function() {
     else if (backgroundStored)
     drawOutline();
 
-    if (!cameraOn && imagesLoaded) {
-        videoCtx.lineWidth = 2;
-        videoCtx.strokeStyle = "#0f0";
-
-        var c = { x: (sw/2), y: (sw/2) };
-        var p = { x: c.x, y: c.y-(sw/2) };
-        var rp0 = _rotate2d(c, p, angle+2);
-        var rp1 = _rotate2d(c, p, angle+1);
-        var rp = _rotate2d(c, p, angle);
-
-        videoCtx.filter = "blur(4px)";
-
-        videoCtx.beginPath();
-        videoCtx.moveTo(c.x, c.y);
-        videoCtx.lineTo(rp0.x, rp0.y);
-        videoCtx.stroke();
-
-        videoCtx.filter = "blur(2px)";
-
-        videoCtx.beginPath();
-        videoCtx.moveTo(c.x, c.y);
-        videoCtx.lineTo(rp1.x, rp1.y);
-        videoCtx.stroke();
-
-        videoCtx.filter = "none";
-
-        videoCtx.beginPath();
-        videoCtx.moveTo(c.x, c.y);
-        videoCtx.lineTo(rp.x, rp.y);
-        videoCtx.stroke();
-
-        angle = (angle+1) < 360 ? (angle-1) : 0;
-    }
-
     if (updateWidth)
     lineWidth += 2;
 };
@@ -1894,11 +1860,10 @@ var drawToSquare =
     format.left, format.top, 
     format.width, format.width);*/
 
-    /*
     if (grayscaleEnabled)
-    grayscaleCanvas2(squareCanvas);*/
+    //grayscaleCanvas2(squareCanvas);
     //updateCanvas(squareCanvas, previousData);
-    //lowHeightCanvas(squareCanvas);
+    lowHeightCanvas(squareCanvas);
     //grayscaleCanvas(squareCanvas); 
 
     sendImage(squareCanvas.toDataURL());
@@ -2197,8 +2162,9 @@ var drawToSquare =
         }
     }
 
+    /*
     if (grayscaleEnabled)
-    updateCanvas(videoCanvas, squareCanvas, previousData);
+    updateCanvas(videoCanvas, squareCanvas, previousData);*/
 
     var imgData = 
     ctx.getImageData(0, 0, 

@@ -1,9 +1,9 @@
 <?php
 //MySQL
-$host = "sql106.epizy.com";
-$user = "epiz_34032581";
-$password = "0MG7uNyyYk";
-$dbname = "epiz_34032581_image_data";
+$host = "sql305.infinityfree.com";
+$user = "if0_35033672";
+$password = "jC4vL41iznqJqc";
+$dbname = "if0_35033672_image_data";
 $port = "3306";
 
 try{
@@ -25,9 +25,12 @@ try {
         $img = $_POST["image"];
         $no = $_POST["no"];
 
-        $img = str_replace("data:image/png;base64,", "", $img);
-        $img = str_replace(" ", "+", $img);
-        $data = base64_decode($img);
+        // base64 to binary
+        //$img = str_replace("data:image/png;base64,", "", $img);
+        //$img = str_replace(" ", "+", $img);
+        //$data = base64_decode($img);
+
+        $data = $img;
 
         $sql = "DELETE FROM `picture` WHERE track=".$no.";";
 

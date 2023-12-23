@@ -138,6 +138,28 @@ $(document).ready(function() {
         objectPosition == 0 ? "in front" : "behind";
     };
 
+    sendView = document.createElement("button");
+    sendView.style.position = "absolute";
+    sendView.style.background = "#fff";
+    sendView.style.color = "#000";
+    sendView.innerText = "UPLOAD";
+    sendView.style.fontFamily = "Khand";
+    sendView.style.lineHeight = (25)+"px";
+    sendView.style.fontSize = (15)+"px";
+    sendView.style.left = ((sw/2)+10)+"px";
+    sendView.style.top = 
+    ((sh/2)+(sw/2)+10)+"px";
+    sendView.style.width = (50)+"px";
+    sendView.style.height = (25)+"px";
+    sendView.style.border = "none";
+    sendView.style.borderRadius = "12.5px";
+    sendView.style.zIndex = "15";
+    document.body.appendChild(sendView);
+
+    sendView.onclick = function() {
+        uploadImage();
+    };
+
     powerView = document.createElement("button");
     powerView.style.position = "absolute";
     powerView.style.background = "#fff";
@@ -167,13 +189,17 @@ $(document).ready(function() {
         }
     };
 
-    loadList();
+    loadList(function() {
+        loadImages();
+    });
     animate();
 });
 
 var pictureArr = [];
-var count = 0;
-var loadList = function() {
+var loadList = function(callback) {
+    var found = 0;
+    var notFound = 0;
+
     for (var n = 0; n < 100; n++) {
         var img = document.createElement("img");
         img.style.position = "absolute";
@@ -188,8 +214,8 @@ var loadList = function() {
 
         img.n = n;
         img.onload = function() {
-            count += 1;
-            console.log("loading ("+count+")");
+            found += 1;
+            console.log("loading ("+found+")");
             scrollPictureView.appendChild(this);
 
             this.width = this.naturalWidth;
@@ -207,12 +233,19 @@ var loadList = function() {
             labelView.style.width = (tileSize)+"px";
             labelView.style.height = (10)+"px";
             scrollPictureView.appendChild(labelView);
+
+            if ((found+notFound) == 100)
+            callback();
         };
         img.onerror = function() {
+            notFound += 1;
             console.log("file not found");
             if (!this.src.includes("short"))
             img.src = 
             "img/picture-database/picture-"+n+"_short.png?f="+rnd;
+
+            if ((found+notFound) == 100)
+            callback();
         };
         var rnd = Math.random();
         img.src = 
@@ -314,14 +347,58 @@ var getSquare = function(item) {
     return width < height ? width : height;
 };
 
+var updatePicture = function(no, dataURL) {
+    if (no < (pictureArr.length-1)) {
+        pictureArr[no].src = dataURL;
+        return;
+    }
+
+    var img = document.createElement("img");
+    img.style.position = "absolute";
+    img.style.objectFit = "cover";
+    img.style.left = (no*tileSize)+"px";
+    img.style.top = (0)+"px";
+    img.style.width = (tileSize)+"px";
+    img.style.height = (tileSize)+"px";
+    img.onclick = function() {
+        pictureView.src = this.src;
+    };
+
+    img.n = no;
+    img.onload = function() {
+        scrollPictureView.appendChild(this);
+
+        this.width = this.naturalWidth;
+        this.height = this.naturalHeight;
+        pictureArr.push(this);
+
+        var labelView = document.createElement("span");
+        labelView.style.position = "absolute";
+        labelView.style.color = "#fff";
+        labelView.innerText = this.n;
+        labelView.style.fontSize = (10)+"px";
+        labelView.style.fontFamily = "Khand";
+        labelView.style.left = (this.n*tileSize)+"px";
+        labelView.style.top = (tileSize)+"px";
+        labelView.style.width = (tileSize)+"px";
+        labelView.style.height = (10)+"px";
+        scrollPictureView.appendChild(labelView);
+    }
+
+    img.src = dataURL;
+};
+
 var loadImages = function() {
     $.ajax({
         url: "ajax/file-upload.php",
         type: "GET",
         success: function(data) {
             var json = JSON.parse(data);
-            console.log(data);
-    }});
+            for (var n = 0; n < json.length; n++) {
+                updatePicture(json[n].track, json[n].data);
+            }
+        }
+    });
 };
 
 var uploadImage = function() {
@@ -329,11 +406,12 @@ var uploadImage = function() {
         url: "ajax/file-upload.php",
         type: "POST",
         data: { 
-            no: count,
+            no: track,
             image: pictureView.toDataURL()
         },
         success: function(data) {
             alert("Save Complete");
+            updatePicture(track, pictureView.toDataURL());
     }});
 };
 
