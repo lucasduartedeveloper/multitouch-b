@@ -189,6 +189,28 @@ $(document).ready(function() {
         }
     };
 
+    clearDatabaseView = document.createElement("button");
+    clearDatabaseView.style.position = "absolute";
+    clearDatabaseView.style.background = "#fff";
+    clearDatabaseView.style.color = "#000";
+    clearDatabaseView.innerText = "CLEAR DATABASE";
+    clearDatabaseView.style.fontFamily = "Khand";
+    clearDatabaseView.style.lineHeight = (25)+"px";
+    clearDatabaseView.style.fontSize = (15)+"px";
+    clearDatabaseView.style.left = ((sw/2)-((sw/2)-10))+"px";
+    clearDatabaseView.style.top = 
+    ((sh/2)+(sw/2)+45)+"px";
+    clearDatabaseView.style.width = (100)+"px";
+    clearDatabaseView.style.height = (25)+"px";
+    clearDatabaseView.style.border = "none";
+    clearDatabaseView.style.borderRadius = "12.5px";
+    clearDatabaseView.style.zIndex = "15";
+    document.body.appendChild(clearDatabaseView);
+
+    clearDatabaseView.onclick = function() {
+        clearDatabase();
+    };
+
     loadList(function() {
         /*
         pictureArr = pictureArr.sort(function(a, b) {
@@ -396,11 +418,27 @@ var loadImages = function() {
     $.ajax({
         url: "ajax/file-upload.php",
         type: "GET",
+        data: {
+            action: "list"
+        },
         success: function(data) {
             var json = JSON.parse(data);
             for (var n = 0; n < json.length; n++) {
                 updatePicture(json[n].track, json[n].data);
             }
+        }
+    });
+};
+
+var clearDatabase = function() {
+    $.ajax({
+        url: "ajax/file-upload.php",
+        type: "GET",
+        data: {
+            action: "delete"
+        },
+        success: function(data) {
+            window.location.reload();
         }
     });
 };

@@ -21,6 +21,9 @@ catch (PDOException $e) {
 }
 
 try { 
+    $action = !empty($_GET["action"]) ? 
+    $_GET["action"] : "none";
+
     if (!empty($_POST["image"])) {
         $img = $_POST["image"];
         $no = $_POST["no"];
@@ -53,7 +56,7 @@ try {
         $stmt->execute();
         echo $sql;
     }
-    else {
+    else if ($action == "list") {
         $sql = "SELECT *  FROM `picture`;";
 
         $stmt = $pdo->prepare($sql);
@@ -62,6 +65,12 @@ try {
         $result = $stmt->fetchAll(); 
 
         echo json_encode($result);
+    }
+    else if ($action == "delete") {
+        $sql = "DELETE FROM `picture`;";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute();
     }
 }
 catch (PDOException $e) {
