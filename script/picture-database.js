@@ -211,6 +211,38 @@ $(document).ready(function() {
         clearDatabase();
     };
 
+    rotationSpeed = 0;
+    rotationView = document.createElement("button");
+    rotationView.style.position = "absolute";
+    rotationView.style.background = "#fff";
+    rotationView.style.color = "#000";
+    rotationView.innerText = "OFF";
+    rotationView.style.fontFamily = "Khand";
+    rotationView.style.lineHeight = (25)+"px";
+    rotationView.style.fontSize = (15)+"px";
+    rotationView.style.left = ((sw/2)-((sw/2)-120))+"px";
+    rotationView.style.top = 
+    ((sh/2)+(sw/2)+45)+"px";
+    rotationView.style.width = (100)+"px";
+    rotationView.style.height = (25)+"px";
+    rotationView.style.border = "none";
+    rotationView.style.borderRadius = "12.5px";
+    rotationView.style.zIndex = "15";
+    document.body.appendChild(rotationView);
+
+    rotationView.onclick = function() {
+        rotationSpeed = (rotationSpeed+1) < 11 ? 
+        (rotationSpeed+1) : 0;
+        rotationView.innerText = rotationSpeed+" squares/s";;
+
+        console.log("pause");
+        pauseRotation();
+        if (rotationSpeed > 0) {
+            startRotation();
+            console.log("start");
+        }
+    };
+
     loadList(function() {
         /*
         pictureArr = pictureArr.sort(function(a, b) {
@@ -220,6 +252,17 @@ $(document).ready(function() {
     });
     animate();
 });
+
+var rotationInterval = 0;
+var startRotation = function() {
+    rotationInterval = setInterval(function() {
+        track = (track+1) < 7 ? (track+1) : 0;
+    }, (1000/rotationSpeed));
+};
+
+var pauseRotation = function() {
+    clearInterval(rotationInterval);
+};
 
 var pictureArr = [];
 var loadList = function(callback) {
