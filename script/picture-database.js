@@ -243,6 +243,30 @@ $(document).ready(function() {
         }
     };
 
+    mode = 0;
+    modeView = document.createElement("button");
+    modeView.style.position = "absolute";
+    modeView.style.background = "#fff";
+    modeView.style.color = "#000";
+    modeView.innerText = "mode: "+mode;
+    modeView.style.fontFamily = "Khand";
+    modeView.style.lineHeight = (25)+"px";
+    modeView.style.fontSize = (15)+"px";
+    modeView.style.left = (sw-80)+"px";
+    modeView.style.top = 
+    ((sh/2)+(sw/2)+45)+"px";
+    modeView.style.width = (70)+"px";
+    modeView.style.height = (25)+"px";
+    modeView.style.border = "none";
+    modeView.style.borderRadius = "12.5px";
+    modeView.style.zIndex = "15";
+    document.body.appendChild(modeView);
+
+    modeView.onclick = function() {
+        mode = (mode+1) < 2 ? (mode+1) : 0;
+        modeView.innerText = "mode: "+mode;
+    };
+
     loadList(function() {
         /*
         pictureArr = pictureArr.sort(function(a, b) {
@@ -355,6 +379,8 @@ var drawImage = function() {
         ctx.rect(n*tileSize, 0, tileSize, tileSize);
         ctx.fill();
     }
+    if (mode == 1)
+    lowHeightCanvas(gradientView);
 
     ctx.fillStyle = "#fff";
 
@@ -405,6 +431,8 @@ var drawImage = function() {
              0, 0, sw, sw);
         }
     }
+    if (mode == 1)
+    lowHeightCanvas(pictureView);
 };
 
 var getSquare = function(item) {
@@ -498,6 +526,60 @@ var uploadImage = function() {
             alert("Save Complete");
             updatePicture(track, pictureView.toDataURL());
     }});
+};
+
+var grayscaleNo = 0;
+var grayscaleRatio = [
+    [ 0.33, 0.33, 0.33 ], // Normal balance
+    [ 0.4, 0.3, 0.4 ] // Color affective
+];
+
+var lowHeightCanvas = function(canvas) {
+    var ctx = canvas.getContext("2d");
+
+    var imgData = 
+    ctx.getImageData(0, 0, canvas.width, canvas.height);
+    var data = imgData.data;
+
+    var newImageArray = new Uint8ClampedArray(data);
+    for (var i = 0; i < data.length; i += 4) {
+        var brightness = 
+        ((data[i] * grayscaleRatio[grayscaleNo][0]) + 
+        (data[i + 1] * grayscaleRatio[grayscaleNo][1]) + 
+        (data[i + 2] * grayscaleRatio[grayscaleNo][2]));
+
+        var rgb = getColor((1/255)*brightness);
+
+        newImageArray[i] = rgb[0];
+        newImageArray[i + 1] = rgb[1];
+        newImageArray[i + 2] = rgb[2];
+    }
+    var newImageData = new ImageData(newImageArray, canvas.width, canvas.height);
+    ctx.putImageData(newImageData, 0, 0);
+};
+
+var getColor = function(brightness, toString, opacity=1) {
+    var rgb = [ 0, 0, 255 ];
+    if (brightness < 0.25) {
+        rgb[1] = ((1/0.25)*brightness) * (255);
+    }
+    else if (brightness < 0.50) {
+        rgb = [ 0, 255, 255 ];
+        rgb[2] = (1-((1/0.25)*(brightness-0.25))) * (255);
+    }
+    else if (brightness < 0.75) {
+        rgb = [ 0, 255, 0 ];
+        rgb[0] = ((1/0.25)*(brightness-0.5)) * (255);
+    }
+    else if (brightness <= 1) {
+        rgb = [ 255, 255, 0 ];
+        rgb[1] = (1-((1/0.25)*(brightness-0.75))) * (255);
+    }
+
+    if (toString)
+    rgb = "rgba("+rgb[0]+","+rgb[1]+","+rgb[2]+","+opacity+")";
+
+    return rgb;
 };
 
 var visibilityChange;
