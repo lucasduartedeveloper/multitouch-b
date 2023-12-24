@@ -1,3 +1,5 @@
+var warningBeep = new Audio("audio/warning_beep.wav");
+
 var sw = window.innerWidth;
 var sh = window.innerHeight;
 
@@ -263,7 +265,7 @@ $(document).ready(function() {
     document.body.appendChild(modeView);
 
     modeView.onclick = function() {
-        mode = (mode+1) < 2 ? (mode+1) : 0;
+        mode = (mode+1) < 3 ? (mode+1) : 0;
         modeView.innerText = "mode: "+mode;
     };
 
@@ -467,6 +469,14 @@ var drawImage = function() {
     }
     if (mode == 1)
     lowHeightCanvas(resolutionCanvas);
+    if (mode == 2)
+    directionCanvas(resolutionCanvas);
+
+    if (reachedHeight > ((1/7) * (track+1)) && 
+    warningBeep.paused)
+    warningBeep.play();
+    else if (!warningBeep.paused)
+    warningBeep.pause();
 
     ctx.drawImage(resolutionCanvas, 0, 0, sw, sw);
 };
@@ -562,6 +572,7 @@ var uploadImage = function() {
             alert("Save Complete");
             updatePicture(track, pictureView.toDataURL());
     }});
+    console.log("data size: "+pictureView.toDataURL().length);
 };
 
 var grayscaleNo = 0;
@@ -570,8 +581,10 @@ var grayscaleRatio = [
     [ 0.4, 0.3, 0.4 ] // Color affective
 ];
 
+var reachedHeight = 0;
 var lowHeightCanvas = function(canvas) {
     var ctx = canvas.getContext("2d");
+    reachedHeight = 0;
 
     var imgData = 
     ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -580,11 +593,15 @@ var lowHeightCanvas = function(canvas) {
     var newImageArray = new Uint8ClampedArray(data);
     for (var i = 0; i < data.length; i += 4) {
         var brightness = 
+        (1/255) * 
         ((data[i] * grayscaleRatio[grayscaleNo][0]) + 
         (data[i + 1] * grayscaleRatio[grayscaleNo][1]) + 
         (data[i + 2] * grayscaleRatio[grayscaleNo][2]));
 
-        var rgb = getColor((1/255)*brightness);
+        reachedHeight = brightness > reachedHeight ? 
+        brightness : reachedHeight;
+
+        var rgb = getColor(brightness);
 
         newImageArray[i] = rgb[0];
         newImageArray[i + 1] = rgb[1];
@@ -592,6 +609,8 @@ var lowHeightCanvas = function(canvas) {
     }
     var newImageData = new ImageData(newImageArray, canvas.width, canvas.height);
     ctx.putImageData(newImageData, 0, 0);
+
+    //console.log("reached height: "+reachedHeight);
 };
 
 var getColor = function(brightness, toString, opacity=1) {
@@ -616,6 +635,60 @@ var getColor = function(brightness, toString, opacity=1) {
     rgb = "rgba("+rgb[0]+","+rgb[1]+","+rgb[2]+","+opacity+")";
 
     return rgb;
+};
+
+var directionCanvas = function(canvas) {
+    var ctx = canvas.getContext("2d");
+    reachedHeight = 0;
+
+    var imgData = 
+    ctx.getImageData(0, 0, canvas.width, canvas.height);
+    var data = imgData.data;
+
+    var direction = 0;
+    var polygon = [];
+
+    var newImageArray = new Uint8ClampedArray(data);
+    for (var y = 0; y < sw; y++) {
+    polygon[y] = [];
+    for (var x = (sw/2)-1; x <= (sw/2); x++) {
+        var i = ((y*sw)+x)*4;
+
+        var brightness = 
+        (1/255) * 
+        ((data[i] * grayscaleRatio[grayscaleNo][0]) + 
+        (data[i + 1] * grayscaleRatio[grayscaleNo][1]) + 
+        (data[i + 2] * grayscaleRatio[grayscaleNo][2]));
+        reachedHeight = brightness > reachedHeight ? 
+        brightness : reachedHeight;
+
+        polygon[y][x-((sw/2)-1)] = brightness;
+    }
+    }
+
+    var leftBrightness = 0;
+    var rightBrightness = 0;
+
+    for (var n = 0; n < polygon.length; n++) {
+        leftBrightness += polygon[n][0];
+        rightBrightness += polygon[n][1];
+    };
+
+    direction = leftBrightness > rightBrightness ? -1 : 1;
+
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, sw, sw);
+
+    ctx.strokeStyle = "#fff";
+    ctx.beginPath();
+    for (var n = 0; n < polygon.length; n++) {
+        var x = ((polygon[n][0] + polygon[n][1])/2)*direction;
+        ctx.moveTo((sw/2), n);
+        ctx.lineTo((sw/2)+(x*(sw/2)), n);
+    }
+    ctx.stroke();
+
+    console.log(polygon);
 };
 
 var visibilityChange;
