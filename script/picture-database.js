@@ -279,12 +279,12 @@ var animate = function() {
 var drawImage = function() {
     var ctx = gradientView.getContext("2d");
 
-    var count = (Math.floor((sw/tileSize))+1);
+    var count = Math.floor((sw/tileSize));
     for (var n = 0; n < count; n++) {
         ctx.fillStyle = 
-        "rgb("+(n*(255/count))+","+
-        (n*(255/count))+","+
-        (n*(255/count))+")";
+        "rgb("+(n*(255/(count-1)))+","+
+        (n*(255/(count-1)))+","+
+        (n*(255/(count-1)))+")";
 
         ctx.beginPath();
         ctx.rect(n*tileSize, 0, tileSize, tileSize);
