@@ -267,6 +267,32 @@ $(document).ready(function() {
         modeView.innerText = "mode: "+mode;
     };
 
+    resolution = 0;
+    resolutionView = document.createElement("button");
+    resolutionView.style.position = "absolute";
+    resolutionView.style.background = "#fff";
+    resolutionView.style.color = "#000";
+    resolutionView.innerText = 
+    "res: "+(resolution == 0 ? "max" : "8x8");
+    resolutionView.style.fontFamily = "Khand";
+    resolutionView.style.lineHeight = (25)+"px";
+    resolutionView.style.fontSize = (15)+"px";
+    resolutionView.style.left = ((sw/2)-(sw/2)+10)+"px";
+    resolutionView.style.top = 
+    ((sh/2)+(sw/2)+80)+"px";
+    resolutionView.style.width = (70)+"px";
+    resolutionView.style.height = (25)+"px";
+    resolutionView.style.border = "none";
+    resolutionView.style.borderRadius = "12.5px";
+    resolutionView.style.zIndex = "15";
+    document.body.appendChild(resolutionView);
+
+    resolutionView.onclick = function() {
+        resolution = (resolution+1) < 2 ? (resolution+1) : 0;
+        resolutionView.innerText = 
+        "res: "+(resolution == 0 ? "max" : "8x8");
+    };
+
     loadList(function() {
         /*
         pictureArr = pictureArr.sort(function(a, b) {
@@ -390,13 +416,21 @@ var drawImage = function() {
     ctx.fill();
 
     var ctx = pictureView.getContext("2d");
+    ctx.imageSmoothingEnabled = false;
     ctx.clearRect(0, 0, sw, sw);
 
+    var resolutionCanvas = document.createElement("canvas");
+    resolutionCanvas.width = resolution == 0 ? sw : 8;
+    resolutionCanvas.height = resolution == 0 ? sw : 8;
+
+    var resolutionCtx = resolutionCanvas.getContext("2d");
+    resolutionCtx.imageSmoothingEnabled = false;
+
     if (cameraOn) {
-        ctx.save();
+        resolutionCtx.save();
         if (objectPosition == 0) {
-            ctx.scale(-1, 1);
-            ctx.translate(-sw, 0);
+            resolutionCtx.scale(-1, 1);
+            resolutionCtx.translate(-resolutionCanvas.width, 0);
         }
 
         var video = {
@@ -408,11 +442,11 @@ var drawImage = function() {
             height: getSquare(video)
         };
         var format = fitImageCover(video, frame);
-        ctx.drawImage(cameraView,
+        resolutionCtx.drawImage(cameraView,
         -format.left, -format.top, frame.width, frame.height, 
-        0, 0, sw, sw);
+        0, 0, resolutionCanvas.width, resolutionCanvas.height);
 
-        ctx.restore();
+        resolutionCtx.restore();
     }
     else {
         if (track < pictureArr.length && pictureArr[track]) {
@@ -426,13 +460,15 @@ var drawImage = function() {
                  height: getSquare(image),
              };
              var format = fitImageCover(size, frame);
-             ctx.drawImage(image, 
+             resolutionCtx.drawImage(image, 
              -format.left, -format.top, frame.width, frame.height, 
-             0, 0, sw, sw);
+             0, 0, resolutionCanvas.width, resolutionCanvas.height);
         }
     }
     if (mode == 1)
-    lowHeightCanvas(pictureView);
+    lowHeightCanvas(resolutionCanvas);
+
+    ctx.drawImage(resolutionCanvas, 0, 0, sw, sw);
 };
 
 var getSquare = function(item) {
