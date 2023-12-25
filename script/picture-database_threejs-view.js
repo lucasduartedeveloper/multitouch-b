@@ -168,16 +168,16 @@ var updateShape = function(polygon) {
     group.clear();
 
     var newPolygon = [];
-    for (var n = 0; n < ((polygon.length)/20); n++) {
+    for (var n = 0; n < ((polygon.length)/(sw/2)); n++) {
     var count = 0;
     var sum = 0;
-    for (var k = 0; k < 20; k++) {
-        if (((n*20)+k) > (polygon.length-1))
+    for (var k = 0; k < 2; k++) {
+        if (((n*2)+k) > (polygon.length-1))
         break;
 
         count += 1;
         sum += 
-        ((polygon[(n*20)+k][0]+polygon[(n*20)+k][1])/2);
+        ((polygon[(n*5)+k][0]+polygon[(n*5)+k][1])/2);
     }
     newPolygon[n] = (sum/count);
     }
@@ -185,11 +185,11 @@ var updateShape = function(polygon) {
     //console.log(polygon, newPolygon);
 
     var vertexArr = [ ];
-    for (var w = 0; w < 20; w++) {
+    for (var w = 0; w < 4; w++) {
     for (var n = 0; n < newPolygon.length; n++) {
         var c = { x: 0, y: 0 };
         var p = { x: (newPolygon[n]), y: 0 };
-        var rp = _rotate2d(c, p, w*(360/20));
+        var rp = _rotate2d(c, p, w*(360/4));
 
         var y = (2/newPolygon.length)*(-(newPolygon.length/2)+n);
 
@@ -211,9 +211,10 @@ var updateShape = function(polygon) {
        sphere.position.z = rp.y;
     }
     }
+    console.log(vertexArr);
 
     var indiceArr = [];
-    for (var w = 0; w < 19; w++) {
+    for (var w = 0; w < 4; w++) {
     for (var n = 1; n < newPolygon.length; n++) {
         var a = (((n-1)*newPolygon.length)+w);
         var b = ((n*newPolygon.length)+w);
@@ -233,7 +234,7 @@ var updateShape = function(polygon) {
 
     var geometry = 
     new THREE.PolyhedronGeometry(
-    vertexArr, indiceArr, 6, 2 );
+    vertexArr, indiceArr, 1, 2 );
     var material = new THREE.MeshStandardMaterial( {
         color: 0xffffff,
         opacity: 0.5,
