@@ -19,6 +19,7 @@ var load3D = function() {
 
     renderer.enable3d = 1;
     renderer.domElement.style.position = "absolute";
+    renderer.domElement.style.display = "none";
     renderer.domElement.style.left = (0)+"px";
     renderer.domElement.style.top = ((sh/2)-(sw/2))+"px";
     renderer.domElement.style.width = (sw)+"px";
@@ -164,39 +165,111 @@ var load3D = function() {
     //animateThreejs();
 }
 
-var updateShape = function(polygon) {
+var updateShape = function() {
+    var previousPolygonX = previousImagePolygonX;
+    var polygonX = imagePolygonX;
+    var previousPolygonY = previousImagePolygonY;
+    var polygonY = imagePolygonY;
+
     //console.log(polygon);
     group.clear();
 
-    var newPolygon = [];
-    for (var n = 0; n < ((polygon.length)/(sw/20)); n++) {
+    var previousNewPolygonX = [];
+    for (var n = 0; n < ((previousPolygonX.length)/(sw/20)); n++) {
     var count = 0;
     var sum = 0;
     for (var k = 0; k < (sw/20); k++) {
-        if (((n*(sw/20))+k) > (polygon.length-1))
+        if (((n*(sw/20))+k) > (previousPolygonX.length-1))
         break;
 
         count += 1;
         sum += 
-        ((polygon[(n*(sw/20))+k][0]+polygon[(n*(sw/20))+k][1])/2);
-
-        console.log((n*(sw/20))+k);
+        ((previousPolygonX[(n*(sw/20))+k][0]+
+        previousPolygonX[(n*(sw/20))+k][1])/2);
     }
-    newPolygon[n] = (sum/count);
+    previousNewPolygonX[n] = (sum/count);
     }
 
-    //console.log(newPolygon.length);
-    //console.log(polygon, newPolygon);
+    var previousNewPolygonY = [];
+    for (var n = 0; n < ((previousPolygonY.length)/(sw/20)); n++) {
+    var count = 0;
+    var sum = 0;
+    for (var k = 0; k < (sw/20); k++) {
+        if (((n*(sw/20))+k) > (previousPolygonY.length-1))
+        break;
+
+        count += 1;
+        sum += 
+        ((previousPolygonY[(n*(sw/20))+k][0]+
+        previousPolygonY[(n*(sw/20))+k][1])/2);
+    }
+    previousNewPolygonY[n] = (sum/count);
+    }
+
+    var previousNewPolygon = [];
+    for (var y = 0; y < previousNewPolygonY.length; y++) {
+        previousNewPolygon[y] = [];
+    for (var x = 0; x < previousNewPolygonX.length; x++) {
+        previousNewPolygon[y][x] = 
+        (previousNewPolygonY[y] +
+        previousNewPolygonY[x])/2;
+    }
+    }
+
+    var newPolygonX = [];
+    for (var n = 0; n < ((polygonX.length)/(sw/20)); n++) {
+    var count = 0;
+    var sum = 0;
+    for (var k = 0; k < (sw/20); k++) {
+        if (((n*(sw/20))+k) > (polygonX.length-1))
+        break;
+
+        count += 1;
+        sum += 
+        ((polygonX[(n*(sw/20))+k][0]+
+        polygonX[(n*(sw/20))+k][1])/2);
+    }
+    newPolygonX[n] = (sum/count);
+    }
+
+    var newPolygonY = [];
+    for (var n = 0; n < ((polygonY.length)/(sw/20)); n++) {
+    var count = 0;
+    var sum = 0;
+    for (var k = 0; k < (sw/20); k++) {
+        if (((n*(sw/20))+k) > (polygonY.length-1))
+        break;
+
+        count += 1;
+        sum += 
+        ((polygonY[(n*(sw/20))+k][0]+
+        polygonY[(n*(sw/20))+k][1])/2);
+    }
+    newPolygonY[n] = (sum/count);
+    }
+
+    var newPolygon = [];
+    for (var y = 0; y < newPolygonY.length; y++) {
+        newPolygon[y] = [];
+    for (var x = 0; x < newPolygonX.length; x++) {
+        newPolygon[y][x] = 
+        (newPolygonY[y] +
+        newPolygonY[x])/2;
+    }
+    }
 
     var vertexArr = [];
     for (var w = 0; w < 20; w++) {
-    for (var n = 0; n < newPolygon.length; n++) {
+    for (var n = 0; n < newPolygonY.length; n++) {
+        var polygon = w < 10 ?
+        newPolygonY : previousNewPolygonY;
+
         var c = { x: 0, y: 0 };
-        var p = { x: (newPolygon[n]), y: 0 };
+        var p = { x: (polygon[n]), y: 0 };
         var rp = _rotate2d(c, p, w*(360/20));
 
         var y = -1+
-        ((2/newPolygon.length)*n);
+        ((2/polygon.length)*n);
 
         vertexArr.push(parseFloat(rp.x.toFixed(2)));
         vertexArr.push(parseFloat(y.toFixed(2)));

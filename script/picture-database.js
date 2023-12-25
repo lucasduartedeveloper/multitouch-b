@@ -58,7 +58,10 @@ $(document).ready(function() {
     track = 0;
     gradientView.onclick = function(e) {
         track = Math.floor(e.clientX/tileSize);
-        console.log(track, (e.clientX/tileSize));
+        //console.log(track, (e.clientX/tileSize));
+
+        previousImagePolygonX = imagePolygonX;
+        previousImagePolygonY = imagePolygonY;
     };
 
     cameraView = document.createElement("video");
@@ -88,6 +91,24 @@ $(document).ready(function() {
     pictureView.style.height = (sw)+"px";
     pictureView.style.zIndex = "15";
     document.body.appendChild(pictureView);
+
+    var startX = 0;
+    var startY = 0;
+
+    pictureView.ontouchstart = function(e) {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY-((sh/2)-(sw/2));
+
+        position.x = Math.floor(startX);
+        position.y = Math.floor(startY);
+    };
+    pictureView.ontouchmove = function(e) {
+        var moveX = e.touches[0].clientX;
+        var moveY = e.touches[0].clientY-((sh/2)-(sw/2));
+
+        position.x = Math.floor(moveX);
+        position.y = Math.floor(moveY);
+    };
 
     deviceNoView = document.createElement("button");
     deviceNoView.style.position = "absolute";
@@ -284,7 +305,7 @@ $(document).ready(function() {
         eyeSep.style.display = 
         threejsEnabled ? "initial" : "none";
 
-        updateShape(imagePolygon);
+        updateShape();
     };
 
     resolution = 0;
@@ -413,6 +434,11 @@ var animate = function() {
     requestAnimationFrame(animate);
 };
 
+var position = {
+    x: (sw/2),
+    y: (sw/2)
+};
+
 var drawImage = function() {
     var ctx = gradientView.getContext("2d");
 
@@ -487,6 +513,7 @@ var drawImage = function() {
              0, 0, resolutionCanvas.width, resolutionCanvas.height);
         }
     }
+
     if (mode == 1)
     lowHeightCanvas(resolutionCanvas);
     if (mode == 2)
@@ -501,6 +528,17 @@ var drawImage = function() {
     warningBeep.pause();
 
     ctx.drawImage(resolutionCanvas, 0, 0, sw, sw);
+
+    ctx.strokeStyle = "#000";
+    ctx.beginPath();
+    ctx.moveTo(0, position.y);
+    ctx.lineTo(sw, position.y);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(position.x, 0);
+    ctx.lineTo(position.x, sw);
+    ctx.stroke();
 };
 
 var getSquare = function(item) {
@@ -659,7 +697,11 @@ var getColor = function(brightness, toString, opacity=1) {
     return rgb;
 };
 
-var imagePolygon = [];
+var previousImagePolygonX = [];
+var imagePolygonX = [];
+var previousImagePolygonY = [];
+var imagePolygonY = [];
+
 var directionCanvas = function(canvas, render=true) {
     var ctx = canvas.getContext("2d");
     reachedHeight = 0;
@@ -668,13 +710,11 @@ var directionCanvas = function(canvas, render=true) {
     ctx.getImageData(0, 0, canvas.width, canvas.height);
     var data = imgData.data;
 
-    var direction = 0;
-    var polygon = [];
-
+    var polygonX = [];
     var newImageArray = new Uint8ClampedArray(data);
-    for (var y = 0; y < sw; y++) {
-    polygon[y] = [];
-    for (var x = (sw/2)-1; x <= (sw/2); x++) {
+    for (var x = 0; x < sw; x++) {
+    polygonX[x] = [];
+    for (var y = (position.y-1); y <= (position.y); y++) {
         var i = ((y*sw)+x)*4;
 
         var brightness = 
@@ -685,20 +725,51 @@ var directionCanvas = function(canvas, render=true) {
         reachedHeight = brightness > reachedHeight ? 
         brightness : reachedHeight;
 
-        polygon[y][x-((sw/2)-1)] = brightness;
+        polygonX[x][y-(position.y-1)] = brightness;
     }
     }
-    imagePolygon = polygon;
+    imagePolygonX = polygonX;
+
+    var polygonY = [];
+    for (var y = 0; y < sw; y++) {
+    polygonY[y] = [];
+    for (var x = (position.x-1); x <= (position.x); x++) {
+        var i = ((y*sw)+x)*4;
+
+        var brightness = 
+        (1/255) * 
+        ((data[i] * grayscaleRatio[grayscaleNo][0]) + 
+        (data[i + 1] * grayscaleRatio[grayscaleNo][1]) + 
+        (data[i + 2] * grayscaleRatio[grayscaleNo][2]));
+        reachedHeight = brightness > reachedHeight ? 
+        brightness : reachedHeight;
+
+        polygonY[y][x-(position.x-1)] = brightness;
+    }
+    }
+    imagePolygonY = polygonY;
+
+    var upBrightness = 0;
+    var downBrightness = 0;
+
+    for (var n = 0; n < polygonX.length; n++) {
+        upBrightness += polygonX[n][0];
+        downBrightness += polygonX[n][1];
+    };
+
+    var directionX = 0;
+    var directionX = upBrightness > downBrightness ? -1 : 1;
 
     var leftBrightness = 0;
     var rightBrightness = 0;
 
-    for (var n = 0; n < polygon.length; n++) {
-        leftBrightness += polygon[n][0];
-        rightBrightness += polygon[n][1];
+    for (var n = 0; n < polygonY.length; n++) {
+        leftBrightness += polygonY[n][0];
+        rightBrightness += polygonY[n][1];
     };
 
-    direction = leftBrightness > rightBrightness ? -1 : 1;
+    var directionY = 0;
+    var directionY = leftBrightness > rightBrightness ? -1 : 1;
 
     if (!render) return;
 
@@ -707,10 +778,19 @@ var directionCanvas = function(canvas, render=true) {
 
     ctx.strokeStyle = "#fff";
     ctx.beginPath();
-    var x = ((polygon[0][0] + polygon[0][1])/2)*direction;
-    ctx.moveTo((sw/2)+(y*(sw/4)), 0);
-    for (var n = 1; n < polygon.length; n++) {
-        var x = ((polygon[n][0] + polygon[n][1])/2)*direction;
+    var y = ((polygonX[0][0] + polygonX[0][1])/2)*directionX;
+    ctx.moveTo(0, (sw/2)+(y*(sw/4)));
+    for (var n = 1; n < polygonX.length; n++) {
+        var y = ((polygonX[n][0] + polygonX[n][1])/2)*directionX;
+        ctx.lineTo(sw, (sw/2)+(y*(sw/4)));
+    }
+    //ctx.stroke();
+
+    ctx.beginPath();
+    var x = ((polygonY[0][0] + polygonY[0][1])/2)*directionY;
+    ctx.moveTo((sw/2)+(x*(sw/4)), 0);
+    for (var n = 1; n < polygonY.length; n++) {
+        var x = ((polygonY[n][0] + polygonY[n][1])/2)*directionY;
         ctx.lineTo((sw/2)+(x*(sw/4)), n);
     }
     ctx.stroke();
