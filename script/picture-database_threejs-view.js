@@ -258,6 +258,9 @@ var updateShape = function() {
     }
     }
 
+    previousNewPolygonY.reverse();
+    newPolygonY.reverse();
+
     var vertexArr = [];
     for (var w = 0; w < 20; w++) {
     for (var n = 0; n < newPolygonY.length; n++) {
@@ -265,7 +268,7 @@ var updateShape = function() {
         newPolygonY : previousNewPolygonY;
 
         var c = { x: 0, y: 0 };
-        var p = { x: (polygon[n]), y: 0 };
+        var p = { x: 1-(polygon[n]), y: 0 };
         var rp = _rotate2d(c, p, w*(360/20));
 
         var y = -1+
