@@ -92,24 +92,6 @@ $(document).ready(function() {
     pictureView.style.zIndex = "15";
     document.body.appendChild(pictureView);
 
-    var startX = 0;
-    var startY = 0;
-
-    pictureView.ontouchstart = function(e) {
-        startX = e.touches[0].clientX;
-        startY = e.touches[0].clientY-((sh/2)-(sw/2));
-
-        position.x = Math.floor(startX);
-        position.y = Math.floor(startY);
-    };
-    pictureView.ontouchmove = function(e) {
-        var moveX = e.touches[0].clientX;
-        var moveY = e.touches[0].clientY-((sh/2)-(sw/2));
-
-        position.x = Math.floor(moveX);
-        position.y = Math.floor(moveY);
-    };
-
     deviceNoView = document.createElement("button");
     deviceNoView.style.position = "absolute";
     deviceNoView.style.background = "#fff";
@@ -334,6 +316,66 @@ $(document).ready(function() {
         "res: "+(resolution == 0 ? "max" : "8x8");
     };
 
+    measureLineEnabled = false;
+    measureView = document.createElement("canvas");
+    measureView.style.position = "absolute";
+    measureView.style.display = measureLineEnabled  ? 
+    "initial" : "none";
+    measureView.style.objectFit = "cover";
+    measureView.width = (sw);
+    measureView.height = (sw); 
+    measureView.style.left = (0)+"px";
+    measureView.style.top = ((sh/2)-(sw/2))+"px";
+    measureView.style.width = (sw)+"px";
+    measureView.style.height = (sw)+"px";
+    measureView.style.zIndex = "15";
+    document.body.appendChild(measureView);
+
+    var startX = 0;
+    var startY = 0;
+
+    measureView.ontouchstart = function(e) {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY-((sh/2)-(sw/2));
+
+        position.x = Math.floor(startX);
+        position.y = Math.floor(startY);
+    };
+    measureView.ontouchmove = function(e) {
+        var moveX = e.touches[0].clientX;
+        var moveY = e.touches[0].clientY-((sh/2)-(sw/2));
+
+        position.x = Math.floor(moveX);
+        position.y = Math.floor(moveY);
+    };
+
+    measureLineView = document.createElement("button");
+    measureLineView.style.position = "absolute";
+    measureLineView.style.background = "#fff";
+    measureLineView.style.color = "#000";
+    measureLineView.innerText = measureLineEnabled ? 
+    "line: ON" : "line: OFF";
+    measureLineView.style.fontFamily = "Khand";
+    measureLineView.style.lineHeight = (25)+"px";
+    measureLineView.style.fontSize = (15)+"px";
+    measureLineView.style.left = ((sw/2)-(sw/2)+90)+"px";
+    measureLineView.style.top = 
+    ((sh/2)+(sw/2)+80)+"px";
+    measureLineView.style.width = (70)+"px";
+    measureLineView.style.height = (25)+"px";
+    measureLineView.style.border = "none";
+    measureLineView.style.borderRadius = "12.5px";
+    measureLineView.style.zIndex = "15";
+    document.body.appendChild(measureLineView);
+
+    measureLineView.onclick = function() {
+        measureLineEnabled = !measureLineEnabled;
+        measureLineView.innerText = measureLineEnabled ? 
+        "line: ON" : "line: OFF";
+        measureView.style.display = measureLineEnabled  ? 
+        "initial" : "none";
+    };
+
     loadList(function() {
         /*
         pictureArr = pictureArr.sort(function(a, b) {
@@ -529,16 +571,19 @@ var drawImage = function() {
 
     ctx.drawImage(resolutionCanvas, 0, 0, sw, sw);
 
-    ctx.strokeStyle = "#000";
-    ctx.beginPath();
-    ctx.moveTo(0, position.y);
-    ctx.lineTo(sw, position.y);
-    ctx.stroke();
+    var measureCtx = measureView.getContext("2d");
+    measureCtx.clearRect(0, 0, sw, sw);
 
-    ctx.beginPath();
-    ctx.moveTo(position.x, 0);
-    ctx.lineTo(position.x, sw);
-    ctx.stroke();
+    measureCtx.strokeStyle = "#000";
+    measureCtx.beginPath();
+    measureCtx.moveTo(0, position.y);
+    measureCtx.lineTo(sw, position.y);
+    measureCtx.stroke();
+
+    measureCtx.beginPath();
+    measureCtx.moveTo(position.x, 0);
+    measureCtx.lineTo(position.x, sw);
+    measureCtx.stroke();
 };
 
 var getSquare = function(item) {
