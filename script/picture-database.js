@@ -283,6 +283,8 @@ $(document).ready(function() {
         threejsEnabled ? "initial" : "none";
         eyeSep.style.display = 
         threejsEnabled ? "initial" : "none";
+
+        updateShape(imagePolygon);
     };
 
     resolution = 0;
@@ -657,6 +659,7 @@ var getColor = function(brightness, toString, opacity=1) {
     return rgb;
 };
 
+var imagePolygon = [];
 var directionCanvas = function(canvas, render=true) {
     var ctx = canvas.getContext("2d");
     reachedHeight = 0;
@@ -685,8 +688,7 @@ var directionCanvas = function(canvas, render=true) {
         polygon[y][x-((sw/2)-1)] = brightness;
     }
     }
-
-    updateShape(polygon);
+    imagePolygon = polygon;
 
     var leftBrightness = 0;
     var rightBrightness = 0;
@@ -705,11 +707,11 @@ var directionCanvas = function(canvas, render=true) {
 
     ctx.strokeStyle = "#fff";
     ctx.beginPath();
-    var y = ((polygon[0][0] + polygon[0][1])/2)*direction;
-    ctx.moveTo(0, (sw/2)+(y*(sw/4)));
+    var x = ((polygon[0][0] + polygon[0][1])/2)*direction;
+    ctx.moveTo((sw/2)+(y*(sw/4)), 0);
     for (var n = 1; n < polygon.length; n++) {
-        var y = ((polygon[n][0] + polygon[n][1])/2)*direction;
-        ctx.lineTo(n, (sw/2)+(y*(sw/4)));
+        var x = ((polygon[n][0] + polygon[n][1])/2)*direction;
+        ctx.lineTo((sw/2)+(x*(sw/4)), n);
     }
     ctx.stroke();
 

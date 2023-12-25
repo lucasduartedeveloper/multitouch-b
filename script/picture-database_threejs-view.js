@@ -66,6 +66,15 @@ var load3D = function() {
     //group.rotation.x = -(Math.PI/2);
     scene.add(group);
 
+    var geometry = new THREE.SphereGeometry(0.01, 32); 
+    var material = new THREE.MeshStandardMaterial( {
+        color: 0xffffff,
+        opacity: 0.5,
+        transparent: true
+    } );
+    var sphere = new THREE.Mesh(geometry, material );
+    group.add(sphere);
+
     //createPlane4();
     //lightMap.visible = false;
 
@@ -169,14 +178,11 @@ var updateShape = function(polygon) {
         count += 1;
         sum += 
         ((polygon[(n*20)+k][0]+polygon[(n*20)+k][1])/2);
-
-        console.log(polygon[(n*20)+k][0]);
-        console.log(polygon[(n*20)+k][1]);
     }
     newPolygon[n] = (sum/count);
     }
 
-    console.log(polygon, newPolygon);
+    //console.log(polygon, newPolygon);
 
     var vertexArr = [ ];
     for (var w = 0; w < 20; w++) {
@@ -193,7 +199,7 @@ var updateShape = function(polygon) {
 
         var geometry = new THREE.SphereGeometry(0.01, 32); 
         var material = new THREE.MeshStandardMaterial( {
-            color: 0xffffff,
+            color: 0x55ff55,
             opacity: 0.5,
             transparent: true
         } );
@@ -206,18 +212,36 @@ var updateShape = function(polygon) {
     }
     }
 
-    var indiceArr = [
-        2,1,0,    0,3,2,
-        0,4,7,    7,3,0,
-        0,1,5,    5,4,0,
-        1,2,6,    6,5,1,
-        2,3,7,    7,6,2,
-        4,5,6,    6,7,4
-    ];
+    var indiceArr = [];
+    for (var w = 0; w < 19; w++) {
+    for (var n = 1; n < newPolygon.length; n++) {
+        var a = (((n-1)*newPolygon.length)+w);
+        var b = ((n*newPolygon.length)+w);
+        var c = (((n-1)*newPolygon.length)+(w+1));
+        var d = ((n*newPolygon.length)+(w+1));
+
+        indiceArr.push(a);
+        indiceArr.push(b);
+        indiceArr.push(d);
+
+        indiceArr.push(a);
+        indiceArr.push(c);
+        indiceArr.push(d);
+    }
+    }
+    console.log(indiceArr);
 
     var geometry = 
     new THREE.PolyhedronGeometry(
     vertexArr, indiceArr, 6, 2 );
+    var material = new THREE.MeshStandardMaterial( {
+        color: 0xffffff,
+        opacity: 0.5,
+        transparent: true
+    } );
+    var mesh = new THREE.Mesh(geometry, material );
+
+    group.add(mesh);
 }
 
 var setTexture = function(no, dataURL) {
