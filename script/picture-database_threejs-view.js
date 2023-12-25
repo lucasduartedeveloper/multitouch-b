@@ -344,6 +344,7 @@ var updateShape = function() {
         wireframe: true
     } );
     var mesh = new THREE.Mesh(geometry, material );
+    //mesh.loadTexture("img/box-template-0_texture.png");
 
     group.add(mesh);
 }
