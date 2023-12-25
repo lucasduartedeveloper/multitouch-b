@@ -165,40 +165,45 @@ var load3D = function() {
 }
 
 var updateShape = function(polygon) {
+    //console.log(polygon);
     group.clear();
 
     var newPolygon = [];
-    for (var n = 0; n < ((polygon.length)/(sw/2)); n++) {
+    for (var n = 0; n < ((polygon.length)/(sw/20)); n++) {
     var count = 0;
     var sum = 0;
-    for (var k = 0; k < 2; k++) {
-        if (((n*2)+k) > (polygon.length-1))
+    for (var k = 0; k < (sw/20); k++) {
+        if (((n*(sw/20))+k) > (polygon.length-1))
         break;
 
         count += 1;
         sum += 
-        ((polygon[(n*5)+k][0]+polygon[(n*5)+k][1])/2);
+        ((polygon[(n*(sw/20))+k][0]+polygon[(n*(sw/20))+k][1])/2);
+
+        console.log((n*(sw/20))+k);
     }
     newPolygon[n] = (sum/count);
     }
 
+    //console.log(newPolygon.length);
     //console.log(polygon, newPolygon);
 
-    var vertexArr = [ ];
-    for (var w = 0; w < 4; w++) {
+    var vertexArr = [];
+    for (var w = 0; w < 20; w++) {
     for (var n = 0; n < newPolygon.length; n++) {
         var c = { x: 0, y: 0 };
         var p = { x: (newPolygon[n]), y: 0 };
-        var rp = _rotate2d(c, p, w*(360/4));
+        var rp = _rotate2d(c, p, w*(360/20));
 
-        var y = (2/newPolygon.length)*(-(newPolygon.length/2)+n);
+        var y = -1+
+        ((2/newPolygon.length)*n);
 
-        vertexArr.push(rp.x);
-        vertexArr.push(y);
-        vertexArr.push(rp.y);
+        vertexArr.push(parseFloat(rp.x.toFixed(2)));
+        vertexArr.push(parseFloat(y.toFixed(2)));
+        vertexArr.push(parseFloat(rp.y.toFixed(2)));
 
         var geometry = new THREE.SphereGeometry(0.01, 32); 
-        var material = new THREE.MeshStandardMaterial( {
+        var material = new THREE.MeshBasicMaterial( {
             color: 0x55ff55,
             opacity: 0.5,
             transparent: true
@@ -211,15 +216,17 @@ var updateShape = function(polygon) {
        sphere.position.z = rp.y;
     }
     }
-    console.log(vertexArr);
+
+    vertexArr = new Float32Array(vertexArr);
+    //console.log(vertexArr);
 
     var indiceArr = [];
-    for (var w = 0; w < 4; w++) {
-    for (var n = 1; n < newPolygon.length; n++) {
-        var a = (((n-1)*newPolygon.length)+w);
-        var b = ((n*newPolygon.length)+w);
-        var c = (((n-1)*newPolygon.length)+(w+1));
-        var d = ((n*newPolygon.length)+(w+1));
+    for (var w = 1; w < 20; w++) {
+    for (var n = 0; n < (newPolygon.length-1); n++) {
+        var a = (((w-1)*newPolygon.length)+n);
+        var b = ((w*newPolygon.length)+n);
+        var c = (((w-1)*newPolygon.length)+(n+1));
+        var d = ((w*newPolygon.length)+(n+1));
 
         indiceArr.push(a);
         indiceArr.push(b);
@@ -230,15 +237,35 @@ var updateShape = function(polygon) {
         indiceArr.push(d);
     }
     }
-    console.log(indiceArr);
 
-    var geometry = 
-    new THREE.PolyhedronGeometry(
-    vertexArr, indiceArr, 1, 2 );
-    var material = new THREE.MeshStandardMaterial( {
+    for (var n = 0; n < (newPolygon.length-1); n++) {
+        var a = (((19)*newPolygon.length)+n);
+        var b = ((0*newPolygon.length)+n);
+        var c = (((19)*newPolygon.length)+(n+1));
+        var d = ((0*newPolygon.length)+(n+1));
+
+        indiceArr.push(a);
+        indiceArr.push(b);
+        indiceArr.push(d);
+
+        indiceArr.push(a);
+        indiceArr.push(c);
+        indiceArr.push(d);
+    }
+
+    //console.log(indiceArr);
+
+    var geometry = new THREE.BufferGeometry();
+
+    geometry.setIndex( indiceArr );
+    geometry.setAttribute( "position", 
+        new THREE.BufferAttribute( vertexArr, 3 ) );
+
+    var material = new THREE.MeshBasicMaterial( {
         color: 0xffffff,
         opacity: 0.5,
-        transparent: true
+        transparent: true,
+        wireframe: true
     } );
     var mesh = new THREE.Mesh(geometry, material );
 
