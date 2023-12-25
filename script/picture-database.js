@@ -246,6 +246,7 @@ $(document).ready(function() {
     };
 
     mode = 0;
+    threejsEnabled = false;
     modeView = document.createElement("button");
     modeView.style.position = "absolute";
     modeView.style.background = "#fff";
@@ -265,8 +266,23 @@ $(document).ready(function() {
     document.body.appendChild(modeView);
 
     modeView.onclick = function() {
-        mode = (mode+1) < 3 ? (mode+1) : 0;
+        mode = (mode+1) < 4 ? (mode+1) : 0;
         modeView.innerText = "mode: "+mode;
+
+        threejsEnabled = (mode == 3);
+        if (threejsEnabled) {
+            startAnimation();
+        }
+        else {
+            pauseAnimation();
+        }
+
+        renderer.domElement.style.display = 
+        threejsEnabled ? "initial" : "none";
+        modes.style.display = 
+        threejsEnabled ? "initial" : "none";
+        eyeSep.style.display = 
+        threejsEnabled ? "initial" : "none";
     };
 
     resolution = 0;
@@ -302,6 +318,8 @@ $(document).ready(function() {
         });*/
         loadImages();
     });
+
+    load3D();
     animate();
 });
 
@@ -471,6 +489,8 @@ var drawImage = function() {
     lowHeightCanvas(resolutionCanvas);
     if (mode == 2)
     directionCanvas(resolutionCanvas);
+    if (mode == 3)
+    directionCanvas(resolutionCanvas, false);
 
     if (reachedHeight > ((1/7) * (track+1)) && 
     warningBeep.paused)
@@ -637,7 +657,7 @@ var getColor = function(brightness, toString, opacity=1) {
     return rgb;
 };
 
-var directionCanvas = function(canvas) {
+var directionCanvas = function(canvas, render=true) {
     var ctx = canvas.getContext("2d");
     reachedHeight = 0;
 
@@ -666,6 +686,8 @@ var directionCanvas = function(canvas) {
     }
     }
 
+    updateShape(polygon);
+
     var leftBrightness = 0;
     var rightBrightness = 0;
 
@@ -676,19 +698,22 @@ var directionCanvas = function(canvas) {
 
     direction = leftBrightness > rightBrightness ? -1 : 1;
 
+    if (!render) return;
+
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, sw, sw);
 
     ctx.strokeStyle = "#fff";
     ctx.beginPath();
-    for (var n = 0; n < polygon.length; n++) {
-        var x = ((polygon[n][0] + polygon[n][1])/2)*direction;
-        ctx.moveTo((sw/2), n);
-        ctx.lineTo((sw/2)+(x*(sw/2)), n);
+    var y = ((polygon[0][0] + polygon[0][1])/2)*direction;
+    ctx.moveTo(0, (sw/2)+(y*(sw/4)));
+    for (var n = 1; n < polygon.length; n++) {
+        var y = ((polygon[n][0] + polygon[n][1])/2)*direction;
+        ctx.lineTo(n, (sw/2)+(y*(sw/4)));
     }
     ctx.stroke();
 
-    console.log(polygon);
+    //console.log(polygon);
 };
 
 var visibilityChange;

@@ -35,7 +35,8 @@ $script = [
     2 => "script/mic-helper.js",
     3 => "script/gyro-helper.js",
     4 => "script/camera-helper.js",
-    5 => "script/picture-database.js"
+    5 => "script/picture-database.js",
+    6 => "script/picture-database_threejs-view.js"
 ];
 
 $module = [];
