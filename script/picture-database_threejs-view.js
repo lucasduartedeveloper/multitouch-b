@@ -372,6 +372,58 @@ var updateShape = function() {
         frontMesh.mesh.material.needsUpdate = true;
     });
 
+    var imgData = 
+    resolutionCtx.getImageData(0, 0, numPixels, numPixels);
+    var data = imgData.data;
+
+    var positionArr = 
+    frontMesh.positionArr;
+
+    var vertexArray = 
+    frontMesh.mesh.geometry.getAttribute("position").array;
+
+    for (var x = 1; x < numPixels; x++) {
+    for (var y = 0; y < (numPixels-1); y++) {
+
+        var n = ((x*numPixels)+y)*4;
+        var brightness = 
+        (1/255) * 
+        ((data[n] * grayscaleRatio[grayscaleNo][0]) + 
+        (data[n + 1] * grayscaleRatio[grayscaleNo][1]) + 
+        (data[n + 2] * grayscaleRatio[grayscaleNo][2]));
+        reachedHeight = brightness > reachedHeight ? 
+        brightness : reachedHeight;
+
+        var a = (((x-1)*numPixels)+y);
+        var b = ((x*numPixels)+y);
+        var c = (((x-1)*numPixels)+(y+1));
+        var d = ((x*numPixels)+(y+1));
+
+        vertexArray[(a*3)] = 
+        positionArr[a].x * (1+brightness);
+        vertexArray[(a*3)+2] = 
+        positionArr[a].z * (1+brightness);
+
+        vertexArray[(b*3)] = 
+        positionArr[b].x * (1+brightness);
+        vertexArray[(b*3)+2] = 
+        positionArr[b].z * (1+brightness);
+
+        vertexArray[(c*3)] = 
+        positionArr[c].x * (1+brightness);
+        vertexArray[(c*3)+2] = 
+        positionArr[c].z * (1+brightness);
+
+        vertexArray[(d*3)] = 
+        positionArr[d].x * (1+brightness);
+        vertexArray[(d*3)+2] = 
+        positionArr[d].z * (1+brightness);
+    }
+    }
+
+    frontMesh.mesh.
+    geometry.getAttribute("position").needsUpdate = true;
+
     render = true;
 };
 
