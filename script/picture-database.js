@@ -274,6 +274,7 @@ $(document).ready(function() {
 
         threejsEnabled = (mode == 3);
         if (threejsEnabled) {
+            createShape();
             startAnimation();
         }
         else {
@@ -286,8 +287,6 @@ $(document).ready(function() {
         threejsEnabled ? "initial" : "none";
         eyeSep.style.display = 
         threejsEnabled ? "initial" : "none";
-
-        updateShape();
     };
 
     resolution = 0;
@@ -383,6 +382,18 @@ $(document).ready(function() {
         });*/
         loadImages();
     });
+
+    resolutionCanvas = document.createElement("canvas");
+    resolutionCanvas.style.position = "absolute";
+    resolutionCanvas.width = numPixels;
+    resolutionCanvas.height = numPixels;
+    resolutionCanvas.style.left = (0)+"px";
+    resolutionCanvas.style.top = ((sh/2)-(sw/2))+"px";
+    resolutionCanvas.style.width = (sw)+"px";
+    resolutionCanvas.style.height = (sw)+"px";
+    resolutionCanvas.style.border = "none";
+    resolutionCanvas.style.zIndex = "35";
+    //document.body.appendChild(resolutionCanvas);
 
     load3D();
     animate();
@@ -560,8 +571,6 @@ var drawImage = function() {
     lowHeightCanvas(resolutionCanvas);
     if (mode == 2)
     directionCanvas(resolutionCanvas);
-    if (mode == 3)
-    directionCanvas(resolutionCanvas, false);
 
     if (reachedHeight > ((1/7) * (track+1)) && 
     warningBeep.paused)
@@ -570,6 +579,8 @@ var drawImage = function() {
     warningBeep.pause();
 
     ctx.drawImage(resolutionCanvas, 0, 0, sw, sw);
+    if (mode == 3)
+    updateShape();
 
     var measureCtx = measureView.getContext("2d");
     measureCtx.clearRect(0, 0, sw, sw);
@@ -814,11 +825,14 @@ var directionCanvas = function(canvas, render=true) {
     };
 
     var directionY = 0;
-    var directionY = leftBrightness > rightBrightness ? -1 : 1;
+    var directionY = 1; //leftBrightness > rightBrightness ? -1 : 1;
 
     if (!render) return;
 
     ctx.fillStyle = "#000";
+    ctx.lineWidth = 3;
+    ctx.lineJoin = "round";
+
     ctx.fillRect(0, 0, sw, sw);
 
     ctx.strokeStyle = "#fff";
