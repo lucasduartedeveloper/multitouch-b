@@ -342,19 +342,48 @@ $(document).ready(function() {
     var startX = 0;
     var startY = 0;
 
+    positionArr = [
+       { x: (sw/2), y: (sw/2) },
+       { x: (sw/2), y: 0 },
+       { x: (sw/2), y: sw },
+       { x: (sw/2), y: (sw/2) }
+    ];
+    positionNo = 0;
+
     measureView.ontouchstart = function(e) {
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY-((sh/2)-(sw/2));
 
-        position.x = Math.floor(startX);
-        position.y = Math.floor(startY);
+        var no = positionNo;
+        var lastHyp = (sw*Math.sqrt(2));
+        for (var n = 0; n < 3; n++) {
+            var co = Math.abs(startX - positionArr[n].x);
+            var ca = Math.abs(startY - positionArr[n].y);
+            var hyp = Math.sqrt(
+                Math.pow(co, 2)+
+                Math.pow(ca, 2)
+            );
+
+            if (hyp < lastHyp)
+            no = n;
+
+            lastHyp = hyp;
+        }
+
+        positionNo = no;
+
+        measureLineView.innerText = measureLineEnabled ? 
+        "line: "+positionNo : "line: OFF";
+
+        positionArr[positionNo].x = Math.floor(startX);
+        positionArr[positionNo].y = Math.floor(startY);
     };
     measureView.ontouchmove = function(e) {
         var moveX = e.touches[0].clientX;
         var moveY = e.touches[0].clientY-((sh/2)-(sw/2));
 
-        position.x = Math.floor(moveX);
-        position.y = Math.floor(moveY);
+        positionArr[positionNo].x = Math.floor(moveX);
+        positionArr[positionNo].y = Math.floor(moveY);
     };
 
     measureLineView = document.createElement("button");
@@ -377,9 +406,25 @@ $(document).ready(function() {
     document.body.appendChild(measureLineView);
 
     measureLineView.onclick = function() {
-        measureLineEnabled = !measureLineEnabled;
+        if (!measureLineEnabled && positionNo == 0) {
+            measureLineEnabled = true;
+        }
+        else if (positionNo == 0) {
+            positionNo = 1;
+        }
+        else if (positionNo == 1) {
+            positionNo = 2;
+        }
+        else if (positionNo == 2) {
+            positionNo = 3;
+        }
+        else if (positionNo == 3) {
+            measureLineEnabled = false;
+            positionNo = 0;
+        }
+
         measureLineView.innerText = measureLineEnabled ? 
-        "line: ON" : "line: OFF";
+        "line: "+positionNo : "line: OFF";
         measureView.style.display = measureLineEnabled  ? 
         "initial" : "none";
     };
@@ -507,11 +552,6 @@ var animate = function() {
     requestAnimationFrame(animate);
 };
 
-var position = {
-    x: (sw/2),
-    y: (sw/2)
-};
-
 var drawImage = function() {
     var ctx = gradientView.getContext("2d");
 
@@ -607,13 +647,33 @@ var drawImage = function() {
 
     measureCtx.strokeStyle = "#000";
     measureCtx.beginPath();
-    measureCtx.moveTo(0, position.y);
-    measureCtx.lineTo(sw, position.y);
+    measureCtx.moveTo(0, positionArr[0].y);
+    measureCtx.lineTo(sw, positionArr[0].y);
     measureCtx.stroke();
 
     measureCtx.beginPath();
-    measureCtx.moveTo(position.x, 0);
-    measureCtx.lineTo(position.x, sw);
+    measureCtx.moveTo(positionArr[0].x, 0);
+    measureCtx.lineTo(positionArr[0].x, sw);
+    measureCtx.stroke();
+
+    measureCtx.beginPath();
+    measureCtx.moveTo(0, positionArr[1].y);
+    measureCtx.lineTo(sw, positionArr[1].y);
+    measureCtx.stroke();
+
+    measureCtx.beginPath();
+    measureCtx.moveTo(positionArr[1].x, 0);
+    measureCtx.lineTo(positionArr[1].x, sw);
+    measureCtx.stroke();
+
+    measureCtx.beginPath();
+    measureCtx.moveTo(0, positionArr[2].y);
+    measureCtx.lineTo(sw, positionArr[2].y);
+    measureCtx.stroke();
+
+    measureCtx.beginPath();
+    measureCtx.moveTo(positionArr[2].x, 0);
+    measureCtx.lineTo(positionArr[2].x, sw);
     measureCtx.stroke();
 };
 
@@ -790,7 +850,7 @@ var directionCanvas = function(canvas, render=true) {
     var newImageArray = new Uint8ClampedArray(data);
     for (var x = 0; x < sw; x++) {
     polygonX[x] = [];
-    for (var y = (position.y-1); y <= (position.y); y++) {
+    for (var y = (positionArr[0].y-1); y <= (positionArr[0].y); y++) {
         var i = ((y*sw)+x)*4;
 
         var brightness = 
@@ -801,7 +861,7 @@ var directionCanvas = function(canvas, render=true) {
         reachedHeight = brightness > reachedHeight ? 
         brightness : reachedHeight;
 
-        polygonX[x][y-(position.y-1)] = brightness;
+        polygonX[x][y-(positionArr[0].y-1)] = brightness;
     }
     }
     imagePolygonX = polygonX;
@@ -809,7 +869,7 @@ var directionCanvas = function(canvas, render=true) {
     var polygonY = [];
     for (var y = 0; y < sw; y++) {
     polygonY[y] = [];
-    for (var x = (position.x-1); x <= (position.x); x++) {
+    for (var x = (positionArr[0].x-1); x <= (positionArr[0].x); x++) {
         var i = ((y*sw)+x)*4;
 
         var brightness = 
@@ -820,7 +880,7 @@ var directionCanvas = function(canvas, render=true) {
         reachedHeight = brightness > reachedHeight ? 
         brightness : reachedHeight;
 
-        polygonY[y][x-(position.x-1)] = brightness;
+        polygonY[y][x-(positionArr[0].x-1)] = brightness;
     }
     }
     imagePolygonY = polygonY;
@@ -849,13 +909,20 @@ var directionCanvas = function(canvas, render=true) {
 
     if (!render) return;
 
-    ctx.fillStyle = "#000";
+    ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
     ctx.lineWidth = 3;
     ctx.lineJoin = "round";
 
     ctx.fillRect(0, 0, sw, sw);
 
-    ctx.strokeStyle = "#fff";
+    var grd = ctx.createLinearGradient(0, 0, 0, sw);
+    for (var n = 0; n <= 1; n+=0.1) {
+        grd.addColorStop(n, getColor(n, true));
+    }
+
+    ctx.fillStyle = grd;
+
+    ctx.strokeStyle = "#000";
     ctx.beginPath();
     var y = ((polygonX[0][0] + polygonX[0][1])/2)*directionX;
     ctx.moveTo(0, (sw/2)+(y*(sw/4)));
@@ -867,12 +934,63 @@ var directionCanvas = function(canvas, render=true) {
 
     ctx.beginPath();
     var x = ((polygonY[0][0] + polygonY[0][1])/2)*directionY;
-    ctx.moveTo((sw/2)+(x*(sw/4)), 0);
-    for (var n = 1; n < polygonY.length; n++) {
+    ctx.moveTo(positionArr[2].x, positionArr[2].y);
+    ctx.lineTo(positionArr[0].x, positionArr[0].y);
+    ctx.lineTo(positionArr[1].x, positionArr[1].y);
+    for (var n = 0; n < polygonY.length; n++) {
         var x = ((polygonY[n][0] + polygonY[n][1])/2)*directionY;
+        if (n < positionArr[1].y) continue;
+        if (n > positionArr[2].y) continue;
         ctx.lineTo((sw/2)+(x*(sw/4)), n);
     }
+    ctx.lineTo(positionArr[2].x, positionArr[2].y);
+    ctx.fill();
+
+    var n0 = Math.floor(positionArr[0].y);
+    var n1 = Math.floor(positionArr[1].y);
+    var n2 = Math.floor(positionArr[2].y)-1;
+
+    for (var n = n1; n < n2; n++) {
+        n1 = (polygonY[n][0] > polygonY[n1][0]) && n < n0  ?
+        n : n1;
+
+        n2 = (polygonY[n][0] > polygonY[n2][0]) && n > n0 ? 
+        n : n2;
+    }
+
+    var opening = 
+    ((45/(positionArr[2].y-positionArr[1].y))*(n2-n1))
+    *(Math.PI/180);
+
+    if ((positionArr[2].y - positionArr[1].y) > (sw/2))
+    return;
+
+    ctx.fillStyle = "#ff0";
+
+    ctx.beginPath();
+    ctx.moveTo(positionArr[3].x, positionArr[3].y);
+    ctx.arc(positionArr[3].x, positionArr[3].y, (sw/6), 
+    (opening/2), (Math.PI*2)-(opening/2));
+    ctx.lineTo(positionArr[3].x, positionArr[3].y);
+    ctx.fill();
     ctx.stroke();
+
+    ctx.fillStyle = "#fff";
+
+    ctx.beginPath();
+    ctx.arc(positionArr[3].x+(sw/12), 
+    positionArr[3].y-(sw/12), (sw/36), 
+    0, (Math.PI*2));
+    ctx.fill();
+    ctx.stroke();
+
+     ctx.fillStyle = "#000";
+
+    ctx.beginPath();
+    ctx.arc(positionArr[3].x+(sw/12)+(sw/96), 
+    positionArr[3].y-(sw/12), (sw/48), 
+    0, (Math.PI*2));
+    ctx.fill();
 
     //console.log(polygon);
 };
