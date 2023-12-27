@@ -382,6 +382,9 @@ $(document).ready(function() {
         var moveX = e.touches[0].clientX;
         var moveY = e.touches[0].clientY-((sh/2)-(sw/2));
 
+        if (moveX < 0 || moveX > sw) return;
+        if (moveY < 0 || moveY > sw) return;
+
         positionArr[positionNo].x = Math.floor(moveX);
         positionArr[positionNo].y = Math.floor(moveY);
     };
@@ -941,7 +944,8 @@ var directionCanvas = function(canvas, render=true) {
         var x = ((polygonY[n][0] + polygonY[n][1])/2)*directionY;
         if (n < positionArr[1].y) continue;
         if (n > positionArr[2].y) continue;
-        ctx.lineTo((sw/2)+(x*(sw/4)), n);
+        ctx.lineTo(((positionArr[1].x+positionArr[2].x)/2)+
+        (x*(sw/4)), n);
     }
     ctx.lineTo(positionArr[2].x, positionArr[2].y);
     ctx.fill();
@@ -993,6 +997,29 @@ var directionCanvas = function(canvas, render=true) {
     ctx.fill();
 
     //console.log(polygon);
+};
+
+var rotatePolygon = function(polygon) {
+    var co = 
+    ((positionArr[2].x - positionArr[0].x)+
+    (positionArr[1].x - positionArr[0].x))/2;
+
+    var ca = 
+    ((positionArr[2].y - positionArr[0].y)+
+    (positionArr[1].y - positionArr[0].y))/2;
+
+    var angle = (180/Math.PI)*_angle2d(co, ca);
+
+    var newPolygon = [];
+    for (var n = 0; n < polygonY.length; n++) {
+        var c = { x: 0, y: 0 };
+        var p = { 
+            x: (((polygonY[n][0] + polygonY[n][1])/2)*directionY)*
+            (x*(sw/4)), 
+            y: n
+        };
+        var rp = _rotate2d(c, p, angle);
+    }
 };
 
 var visibilityChange;
