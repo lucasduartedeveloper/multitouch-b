@@ -57,6 +57,15 @@ $(document).ready(function() {
 
     track = 0;
     gradientView.onclick = function(e) {
+         var previousResolutionCtx = 
+         previousResolutionCanvas.getContext("2d");
+         previousResolutionCtx.imageSmoothingEnabled = false;
+
+         previousResolutionCtx.clearRect(
+         0, 0, numPixels, numPixels);
+         previousResolutionCtx.drawImage(pictureView,
+         0, 0, numPixels, numPixels);
+
         track = Math.floor(e.clientX/tileSize);
         //console.log(track, (e.clientX/tileSize));
 
@@ -383,6 +392,18 @@ $(document).ready(function() {
         loadImages();
     });
 
+    previousResolutionCanvas = 
+    document.createElement("canvas");
+    previousResolutionCanvas.style.position = "absolute";
+    previousResolutionCanvas.width = numPixels;
+    previousResolutionCanvas.height = numPixels;
+    previousResolutionCanvas.style.left = (0)+"px";
+    previousResolutionCanvas.style.top = ((sh/2)-(sw/2))+"px";
+    previousResolutionCanvas.style.width = (sw)+"px";
+    previousResolutionCanvas.style.height = (sw)+"px";
+    previousResolutionCanvas.style.border = "none";
+    previousResolutionCanvas.style.zIndex = "35";
+
     resolutionCanvas = document.createElement("canvas");
     resolutionCanvas.style.position = "absolute";
     resolutionCanvas.width = numPixels;
@@ -393,7 +414,6 @@ $(document).ready(function() {
     resolutionCanvas.style.height = (sw)+"px";
     resolutionCanvas.style.border = "none";
     resolutionCanvas.style.zIndex = "35";
-    //document.body.appendChild(resolutionCanvas);
 
     load3D();
     animate();
