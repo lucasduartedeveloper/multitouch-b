@@ -660,8 +660,7 @@ var drawImage = function() {
     lowHeightCanvas(resolutionCanvas);
     if (mode == 2)
     directionCanvas(resolutionCanvas);
-
-    if (mode == 3 || mode == 4)
+    if (mode == 4)
     drawBinary(resolutionCanvas);
 
     if (reachedHeight > ((1/7) * (track+1)) && 

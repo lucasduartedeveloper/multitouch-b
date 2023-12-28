@@ -329,24 +329,15 @@ var createShape = function() {
     group.clear();
 
     var geometry = 
-    new THREE.BoxGeometry(5, 5, 0.1); 
+    new THREE.SphereGeometry(2.5, 32); 
     var material = new THREE.MeshBasicMaterial( {
         color: 0xffffff,
         opacity: 1,
         transparent: true
     } );
 
-    var materials = [
-        material.clone(),
-        material.clone(),
-        material.clone(),
-        material.clone(),
-        material.clone(),
-        material.clone()
-    ];
-
-    cubeMesh = new THREE.Mesh(geometry, materials );
-    group.add(cubeMesh);
+    sphereMesh = new THREE.Mesh(geometry, material );
+    group.add(sphereMesh);
 
     var resolutionCtx = resolutionCanvas.getContext("2d");
     resolutionCtx.imageSmoothingEnabled = false;
@@ -356,19 +347,11 @@ var createShape = function() {
     0, 0, numPixels, numPixels);
 
     new THREE.TextureLoader().load(
-    previousResolutionCanvas.toDataURL(), 
-    texture => {
-        cubeMesh.material[5].transparent = true;
-        cubeMesh.material[5].map = texture;
-        cubeMesh.material[5].needsUpdate = true;
-    });
-
-    new THREE.TextureLoader().load(
     resolutionCanvas.toDataURL(), 
     texture => {
-        cubeMesh.material[4].transparent = true;
-        cubeMesh.material[4].map = texture;
-        cubeMesh.material[4].needsUpdate = true;
+        sphereMesh.material.transparent = true;
+        sphereMesh.material.map = texture;
+        sphereMesh.material.needsUpdate = true;
     });
 
     return;
