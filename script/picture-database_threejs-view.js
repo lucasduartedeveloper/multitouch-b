@@ -369,15 +369,8 @@ var createShape = function() {
     sphereMesh1.position.x= 5;
     sphereMesh1.rotation.y = -(Math.PI/2);
 
-    var resolutionCtx = resolutionCanvas.getContext("2d");
-    resolutionCtx.imageSmoothingEnabled = false;
-
-    resolutionCtx.clearRect(0, 0, numPixels, numPixels);
-    resolutionCtx.drawImage(pictureView,
-    0, 0, numPixels, numPixels);
-
     new THREE.TextureLoader().load(
-    resolutionCanvas.toDataURL(), 
+    previousResolutionCanvas.toDataURL(), 
     texture => {
         sphereMesh1.material.transparent = true;
         sphereMesh1.material.map = texture;
