@@ -41,6 +41,7 @@ $(document).ready(function() {
     ((sh/2)-(sw/2)-(tileSize*2))+"px";
     scrollPictureView.style.width = (sw)+"px";
     scrollPictureView.style.height = (tileSize+10)+"px";
+    //scrollPictureView.style.overflowX = "auto";
     scrollPictureView.style.zIndex = "15";
     document.body.appendChild(scrollPictureView);
 
@@ -278,7 +279,7 @@ $(document).ready(function() {
     document.body.appendChild(modeView);
 
     modeView.onclick = function() {
-        mode = (mode+1) < 4 ? (mode+1) : 0;
+        mode = (mode+1) < 5 ? (mode+1) : 0;
         modeView.innerText = "mode: "+mode;
 
         threejsEnabled = (mode == 3);
@@ -483,41 +484,48 @@ var loadList = function(callback) {
     var found = 0;
     var notFound = 0;
 
-    for (var n = 0; n < 100; n++) {
+    for (var n = 0; n < 7; n++) {
         var img = document.createElement("img");
         img.style.position = "absolute";
+        img.style.display = "none";
         img.style.objectFit = "cover";
         img.style.left = (n*tileSize)+"px";
         img.style.top = (0)+"px";
         img.style.width = (tileSize)+"px";
         img.style.height = (tileSize)+"px";
+        img.found = 0;
         img.onclick = function() {
             pictureView.src = this.src;
         };
+
+        scrollPictureView.appendChild(img);
+
+        pictureArr[n] = img;
+
+        var labelView = document.createElement("span");
+        labelView.style.position = "absolute";
+        labelView.style.color = "#fff";
+        labelView.innerText = n;
+        labelView.style.fontSize = (10)+"px";
+        labelView.style.fontFamily = "Khand";
+        labelView.style.left = (n*tileSize)+"px";
+        labelView.style.top = (tileSize)+"px";
+        labelView.style.width = (tileSize)+"px";
+        labelView.style.height = (10)+"px";
+        scrollPictureView.appendChild(labelView);
 
         img.n = n;
         img.onload = function() {
             found += 1;
             console.log("loading ("+found+")");
-            scrollPictureView.appendChild(this);
+            this.style.display = "initial";
 
             this.width = this.naturalWidth;
             this.height = this.naturalHeight;
-            pictureArr[this.n] = this;
 
-            var labelView = document.createElement("span");
-            labelView.style.position = "absolute";
-            labelView.style.color = "#fff";
-            labelView.innerText = this.n;
-            labelView.style.fontSize = (10)+"px";
-            labelView.style.fontFamily = "Khand";
-            labelView.style.left = (this.n*tileSize)+"px";
-            labelView.style.top = (tileSize)+"px";
-            labelView.style.width = (tileSize)+"px";
-            labelView.style.height = (10)+"px";
-            scrollPictureView.appendChild(labelView);
+            this.found = 1;
 
-            if ((found+notFound) == 100)
+            if ((found+notFound) == 7)
             callback();
         };
         img.onerror = function() {
@@ -527,7 +535,7 @@ var loadList = function(callback) {
             img.src = 
             "img/picture-database/picture-"+n+"_short.png?f="+rnd;
 
-            if ((found+notFound) == 100)
+            if ((found+notFound) == 7)
             callback();
         };
         var rnd = Math.random();
@@ -613,7 +621,7 @@ var drawImage = function() {
         resolutionCtx.restore();
     }
     else {
-        if (track < pictureArr.length && pictureArr[track]) {
+        if (track < pictureArr.length && pictureArr[track].found) {
              var image = pictureArr[track];
              var size = {
                  width: image.naturalWidth,
@@ -634,6 +642,9 @@ var drawImage = function() {
     lowHeightCanvas(resolutionCanvas);
     if (mode == 2)
     directionCanvas(resolutionCanvas);
+
+    if (mode == 4)
+    drawBinary(resolutionCanvas);
 
     if (reachedHeight > ((1/7) * (track+1)) && 
     warningBeep.paused)
@@ -690,7 +701,7 @@ var getSquare = function(item) {
 };
 
 var updatePicture = function(no, dataURL) {
-    if (no < (pictureArr.length-1) && pictureArr[no]) {
+    if ((no < pictureArr.length) && pictureArr[no]) {
         pictureArr[no].src = dataURL;
         return;
     }
@@ -999,26 +1010,72 @@ var directionCanvas = function(canvas, render=true) {
     //console.log(polygon);
 };
 
-var rotatePolygon = function(polygon) {
-    var co = 
-    ((positionArr[2].x - positionArr[0].x)+
-    (positionArr[1].x - positionArr[0].x))/2;
+var drawBinary = function(canvas) {
+    var charSequence = ".*+#@";
 
-    var ca = 
-    ((positionArr[2].y - positionArr[0].y)+
-    (positionArr[1].y - positionArr[0].y))/2;
+    var resolutionCanvas = document.createElement("canvas");
 
-    var angle = (180/Math.PI)*_angle2d(co, ca);
+    var width = 50;
+    var height = 50;
 
-    var newPolygon = [];
-    for (var n = 0; n < polygonY.length; n++) {
-        var c = { x: 0, y: 0 };
-        var p = { 
-            x: (((polygonY[n][0] + polygonY[n][1])/2)*directionY)*
-            (x*(sw/4)), 
-            y: n
-        };
-        var rp = _rotate2d(c, p, angle);
+    resolutionCanvas.width = width;
+    resolutionCanvas.height = height;
+
+    var resolutionCtx = resolutionCanvas.getContext("2d");
+    resolutionCtx.imageSmoothingEnabled = false;
+
+    resolutionCtx.drawImage(canvas, 0, 0, width, height);
+
+    var ctx = canvas.getContext("2d");
+
+    var imgData = 
+    resolutionCtx.getImageData(0, 0, 
+    resolutionCanvas.width, resolutionCanvas.height);
+    var data = imgData.data;
+
+    var binaryData = [];
+
+    var newImageArray = new Uint8ClampedArray(data);
+    for (var x = 0; x < width; x++) {
+    for (var y = 0; y < height; y++) {
+        var i = ((y*height)+x)*4;
+
+        var brightness = 
+        (1/255) * 
+        ((data[i] * grayscaleRatio[grayscaleNo][0]) + 
+        (data[i + 1] * grayscaleRatio[grayscaleNo][1]) + 
+        (data[i + 2] * grayscaleRatio[grayscaleNo][2]));
+
+        binaryData.push({
+            x: x, y: y,
+            radius: brightness, 
+            value: Math.floor((charSequence.length-1)*brightness)
+        });
+    }
+    }
+
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, sw, sw);
+
+    ctx.fillStyle = "#5f5";
+    ctx.font = ((sw/width)/3)+"px sans";
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "center";
+
+    for (var n = 0; n < binaryData.length; n++) {
+        var obj = binaryData[n];
+        var x = (sw/(width*2))+(obj.x*(sw/width));
+        var y = (sw/(width*2))+(obj.y*(sw/width));
+
+        //console.log(obj.value, charSequence[obj.value]);
+        //ctx.fillText(charSequence[obj.value], x, y);
+
+        //ctx.fillText((obj.y*width)+obj.x, x, y);
+
+        ctx.beginPath();
+        ctx.arc(x, y, (obj.radius/2)*Math.floor(sw/width), 0, 
+        Math.PI*2);
+        ctx.fill();
     }
 };
 
