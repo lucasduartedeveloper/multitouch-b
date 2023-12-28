@@ -598,13 +598,14 @@ var drawImage = function() {
     var resolutionCtx = resolutionCanvas.getContext("2d");
     resolutionCtx.imageSmoothingEnabled = false;
 
-    if (cameraOn) {
-        resolutionCtx.save();
-        if (objectPosition == 0) {
-            resolutionCtx.scale(-1, 1);
-            resolutionCtx.translate(-resolutionCanvas.width, 0);
-        }
+    resolutionCtx.save();
+    if ((cameraOn && objectPosition == 0) || 
+        (!cameraOn && objectPosition == 1)) {
+        resolutionCtx.scale(-1, 1);
+        resolutionCtx.translate(-resolutionCanvas.width, 0);
+    }
 
+    if (cameraOn) {
         var video = {
             width: vw,
             height: vh
@@ -617,8 +618,6 @@ var drawImage = function() {
         resolutionCtx.drawImage(cameraView,
         -format.left, -format.top, frame.width, frame.height, 
         0, 0, resolutionCanvas.width, resolutionCanvas.height);
-
-        resolutionCtx.restore();
     }
     else {
         if (track < pictureArr.length && pictureArr[track].found) {
@@ -637,6 +636,8 @@ var drawImage = function() {
              0, 0, resolutionCanvas.width, resolutionCanvas.height);
         }
     }
+
+    resolutionCtx.restore();
 
     if (mode == 1)
     lowHeightCanvas(resolutionCanvas);
