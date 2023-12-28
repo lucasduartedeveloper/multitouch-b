@@ -336,8 +336,10 @@ var createShape = function() {
         transparent: true
     } );
 
-    sphereMesh = new THREE.Mesh(geometry, material );
-    group.add(sphereMesh);
+    sphereMesh0 = new THREE.Mesh(geometry, material );
+    group.add(sphereMesh0);
+    sphereMesh0.position.x = -5;
+    sphereMesh0.rotation.y = -(Math.PI/2);
 
     var resolutionCtx = resolutionCanvas.getContext("2d");
     resolutionCtx.imageSmoothingEnabled = false;
@@ -349,9 +351,37 @@ var createShape = function() {
     new THREE.TextureLoader().load(
     resolutionCanvas.toDataURL(), 
     texture => {
-        sphereMesh.material.transparent = true;
-        sphereMesh.material.map = texture;
-        sphereMesh.material.needsUpdate = true;
+        sphereMesh0.material.transparent = true;
+        sphereMesh0.material.map = texture;
+        sphereMesh0.material.needsUpdate = true;
+    });
+
+    var geometry = 
+    new THREE.SphereGeometry(2.5, 32); 
+    var material = new THREE.MeshBasicMaterial( {
+        color: 0xffffff,
+        opacity: 1,
+        transparent: true
+    } );
+
+    sphereMesh1 = new THREE.Mesh(geometry, material );
+    group.add(sphereMesh1);
+    sphereMesh1.position.x= 5;
+    sphereMesh1.rotation.y = -(Math.PI/2);
+
+    var resolutionCtx = resolutionCanvas.getContext("2d");
+    resolutionCtx.imageSmoothingEnabled = false;
+
+    resolutionCtx.clearRect(0, 0, numPixels, numPixels);
+    resolutionCtx.drawImage(pictureView,
+    0, 0, numPixels, numPixels);
+
+    new THREE.TextureLoader().load(
+    resolutionCanvas.toDataURL(), 
+    texture => {
+        sphereMesh1.material.transparent = true;
+        sphereMesh1.material.map = texture;
+        sphereMesh1.material.needsUpdate = true;
     });
 
     return;
