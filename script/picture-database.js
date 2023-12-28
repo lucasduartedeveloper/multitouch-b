@@ -1082,7 +1082,7 @@ var drawBinary = function(canvas) {
     ctx.textAlign = "center";
 
     if (ontouch)
-    ontouchIteration = (ontouchIteration+1) < 30 ? 
+    ontouchIteration = (ontouchIteration+1) < 15 ? 
     (ontouchIteration+1) : ontouchIteration;
     else
     ontouchIteration = (ontouchIteration-2) >= 0 ? 
@@ -1104,8 +1104,8 @@ var drawBinary = function(canvas) {
             Math.pow(ca, 2)
         );
 
-        var r0 = (1/hyp)*(35*((1/30)*ontouchIteration));
-        var r1 = (1-((1/30)*ontouchIteration))+r0;
+        var r0 = (1/hyp)*(35*((1/15)*ontouchIteration));
+        var r1 = (1-((1/15)*ontouchIteration))+r0;
         r1 = r1 > 1 ? 1 : r1;
 
         x = (x-v.x)+(v.x*r1);
