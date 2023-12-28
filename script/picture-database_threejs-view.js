@@ -244,7 +244,7 @@ var loadOBJ = function(path, callback) {
     );
 };
 
-var numPixels = 100;
+var numPixels = 250;
 
 var createMesh = function(start, size) {
     var positionArr = [];
@@ -329,6 +329,50 @@ var createShape = function() {
     group.clear();
 
     var geometry = 
+    new THREE.BoxGeometry(5, 5, 0.1); 
+    var material = new THREE.MeshBasicMaterial( {
+        color: 0xffffff,
+        opacity: 1,
+        transparent: true
+    } );
+
+    var materials = [
+        material.clone(),
+        material.clone(),
+        material.clone(),
+        material.clone(),
+        material.clone(),
+        material.clone()
+    ];
+
+    cubeMesh = new THREE.Mesh(geometry, materials );
+    group.add(cubeMesh);
+
+    var resolutionCtx = resolutionCanvas.getContext("2d");
+    resolutionCtx.imageSmoothingEnabled = false;
+
+    resolutionCtx.clearRect(0, 0, numPixels, numPixels);
+    resolutionCtx.drawImage(pictureView,
+    0, 0, numPixels, numPixels);
+
+    new THREE.TextureLoader().load(
+    previousResolutionCanvas.toDataURL(), 
+    texture => {
+        cubeMesh.material[5].transparent = true;
+        cubeMesh.material[5].map = texture;
+        cubeMesh.material[5].needsUpdate = true;
+    });
+
+    new THREE.TextureLoader().load(
+    resolutionCanvas.toDataURL(), 
+    texture => {
+        cubeMesh.material[4].transparent = true;
+        cubeMesh.material[4].map = texture;
+        cubeMesh.material[4].needsUpdate = true;
+    });
+
+    return;
+    var geometry = 
     new THREE.CylinderGeometry(
     0.9/(Math.PI/2), 0.9/(Math.PI/2), 2, 32); 
     var material = new THREE.MeshStandardMaterial( {
@@ -337,13 +381,13 @@ var createShape = function() {
         transparent: true
     } );
     var cylinder = new THREE.Mesh(geometry, material );
-    group.add(cylinder);
+    //group.add(cylinder);
 
     frontMesh = createMesh(0, 180);
     backMesh = createMesh(180, 180);
 
-    group.add(frontMesh.mesh);
-    group.add(backMesh.mesh);
+    //group.add(frontMesh.mesh);
+    //group.add(backMesh.mesh);
 };
 
 var updateShape = function() {
@@ -356,6 +400,23 @@ var updateShape = function() {
     resolutionCtx.drawImage(pictureView,
     0, 0, numPixels, numPixels);
 
+    new THREE.TextureLoader().load(
+    previousResolutionCanvas.toDataURL(), 
+    texture => {
+        cubeMesh.material[0].transparent = true;
+        cubeMesh.material[0].map = texture;
+        cubeMesh.material[0].needsUpdate = true;
+    });
+
+    new THREE.TextureLoader().load(
+    resolutionCanvas.toDataURL(), 
+    texture => {
+        cubeMesh.material[1].transparent = true;
+        cubeMesh.material[1].map = texture;
+        cubeMesh.material[1].needsUpdate = true;
+    });
+
+    return;
     new THREE.TextureLoader().load(
     previousResolutionCanvas.toDataURL(), 
     texture => {

@@ -299,7 +299,9 @@ $(document).ready(function() {
 
         threejsEnabled = (mode == 3);
         if (threejsEnabled) {
-            createShape();
+            setTimeout(function() {
+            createShape(); 
+            }, 1000);
             startAnimation();
         }
         else {
@@ -659,7 +661,7 @@ var drawImage = function() {
     if (mode == 2)
     directionCanvas(resolutionCanvas);
 
-    if (mode == 4)
+    if (mode == 3 || mode == 4)
     drawBinary(resolutionCanvas);
 
     if (reachedHeight > ((1/7) * (track+1)) && 
@@ -669,8 +671,8 @@ var drawImage = function() {
     warningBeep.pause();
 
     ctx.drawImage(resolutionCanvas, 0, 0, sw, sw);
-    if (mode == 3)
-    updateShape();
+    //if (mode == 3)
+    //updateShape();
 
     var measureCtx = measureView.getContext("2d");
     measureCtx.clearRect(0, 0, sw, sw);

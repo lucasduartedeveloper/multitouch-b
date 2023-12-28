@@ -1,0 +1,82 @@
+/*@media print {*/
+* { margin: 0 !important; padding: 0 !important; }
+#controls, .footer, .footerarea{ display: none; }
+html, body {
+    /*changing width to 100% causes huge overflow and wrap*/
+    height:100%; 
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    --overflow: hidden;
+    background: #FFF; 
+    font-size: 9.5pt;
+}
+
+#cube-container {
+   width: 17cm;
+   height: 21cm;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   flex-direction: row;
+   flex-wrap: wrap;
+   border: 1mm solid #ccc;
+   margin: 0px;
+}
+#cube-container div{
+   display: inline-block;
+   border: 1mm solid #ccc;
+   margin: 0px;
+}
+#cube-container img {
+   width: 4.8cm;
+   height: 4.8cm;
+   border: 1mm solid black;
+   margin: 0px;
+}
+.space {
+   width: 4.8cm;
+   height: 4.8cm;
+}
+.fold-left {
+   border: 1mm dashed black;
+   width: 0.8cm;
+   height: 4.8cm;
+}
+.fold-left-up {
+   border: 1mm dashed black;
+   width: 4.8cm;
+   height: 4.8cm;
+}
+.fold-up {
+   border: 1mm dashed black;
+   width: 4.8cm;
+   height: 0.8cm;
+}
+.fold-up-right {
+   border: 1mm dashed black;
+   width: 0.8cm;
+   height: 4.8cm;
+}
+.fold-right {
+   border: 1mm dashed black;
+   width: 0.8cm;
+   height: 4.8cm;
+}
+.fold-right-bottom {
+   border: 1mm dashed black;
+   width: 4.8cm;
+   height: 4.8cm;
+}
+.fold-bottom {
+   border: 1mm dashed black;
+   width: 4.8cm;
+   height: 0.8cm;
+}
+.fold-bottom-left {
+   border: 1mm dashed black;
+   width: 4.8cm;
+   height: 4.8cm;
+}
