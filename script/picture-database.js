@@ -104,6 +104,7 @@ $(document).ready(function() {
 
     ontouch = false;
     pictureView.ontouchstart = function(e) {
+        ontouchIteration = 0;
         ontouch = true;
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY-((sh/2)-(sw/2));
@@ -1025,6 +1026,8 @@ var directionCanvas = function(canvas, render=true) {
     //console.log(polygon);
 };
 
+var ontouchIteration = 0;
+
 var drawBinary = function(canvas) {
     var charSequence = ".*+#@";
 
@@ -1078,6 +1081,13 @@ var drawBinary = function(canvas) {
     ctx.textBaseline = "middle";
     ctx.textAlign = "center";
 
+    if (ontouch)
+    ontouchIteration = (ontouchIteration+1) < 30 ? 
+    (ontouchIteration+1) : ontouchIteration;
+    else
+    ontouchIteration = (ontouchIteration-2) >= 0 ? 
+    (ontouchIteration-2) : 0;
+
     for (var n = 0; n < binaryData.length; n++) {
         var obj = binaryData[n];
         var x = (sw/(width*2))+(obj.x*(sw/width));
@@ -1094,23 +1104,12 @@ var drawBinary = function(canvas) {
             Math.pow(ca, 2)
         );
 
-        if (ontouch && hyp < 35) {
-            var r = ((1/hyp) * 35)+((1-((1/hyp)*35))/5);
-            x = (x-v.x)+(v.x*r);
-            y = (y-v.y)+(v.y*r);
+        var r0 = (1/hyp)*(35*((1/30)*ontouchIteration));
+        var r1 = (1-((1/30)*ontouchIteration))+r0;
+        r1 = r1 > 1 ? 1 : r1;
 
-            var grd = ctx.createRadialGradient(
-            startX, startY, 0, startX, startY, 35);
-            grd.addColorStop(0, "#ccc");
-            grd.addColorStop(1, "#fff");
-
-            ctx.fillStyle = grd;
-
-            ctx.beginPath();
-            ctx.arc(startX, startY, (35/2), 0, 
-            Math.PI*2);
-            ctx.fill();
-        }
+        x = (x-v.x)+(v.x*r1);
+        y = (y-v.y)+(v.y*r1);
 
         ctx.fillStyle = "#000";
 
