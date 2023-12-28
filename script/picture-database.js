@@ -1013,6 +1013,8 @@ var directionCanvas = function(canvas, render=true) {
 var drawBinary = function(canvas) {
     var charSequence = ".*+#@";
 
+    var ctx = canvas.getContext("2d");
+
     var resolutionCanvas = document.createElement("canvas");
 
     var width = 50;
@@ -1025,8 +1027,6 @@ var drawBinary = function(canvas) {
     resolutionCtx.imageSmoothingEnabled = false;
 
     resolutionCtx.drawImage(canvas, 0, 0, width, height);
-
-    var ctx = canvas.getContext("2d");
 
     var imgData = 
     resolutionCtx.getImageData(0, 0, 
@@ -1054,10 +1054,11 @@ var drawBinary = function(canvas) {
     }
     }
 
-    ctx.fillStyle = "#000";
+    ctx.fillStyle = "#fff";
     ctx.fillRect(0, 0, sw, sw);
 
-    ctx.fillStyle = "#5f5";
+    ctx.fillStyle = "#000";
+    ctx.strokeStyle = "#000";
     ctx.font = ((sw/width)/3)+"px sans";
     ctx.textBaseline = "middle";
     ctx.textAlign = "center";
@@ -1072,10 +1073,49 @@ var drawBinary = function(canvas) {
 
         //ctx.fillText((obj.y*width)+obj.x, x, y);
 
+        var angle = (90*obj.radius);
+        var c = { x: x, y: y };
+        var p0 = { 
+           x: c.x-(Math.floor(sw/width)),
+           y: c.y
+        };
+        var p1 = { 
+           x: c.x+(Math.floor(sw/width)),
+           y: c.y
+        };
+        var rp0 = _rotate2d(c, p0, angle);
+        var rp1 = _rotate2d(c, p1, angle);
+
+        rp0.x = rp0.x < (c.x-(Math.floor(sw/width)/2)) ? 
+        (c.x-(Math.floor(sw/width)/2)) : rp0.x;
+
+        rp0.y = rp0.y > (c.y+(Math.floor(sw/width)/2)) ? 
+        (c.y+(Math.floor(sw/width)/2)) : rp0.y;
+
+        rp1.x = rp1.x > (c.x+(Math.floor(sw/width)/2)) ? 
+        (c.x+(Math.floor(sw/width)/2)) : rp1.x;
+
+        rp1.y = rp1.y < (c.y-(Math.floor(sw/width)/2)) ? 
+        (c.y-(Math.floor(sw/width)/2)) : rp1.y;
+
+        /*
+        var grd = ctx.createLinearGradient(
+        rp0.x, rp0.y, rp1.x, rp1.y);
+        grd.addColorStop(0, "#000");
+        grd.addColorStop(1, "#5f5");
+
+        ctx.fillStyle = grd;*/
+
         ctx.beginPath();
-        ctx.arc(x, y, (obj.radius/2)*Math.floor(sw/width), 0, 
+        //ctx.moveTo(rp0.x, rp0.y);
+        ctx.arc(x, y, (0.5-(obj.radius/2))*Math.floor(sw/width), 0, 
         Math.PI*2);
+        //ctx.lineTo(rp1.x, rp1.y);
+        //ctx.rect(x-(sw/(width*2)), y-(sw/(width*2)),
+        //(sw/width), (sw/width));
+
         ctx.fill();
+        //ctx.stroke();
     }
 };
 
