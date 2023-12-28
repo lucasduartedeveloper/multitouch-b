@@ -1111,10 +1111,21 @@ var drawBinary = function(canvas) {
         x = (x-v.x)+(v.x*r1);
         y = (y-v.y)+(v.y*r1);
 
+        var c = { 
+            x: startX, 
+            y: startY
+        };
+        var p = {
+            x: x,
+            y: y
+        };
+        var rp = _rotate2d(c, p, (r1*360));
+
         ctx.fillStyle = "#000";
 
         ctx.beginPath();
-        ctx.arc(x, y, (0.5-(obj.radius/2))*Math.floor(sw/width), 0, 
+        ctx.arc(rp.x, rp.y, 
+        (0.5-(obj.radius/2))*Math.floor(sw/width), 0, 
         Math.PI*2);
         ctx.fill();
     }

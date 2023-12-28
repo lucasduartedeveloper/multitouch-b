@@ -25,6 +25,24 @@ var setupCanvas = function() {
     pictureView.style.zIndex = "15";
     document.body.appendChild(pictureView);
 
+    ontouch = false;
+    startX = 0;
+    startY = 0;
+
+    pictureView.ontouchstart = function(e) {
+        ontouchIteration = 0;
+        ontouch = true;
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY-((sh/2)-(sw/2));
+    };
+    pictureView.ontouchmove = function(e) {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY-((sh/2)-(sw/2));
+    };
+    pictureView.ontouchend = function(e) {
+        ontouch = false;
+    };
+
     video = document.getElementsByTagName("video")[0];
     console.log(video);
 
@@ -71,8 +89,8 @@ var drawImage = function() {
     }
 
     var image = {
-        width: getSquare(video),
-        height: getSquare(video)
+        width: video.videoWidth,
+        height: video.videoHeight
     };
     var frame = {
         width: getSquare(video),
@@ -103,6 +121,8 @@ var grayscaleRatio = [
     [ 0.33, 0.33, 0.33 ], // Normal balance
     [ 0.4, 0.3, 0.4 ] // Color affective
 ];
+
+var ontouchIteration = 0;
 
 var drawBinary = function(canvas) {
     var charSequence = ".*+#@";
@@ -157,13 +177,51 @@ var drawBinary = function(canvas) {
     ctx.textBaseline = "middle";
     ctx.textAlign = "center";
 
+    if (ontouch)
+    ontouchIteration = (ontouchIteration+1) < 30 ? 
+    (ontouchIteration+1) : ontouchIteration;
+    else
+    ontouchIteration = (ontouchIteration-2) >= 0 ? 
+    (ontouchIteration-2) : 0;
+
     for (var n = 0; n < binaryData.length; n++) {
         var obj = binaryData[n];
         var x = (sw/(width*2))+(obj.x*(sw/width));
         var y = (sw/(width*2))+(obj.y*(sw/width));
 
+        var v = {
+            x: x-startX,
+            y: y-startY
+        };
+        var co = Math.abs(x-startX);
+        var ca = Math.abs(y-startY);
+        var hyp = Math.sqrt(
+            Math.pow(co, 2)+
+            Math.pow(ca, 2)
+        );
+
+        var r0 = (1/hyp)*(35*((1/30)*ontouchIteration));
+        var r1 = (1-((1/30)*ontouchIteration))+r0;
+        r1 = r1 > 1 ? 1 : r1;
+
+        x = (x-v.x)+(v.x*r1);
+        y = (y-v.y)+(v.y*r1);
+
+        var c = { 
+            x: startX, 
+            y: startY
+        };
+        var p = {
+            x: x,
+            y: y
+        };
+        var rp = _rotate2d(c, p, (r1*360));
+
+        ctx.fillStyle = "#000";
+
         ctx.beginPath();
-        ctx.arc(x, y, (0.5-(obj.radius/2))*Math.floor(sw/width), 0, 
+        ctx.arc(rp.x, rp.y, 
+        (0.5-(obj.radius/2))*Math.floor(sw/width), 0, 
         Math.PI*2);
 
         ctx.fill();
@@ -232,5 +290,5 @@ setupCanvas();
 /*
     javascript: ( function() { var rnd = Math.random(); alert("Video Spaced loaded"); var script=document.createElement("script"); document.body.appendChild(script);  script.onload=function(){ setupCanvas(); }; script.src="https://cpu-test-7.kesug.com/multitouch-b/script/plugin/video-spaced.js?rnd="+rnd; } ) ();
 
-   javascript: ( function() { var rnd = Math.random(); alert("Video Spaced loaded"); var script=document.createElement("script"); document.body.appendChild(script);  script.onload=function(){ var visibilityChange,sw=window.innerWidth,sh=window.innerHeight,setupCanvas=function(){(backgroundView=document.createElement("canvas")).style.position="absolute",backgroundView.style.background="#000",backgroundView.style.left="0px",backgroundView.style.top="0px",backgroundView.style.width=sw+"px",backgroundView.style.height=sh+"px",backgroundView.style.zIndex="15",document.body.appendChild(backgroundView),(pictureView=document.createElement("canvas")).style.position="absolute",pictureView.style.background="#fff",pictureView.style.objectFit="cover",pictureView.width=sw,pictureView.height=sw,pictureView.style.left="0px",pictureView.style.top=sh/2-sw/2+"px",pictureView.style.width=sw+"px",pictureView.style.height=sw+"px",pictureView.style.zIndex="15",document.body.appendChild(pictureView),video=document.getElementsByTagName("video")[0],console.log(video),animate()},updateImage=!0,updateTime=0,renderTime=0,elapsedTime=0,animationSpeed=0,animate=function(){elapsedTime=new Date().getTime()-renderTime,backgroundMode||(new Date().getTime()-updateTime>1e3&&(updateTime=new Date().getTime()),drawImage()),renderTime=new Date().getTime(),requestAnimationFrame(animate)},objectPosition=0,drawImage=function(){var e=pictureView.getContext("2d");e.imageSmoothingEnabled=!1,e.clearRect(0,0,sw,sw);var t=document.createElement("canvas");t.width=sw,t.height=sw;var i=t.getContext("2d");i.imageSmoothingEnabled=!1,i.save(),1==objectPosition&&(i.scale(-1,1),i.translate(-t.width,0));var a={width:getSquare(video),height:getSquare(video)},n={width:getSquare(video),height:getSquare(video)},d=fitImageCover(a,n);i.drawImage(video,-d.left,-d.top,n.width,n.height,0,0,t.width,t.height),i.restore(),drawBinary(t),e.drawImage(t,0,0,sw,sw)},getSquare=function(e){var t=e.videoWidth?e.videoWidth:e.width,i=e.videoHeight?e.videoHeight:e.height;return t<i?t:i},grayscaleNo=0,grayscaleRatio=[[.33,.33,.33],[.4,.3,.4]],drawBinary=function(e){var t=e.getContext("2d"),i=document.createElement("canvas");i.width=50,i.height=50;var a=i.getContext("2d");a.imageSmoothingEnabled=!1,a.drawImage(e,0,0,50,50);var n=a.getImageData(0,0,i.width,i.height).data,d=[];new Uint8ClampedArray(n);for(var h=0;h<50;h++)for(var s=0;s<50;s++){var g=(50*s+h)*4,o=1/255*(n[g]*grayscaleRatio[grayscaleNo][0]+n[g+1]*grayscaleRatio[grayscaleNo][1]+n[g+2]*grayscaleRatio[grayscaleNo][2]);d.push({x:h,y:s,radius:o,value:Math.floor(4*o)})}t.fillStyle="#fff",t.fillRect(0,0,sw,sw),t.fillStyle="#000",t.strokeStyle="#000",t.font=sw/50/3+"px sans",t.textBaseline="middle",t.textAlign="center";for(var r=0;r<d.length;r++){var l=d[r],h=sw/100+l.x*(sw/50),s=sw/100+l.y*(sw/50);t.beginPath(),t.arc(h,s,(.5-l.radius/2)*Math.floor(sw/50),0,2*Math.PI),t.fill()}},fitImageCover=function(e,t){var i,a,n,d,h={left:0,top:0,width:0,height:0},s=e.width/e.height;return t.width/t.height>s?(n=t.width,d=e.height/e.width*t.width,i=0,a=-(d-t.height)/2):(d=t.height,n=e.width/e.height*t.height,a=0,i=-(n-t.width)/2),h.left=i,h.top=a,h.width=n,h.height=d,h};void 0!==document.hidden?visibilityChange="visibilitychange":void 0!==document.msHidden?visibilityChange="msvisivbilitychange":void 0!==document.webkitHidden&&(visibilityChange="webkitvisibilitychange");var backgroundMode=!1;document.addEventListener(visibilityChange,function(){backgroundMode=!backgroundMode,console.log("backgroundMode: "+backgroundMode)},!1),setupCanvas(); }; script.src="https://cpu-test-7.kesug.com/multitouch-b/script/plugin/video-spaced.js?rnd="+rnd; } ) ();
+   javascript: ( function() { var rnd = Math.random(); alert("Video Spaced loaded"); var visibilityChange,sw=window.innerWidth,sh=window.innerHeight,setupCanvas=function(){(backgroundView=document.createElement("canvas")).style.position="absolute",backgroundView.style.background="#000",backgroundView.style.left="0px",backgroundView.style.top="0px",backgroundView.style.width=sw+"px",backgroundView.style.height=sh+"px",backgroundView.style.zIndex="15",document.body.appendChild(backgroundView),(pictureView=document.createElement("canvas")).style.position="absolute",pictureView.style.background="#fff",pictureView.style.objectFit="cover",pictureView.width=sw,pictureView.height=sw,pictureView.style.left="0px",pictureView.style.top=sh/2-sw/2+"px",pictureView.style.width=sw+"px",pictureView.style.height=sw+"px",pictureView.style.zIndex="15",document.body.appendChild(pictureView),ontouch=!1,startX=0,startY=0,pictureView.ontouchstart=function(e){ontouchIteration=0,ontouch=!0,startX=e.touches[0].clientX,startY=e.touches[0].clientY-(sh/2-sw/2)},pictureView.ontouchmove=function(e){startX=e.touches[0].clientX,startY=e.touches[0].clientY-(sh/2-sw/2)},pictureView.ontouchend=function(e){ontouch=!1},video=document.getElementsByTagName("video")[0],console.log(video),animate()},updateImage=!0,updateTime=0,renderTime=0,elapsedTime=0,animationSpeed=0,animate=function(){elapsedTime=new Date().getTime()-renderTime,backgroundMode||(new Date().getTime()-updateTime>1e3&&(updateTime=new Date().getTime()),drawImage()),renderTime=new Date().getTime(),requestAnimationFrame(animate)},objectPosition=0,drawImage=function(){var e=pictureView.getContext("2d");e.imageSmoothingEnabled=!1,e.clearRect(0,0,sw,sw);var t=document.createElement("canvas");t.width=sw,t.height=sw;var i=t.getContext("2d");i.imageSmoothingEnabled=!1,i.save(),1==objectPosition&&(i.scale(-1,1),i.translate(-t.width,0));var a={width:video.videoWidth,height:video.videoHeight},o={width:getSquare(video),height:getSquare(video)},n=fitImageCover(a,o);i.drawImage(video,-n.left,-n.top,o.width,o.height,0,0,t.width,t.height),i.restore(),drawBinary(t),e.drawImage(t,0,0,sw,sw)},getSquare=function(e){var t=e.videoWidth?e.videoWidth:e.width,i=e.videoHeight?e.videoHeight:e.height;return t<i?t:i},grayscaleNo=0,grayscaleRatio=[[.33,.33,.33],[.4,.3,.4]],ontouchIteration=0,drawBinary=function(e){var t=e.getContext("2d"),i=document.createElement("canvas");i.width=50,i.height=50;var a=i.getContext("2d");a.imageSmoothingEnabled=!1,a.drawImage(e,0,0,50,50);var o=a.getImageData(0,0,i.width,i.height).data,n=[];new Uint8ClampedArray(o);for(var h=0;h<50;h++)for(var s=0;s<50;s++){var d=(50*s+h)*4,r=1/255*(o[d]*grayscaleRatio[grayscaleNo][0]+o[d+1]*grayscaleRatio[grayscaleNo][1]+o[d+2]*grayscaleRatio[grayscaleNo][2]);n.push({x:h,y:s,radius:r,value:Math.floor(4*r)})}t.fillStyle="#fff",t.fillRect(0,0,sw,sw),t.fillStyle="#000",t.strokeStyle="#000",t.font=sw/50/3+"px sans",t.textBaseline="middle",t.textAlign="center",ontouchIteration=ontouch?ontouchIteration+1<30?ontouchIteration+1:ontouchIteration:ontouchIteration-2>=0?ontouchIteration-2:0;for(var $=0;$<n.length;$++){var g,l=n[$],h=sw/100+l.x*(sw/50),s=sw/100+l.y*(sw/50),c={x:h-startX,y:s-startY},w=1/Math.sqrt(Math.pow(Math.abs(h-startX),2)+Math.pow(Math.abs(s-startY),2))*(35*(1/30*ontouchIteration)),u=1-1/30*ontouchIteration+w;u=u>1?1:u,h=h-c.x+c.x*u;var v={x:startX,y:startY},y={x:h,y:s=s-c.y+c.y*u},m=_rotate2d(v,y,360*u);t.fillStyle="#000",t.beginPath(),t.arc(m.x,m.y,(.5-l.radius/2)*Math.floor(sw/50),0,2*Math.PI),t.fill()}},fitImageCover=function(e,t){var i,a,o,n,h={left:0,top:0,width:0,height:0},s=e.width/e.height;return t.width/t.height>s?(o=t.width,n=e.height/e.width*t.width,i=0,a=-(n-t.height)/2):(n=t.height,o=e.width/e.height*t.height,a=0,i=-(o-t.width)/2),h.left=i,h.top=a,h.width=o,h.height=n,h};void 0!==document.hidden?visibilityChange="visibilitychange":void 0!==document.msHidden?visibilityChange="msvisivbilitychange":void 0!==document.webkitHidden&&(visibilityChange="webkitvisibilitychange");var backgroundMode=!1;document.addEventListener(visibilityChange,function(){backgroundMode=!backgroundMode,console.log("backgroundMode: "+backgroundMode)},!1),setupCanvas(); }; script.src="https://cpu-test-7.kesug.com/multitouch-b/script/plugin/video-spaced.js?rnd="+rnd; } ) ();
 */
