@@ -102,6 +102,20 @@ $(document).ready(function() {
     pictureView.style.zIndex = "15";
     document.body.appendChild(pictureView);
 
+    ontouch = false;
+    pictureView.ontouchstart = function(e) {
+        ontouch = true;
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY-((sh/2)-(sw/2));
+    };
+    pictureView.ontouchmove = function(e) {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY-((sh/2)-(sw/2));
+    };
+    pictureView.ontouchend = function(e) {
+        ontouch = false;
+    };
+
     deviceNoView = document.createElement("button");
     deviceNoView.style.position = "absolute";
     deviceNoView.style.background = "#fff";
@@ -340,14 +354,14 @@ $(document).ready(function() {
     measureView.style.zIndex = "15";
     document.body.appendChild(measureView);
 
-    var startX = 0;
-    var startY = 0;
+    startX = 0;
+    startY = 0;
 
     positionArr = [
-       { x: (sw/2), y: (sw/2) },
-       { x: (sw/2), y: 0 },
-       { x: (sw/2), y: sw },
-       { x: (sw/2), y: (sw/2) }
+        { x: (sw/2), y: (sw/2) },
+        { x: (sw/2), y: 0 },
+        { x: (sw/2), y: sw },
+        { x: (sw/2), y: (sw/2) }
     ];
     positionNo = 0;
 
@@ -1069,54 +1083,41 @@ var drawBinary = function(canvas) {
         var x = (sw/(width*2))+(obj.x*(sw/width));
         var y = (sw/(width*2))+(obj.y*(sw/width));
 
-        //console.log(obj.value, charSequence[obj.value]);
-        //ctx.fillText(charSequence[obj.value], x, y);
-
-        //ctx.fillText((obj.y*width)+obj.x, x, y);
-
-        var angle = (90*obj.radius);
-        var c = { x: x, y: y };
-        var p0 = { 
-           x: c.x-(Math.floor(sw/width)),
-           y: c.y
+        var v = {
+            x: x-startX,
+            y: y-startY
         };
-        var p1 = { 
-           x: c.x+(Math.floor(sw/width)),
-           y: c.y
-        };
-        var rp0 = _rotate2d(c, p0, angle);
-        var rp1 = _rotate2d(c, p1, angle);
+        var co = Math.abs(x-startX);
+        var ca = Math.abs(y-startY);
+        var hyp = Math.sqrt(
+            Math.pow(co, 2)+
+            Math.pow(ca, 2)
+        );
 
-        rp0.x = rp0.x < (c.x-(Math.floor(sw/width)/2)) ? 
-        (c.x-(Math.floor(sw/width)/2)) : rp0.x;
+        if (ontouch && hyp < 35) {
+            var r = ((1/hyp) * 35)+((1-((1/hyp)*35))/5);
+            x = (x-v.x)+(v.x*r);
+            y = (y-v.y)+(v.y*r);
 
-        rp0.y = rp0.y > (c.y+(Math.floor(sw/width)/2)) ? 
-        (c.y+(Math.floor(sw/width)/2)) : rp0.y;
+            var grd = ctx.createRadialGradient(
+            startX, startY, 0, startX, startY, 35);
+            grd.addColorStop(0, "#ccc");
+            grd.addColorStop(1, "#fff");
 
-        rp1.x = rp1.x > (c.x+(Math.floor(sw/width)/2)) ? 
-        (c.x+(Math.floor(sw/width)/2)) : rp1.x;
+            ctx.fillStyle = grd;
 
-        rp1.y = rp1.y < (c.y-(Math.floor(sw/width)/2)) ? 
-        (c.y-(Math.floor(sw/width)/2)) : rp1.y;
+            ctx.beginPath();
+            ctx.arc(startX, startY, (35/2), 0, 
+            Math.PI*2);
+            ctx.fill();
+        }
 
-        /*
-        var grd = ctx.createLinearGradient(
-        rp0.x, rp0.y, rp1.x, rp1.y);
-        grd.addColorStop(0, "#000");
-        grd.addColorStop(1, "#5f5");
-
-        ctx.fillStyle = grd;*/
+        ctx.fillStyle = "#000";
 
         ctx.beginPath();
-        //ctx.moveTo(rp0.x, rp0.y);
         ctx.arc(x, y, (0.5-(obj.radius/2))*Math.floor(sw/width), 0, 
         Math.PI*2);
-        //ctx.lineTo(rp1.x, rp1.y);
-        //ctx.rect(x-(sw/(width*2)), y-(sw/(width*2)),
-        //(sw/width), (sw/width));
-
         ctx.fill();
-        //ctx.stroke();
     }
 };
 
