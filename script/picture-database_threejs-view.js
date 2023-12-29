@@ -389,6 +389,25 @@ var createShape = function() {
         sphereMesh0.material.needsUpdate = true;
     });
 
+    new THREE.TextureLoader().load(
+    resolutionCanvas.toDataURL(), 
+    texture => {
+        plane.material.transparent = true;
+        plane.material.map = texture;
+        plane.material.needsUpdate = true;
+    });
+
+    loadNormalMap(
+    "img/picture-database/picture-0_n.png", 
+    function(url) {
+    new THREE.TextureLoader().load(url, 
+    texture => {
+        plane.material.transparent = true;
+        plane.material.normalMap = texture;
+        plane.material.needsUpdate = true;
+    });
+    });
+
     var geometry = 
     new THREE.SphereGeometry(2.45, 32); 
     var material = new THREE.MeshBasicMaterial( {
@@ -528,25 +547,88 @@ var updateShape = function() {
     render = true;
 };
 
-var createTexture = function() {
-    var canvas = document.createElement("canvas");
-    canvas.width = 500;
-    canvas.height = 500;
+var loadNormalMap = function(url) {
+    var geometry = 
+    new THREE.PlaneGeometry(5, 5, 32); 
+
+    var material = new THREE.MeshBasicMaterial( {
+        color: 0xffffff,
+        opacity: 1,
+        transparent: true
+    } );
+
+    plane = new THREE.Mesh(geometry, material );
+    group.add(plane);
+    plane.position.y = 7.5;
+
+    var img = document.createElement("img");
+    img.onload = function() {
+        var mapCanvas = document.createElement("canvas");
+        mapCanvas.width = numPixels;
+        mapCanvas.height = numPixels;
+
+        var mapCtx = mapCanvas.getContext("2d");
+
+        var size = {
+            width: this.naturalWidth,
+            height: this.naturalHeight
+        };
+        var frame = {
+            width: getSquare(this),
+            height: getSquare(this),
+        };
+        var format = fitImageCover(size, frame);
+            mapCtx.drawImage(this, 
+            -format.left, -format.top, frame.width, frame.height, 
+            0, 0, mapCanvas.width, mapCanvas.height);
+
+        new THREE.TextureLoader().load(
+        mapCanvas.toDataURL(), 
+        texture => {
+            plane.material.transparent = true;
+            plane.material.normalMap = texture;
+            plane.material.needsUpdate = true;
+        });
+    };
+
+    img.src = url;
+};
+
+var createNormalMap = function(canvas) {
+    var mapCanvas = document.createElement("canvas");
+    mapCanvas.width = numPixels;
+    mapCanvas.height = numPixels;
 
     var ctx = canvas.getContext("2d");
-    ctx.fillStyle = "#fff";
-    ctx.fillRect(0, 0, 500, 500);
+    var mapCtx = mapCanvas.getContext("2d");
 
-    ctx.fillStyle = "#000";
+    var imgData = 
+    ctx.getImageData(0, 0, numPixels, numPixels);
+    var data = imgData.data;
 
-    for (var x = 1; x < numPixels; x++) {
-    for (var y = 0; y < (numPixels-1); y++) {
-        if ((((x-1) % 2 == 0) && (y % 2 == 0)) || 
-        (((x-1) % 2 == 1) && (y % 2 == 1)))
-        ctx.fillRect((x-1)*(500/numPixels), y*(500/numPixels), 
-        (500/numPixels), (500/numPixels));
+    var newImageArray = new Uint8ClampedArray(data);
+    for (var x = 0; x < numPixels; x++) {
+    for (var y = 0; y < numPixels; y++) {
+
+        var n = ((x*numPixels)+y)*4;
+        var brightness = 
+        (1/255) * 
+        ((data[n] * grayscaleRatio[grayscaleNo][0]) + 
+        (data[n + 1] * grayscaleRatio[grayscaleNo][1]) + 
+        (data[n + 2] * grayscaleRatio[grayscaleNo][2]));
+
+        newImageArray[n] = 128;
+        newImageArray[n + 1] = 128;
+        newImageArray[n + 2] = (brightness*255);
+        newImageArray[n + 3] = 255;
+
     }
     }
 
-    return canvas.toDataURL();
-}
+    var newImageData = 
+    new ImageData(newImageArray, 
+    mapCanvas.width, mapCanvas.height);
+    mapCtx.putImageData(newImageData, 0, 0);
+
+    return mapCanvas.toDataURL();
+};
