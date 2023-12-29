@@ -31,6 +31,29 @@ var load3D = function() {
     renderer.domElement.style.zIndex = "25";
     document.body.appendChild( renderer.domElement ); 
 
+    var raycaster = new THREE.Raycaster();
+    var mouse = new THREE.Vector2();
+
+    renderer.domElement.onclick = function(e) {
+        mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
+        mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
+
+        // update the picking ray with the camera and mouse position
+        raycaster.setFromCamera( mouse, virtualCamera );
+
+        // calculate objects intersecting the picking ray
+        console.log(scene.children);
+
+        var intersects = raycaster.intersectObjects( scene.children );
+        console.log(intersects.length);
+
+        if (intersects.length > 0) {
+            var position = intersects[0].object.position;
+            controls.target = position.clone();
+            controls.update();
+        };
+    };
+
     scene = new THREE.Scene();
     //scene.background = null;
     scene.background = new THREE.Color("#000"); 
@@ -330,6 +353,7 @@ var createShape = function() {
 
     var geometry = 
     new THREE.SphereGeometry(2.5, 32); 
+
     var material = new THREE.MeshBasicMaterial( {
         color: 0xffffff,
         opacity: 1,
@@ -338,7 +362,7 @@ var createShape = function() {
 
     sphereMesh0 = new THREE.Mesh(geometry, material );
     group.add(sphereMesh0);
-    sphereMesh0.position.x = -5;
+    //sphereMesh0.position.x = -5;
     sphereMesh0.rotation.y = -(Math.PI/2);
 
     var resolutionCtx = resolutionCanvas.getContext("2d");
@@ -357,16 +381,17 @@ var createShape = function() {
     });
 
     var geometry = 
-    new THREE.SphereGeometry(2.5, 32); 
+    new THREE.SphereGeometry(2.45, 32); 
     var material = new THREE.MeshBasicMaterial( {
         color: 0xffffff,
         opacity: 1,
-        transparent: true
+        transparent: true,
+        side: THREE.BackSide
     } );
 
     sphereMesh1 = new THREE.Mesh(geometry, material );
     group.add(sphereMesh1);
-    sphereMesh1.position.x= 5;
+    //sphereMesh1.position.x= 5;
     sphereMesh1.rotation.y = -(Math.PI/2);
 
     new THREE.TextureLoader().load(
