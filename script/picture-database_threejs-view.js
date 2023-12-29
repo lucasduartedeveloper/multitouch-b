@@ -369,8 +369,17 @@ var createShape = function() {
     resolutionCtx.imageSmoothingEnabled = false;
 
     resolutionCtx.clearRect(0, 0, numPixels, numPixels);
+    resolutionCtx.drawImage(previousResolutionCanvas,
+    (numPixels/4), 0, (numPixels/4), numPixels,
+    (numPixels/2)+(numPixels/4), 0, (numPixels/4), numPixels);
+
+    resolutionCtx.drawImage(previousResolutionCanvas,
+    (numPixels/2), 0, (numPixels/4), numPixels,
+    0, 0, (numPixels/4), numPixels);
+
     resolutionCtx.drawImage(pictureView,
-    0, 0, numPixels, numPixels);
+    (sw/4), 0, (sw/2), sw,
+    (numPixels/4), 0, (numPixels/2), numPixels);
 
     new THREE.TextureLoader().load(
     resolutionCanvas.toDataURL(), 
