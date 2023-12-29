@@ -383,7 +383,7 @@ var createShape = function() {
     var geometry = 
     new THREE.SphereGeometry(2.45, 32); 
     var material = new THREE.MeshBasicMaterial( {
-        color: 0x55ff55,
+        color: 0xffffff,
         opacity: 1,
         transparent: true,
         side: THREE.BackSide
