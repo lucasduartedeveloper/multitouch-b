@@ -76,6 +76,7 @@ $(document).ready(function() {
 
     cameraView = document.createElement("video");
     cameraView.style.position = "absolute";
+    cameraView.style.display = "none";
     //cameraView.style.background = "#fff";
     cameraView.style.objectFit = "cover";
     cameraView.autoplay = true;
