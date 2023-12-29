@@ -157,12 +157,6 @@ var load3D = function() {
     stereofx.setEyeSeparation(eyeSep.value);
     document.body.appendChild(eyeSep);
 
-    var rotationX = 0;
-    var speedX = (Math.PI*2)/90;
-
-    var rotationY = 0;
-    var speedY = (Math.PI*2)/180;
-
     var canTexture = false;
 
     render = true;
@@ -171,6 +165,9 @@ var load3D = function() {
         iterations -= 1;
         if (iterations > 0 && render)
         req = requestAnimationFrame( animateThreejs );
+
+        group.rotateX(rotationX);
+        group.rotateY(rotationY);
 
         controls.update();
         if (renderer.enable3d == 0) {
@@ -352,6 +349,62 @@ var createShape = function() {
     group.clear();
 
     var geometry = 
+    new THREE.SphereGeometry(7.5, 32); 
+
+    var material = new THREE.MeshBasicMaterial( {
+        color: 0xffffff,
+        opacity: 1,
+        transparent: true
+    } );
+
+    globeMesh = new THREE.Mesh(geometry, material );
+    scene.add(globeMesh);
+    //sphereMesh0.position.x = -5;
+    globeMesh.rotation.y = -(Math.PI/2);
+
+    new THREE.TextureLoader().load(
+    "img/picture-database/globe-texture.png", 
+    texture => {
+        globeMesh.material.transparent = true;
+        globeMesh.material.map = texture;
+        globeMesh.material.needsUpdate = true;
+    });
+
+    var geometry = 
+    new THREE.SphereGeometry((7.5*0.27), 32); 
+
+    var material = new THREE.MeshBasicMaterial( {
+        color: 0xffffff,
+        opacity: 1,
+        transparent: true
+    } );
+
+    moonMesh = new THREE.Mesh(geometry, material );
+    scene.add(moonMesh);
+    moonMesh.position.y = 17.5;
+
+    new THREE.TextureLoader().load(
+    "img/picture-database/moon-texture.png", 
+    texture => {
+        moonMesh.material.transparent = true;
+        moonMesh.material.map = texture;
+        moonMesh.material.needsUpdate = true;
+    });
+
+    var geometry = 
+    new THREE.CylinderGeometry(0.1, 0.1, 5, 32); 
+
+    var material = new THREE.MeshBasicMaterial( {
+        color: 0xffffff,
+        opacity: 1,
+        transparent: true
+    } );
+
+    cylinderMesh = new THREE.Mesh(geometry, material );
+    group.add(cylinderMesh);
+    cylinderMesh.position.y = 10;
+
+    var geometry = 
     new THREE.SphereGeometry(2.5, 32); 
 
     var material = new THREE.MeshBasicMaterial( {
@@ -362,13 +415,15 @@ var createShape = function() {
 
     sphereMesh0 = new THREE.Mesh(geometry, material );
     group.add(sphereMesh0);
-    //sphereMesh0.position.x = -5;
+    sphereMesh0.position.y = 12.5;
     sphereMesh0.rotation.y = -(Math.PI/2);
 
     var resolutionCtx = resolutionCanvas.getContext("2d");
     resolutionCtx.imageSmoothingEnabled = false;
 
-    resolutionCtx.clearRect(0, 0, numPixels, numPixels);
+    resolutionCtx.fillStyle = "#fff";
+    resolutionCtx.fillRect(0, 0, numPixels, numPixels);
+
     resolutionCtx.drawImage(previousResolutionCanvas,
     (numPixels/4), 0, (numPixels/4), numPixels,
     (numPixels/2)+(numPixels/4), 0, (numPixels/4), numPixels);
@@ -387,14 +442,6 @@ var createShape = function() {
         sphereMesh0.material.transparent = true;
         sphereMesh0.material.map = texture;
         sphereMesh0.material.needsUpdate = true;
-    });
-
-    new THREE.TextureLoader().load(
-    resolutionCanvas.toDataURL(), 
-    texture => {
-        plane.material.transparent = true;
-        plane.material.map = texture;
-        plane.material.needsUpdate = true;
     });
 
     var geometry = 
@@ -576,6 +623,14 @@ var loadNormalMap = function(url) {
         texture => {
             plane.material.transparent = true;
             plane.material.normalMap = texture;
+            plane.material.needsUpdate = true;
+        });
+
+        new THREE.TextureLoader().load(
+        resolutionCanvas.toDataURL(), 
+        texture => {
+            plane.material.transparent = true;
+            plane.material.map = texture;
             plane.material.needsUpdate = true;
         });
     };

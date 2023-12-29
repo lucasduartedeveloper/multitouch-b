@@ -76,7 +76,7 @@ $(document).ready(function() {
 
     cameraView = document.createElement("video");
     cameraView.style.position = "absolute";
-    cameraView.style.background = "#fff";
+    //cameraView.style.background = "#fff";
     cameraView.style.objectFit = "cover";
     cameraView.autoplay = true;
     cameraView.width = (sw);
@@ -458,6 +458,41 @@ $(document).ready(function() {
         loadImages();
     });
 
+    sizeView = document.createElement("button");
+    sizeView.style.position = "absolute";
+    sizeView.style.background = "#fff";
+    sizeView.style.color = "#000";
+    sizeView.innerText = "SET SIZE";
+    sizeView.style.fontFamily = "Khand";
+    sizeView.style.lineHeight = (25)+"px";
+    sizeView.style.fontSize = (15)+"px";
+    sizeView.style.left = ((sw/2)-(sw/2)+170)+"px";
+    sizeView.style.top = 
+    ((sh/2)+(sw/2)+80)+"px";
+    sizeView.style.width = (70)+"px";
+    sizeView.style.height = (25)+"px";
+    sizeView.style.border = "none";
+    sizeView.style.borderRadius = "12.5px";
+    sizeView.style.zIndex = "15";
+    document.body.appendChild(sizeView);
+
+    sizeView.onclick = function() {
+        var input = prompt();
+        if (!input) {
+            pictureView.style.left = (0)+"px";
+            pictureView.style.top = ((sh/2)-(sw/2))+"px";
+            pictureView.style.width = (sw)+"px";
+            pictureView.style.height = (sw)+"px";
+        }
+        else {
+            var size = parseInt(input);
+            pictureView.style.left = ((sw/2)-(size/2))+"px";
+            pictureView.style.top = ((sh/2)-(size/2))+"px";
+            pictureView.style.width = (size)+"px";
+            pictureView.style.height = (size)+"px";
+        }
+    };
+
     previousResolutionCanvas = 
     document.createElement("canvas");
     previousResolutionCanvas.style.position = "absolute";
@@ -480,6 +515,47 @@ $(document).ready(function() {
     resolutionCanvas.style.height = (sw)+"px";
     resolutionCanvas.style.border = "none";
     resolutionCanvas.style.zIndex = "35";
+
+    analogButton = document.createElement("div");
+    analogButton.style.position = "absolute";
+    analogButton.style.objectFit = "cover";
+    analogButton.style.left = ((sw/2)+(sw/4)-25)+"px";
+    analogButton.style.top = ((sh/2)+(sw/2)+75)+"px";
+    analogButton.style.width = (50)+"px";
+    analogButton.style.height = (50)+"px";
+    analogButton.style.border = "1px solid #fff";
+    analogButton.style.borderRadius = "50%";
+    analogButton.style.zIndex = "15";
+    document.body.appendChild(analogButton);
+
+    analogStartX = 0;
+    analogStartY = 0;
+
+    rotationX = 0;
+    rotationY = 0;
+
+    analogButton.ontouchstart = function(e) {
+        analogStartX = e.touches[0].clientX;
+        analogStartY = e.touches[0].clientY;
+    };
+    analogButton.ontouchmove = function(e) {
+        var moveX = e.touches[0].clientX - analogStartX;
+        var moveY = e.touches[0].clientY - analogStartY;
+
+        var v = {
+            x: moveX,
+            y: moveY
+        };
+        v.x = moveX > 50 ? 1 : (1/50)*moveX;
+        v.y = moveY > 50 ? 1 : (1/50)*moveY;
+
+        rotationX = (-v.y)*((Math.PI*2)/60);
+        rotationY = (v.x)*((Math.PI*2)/60);
+    };
+    analogButton.ontouchend = function(e) {
+        rotationX = 0;
+        rotationY = 0;
+    };
 
     load3D();
     animate();
