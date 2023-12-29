@@ -397,17 +397,6 @@ var createShape = function() {
         plane.material.needsUpdate = true;
     });
 
-    loadNormalMap(
-    "img/picture-database/picture-0_n.png", 
-    function(url) {
-    new THREE.TextureLoader().load(url, 
-    texture => {
-        plane.material.transparent = true;
-        plane.material.normalMap = texture;
-        plane.material.needsUpdate = true;
-    });
-    });
-
     var geometry = 
     new THREE.SphereGeometry(2.45, 32); 
     var material = new THREE.MeshBasicMaterial( {
