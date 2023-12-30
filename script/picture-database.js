@@ -739,6 +739,8 @@ var drawImage = function() {
     directionCanvas(resolutionCanvas);
     if (mode == 4)
     drawBinary(resolutionCanvas);
+    if (mode == 5)
+    drawFromCoordinates(resolutionCanvas);
 
     if (reachedHeight > ((1/7) * (track+1)) && 
     warningBeep.paused)
