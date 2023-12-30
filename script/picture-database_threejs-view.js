@@ -56,7 +56,7 @@ var load3D = function() {
 
     scene = new THREE.Scene();
     //scene.background = null;
-    scene.background = new THREE.Color("#000"); 
+    //scene.background = new THREE.Color("#000"); 
 
     light = new THREE.PointLight(
         lightParams.color,
@@ -166,8 +166,8 @@ var load3D = function() {
         if (iterations > 0 && render)
         req = requestAnimationFrame( animateThreejs );
 
-        group.rotateX(rotationX);
-        group.rotateY(rotationY);
+        //group.rotateX(rotationX);
+        //group.rotateY(rotationY);
 
         controls.update();
         if (renderer.enable3d == 0) {
@@ -335,141 +335,38 @@ var createMesh = function(start, size) {
     } );
     var mesh = new THREE.Mesh(geometry, material );
 
+    var canvas = document.createElement("canvas");
+    canvas.width = numPixels;
+    canvas.height = numPixels;
+
     var obj = {
         positionArr: positionArr,
-        mesh: mesh
+        mesh: mesh,
+        canvas: canvas
     };
     return obj;
 };
 
 var frontMesh = 0;
-var backMesh = 0;
 
 var createShape = function() {
     group.clear();
 
-    var geometry = 
-    new THREE.SphereGeometry(2.5, 32); 
-
-    var material = new THREE.MeshBasicMaterial( {
-        color: 0xffffff,
-        opacity: 1,
-        transparent: true
-    } );
-
-    sphereMesh0 = new THREE.Mesh(geometry, material );
-    group.add(sphereMesh0);
-    //sphereMesh0.position.y = 12.5;
-    sphereMesh0.rotation.y = -(Math.PI/2);
-
-    var resolutionCtx = resolutionCanvas.getContext("2d");
-    resolutionCtx.imageSmoothingEnabled = false;
-
-    resolutionCtx.clearRect(0, 0, numPixels, numPixels);
-
-    resolutionCtx.drawImage(previousResolutionCanvas,
-    (numPixels/4), 0, (numPixels/4), numPixels,
-    (numPixels/2)+(numPixels/4), 0, (numPixels/4), numPixels);
-
-    resolutionCtx.drawImage(previousResolutionCanvas,
-    (numPixels/2), 0, (numPixels/4), numPixels,
-    0, 0, (numPixels/4), numPixels);
-
-    resolutionCtx.drawImage(pictureView,
-    (sw/4), 0, (sw/2), sw,
-    (numPixels/4), 0, (numPixels/2), numPixels);
-
-    new THREE.TextureLoader().load(
-    resolutionCanvas.toDataURL(), 
-    texture => {
-        sphereMesh0.material.transparent = true;
-        sphereMesh0.material.map = texture;
-        sphereMesh0.material.needsUpdate = true;
-    });
-
-    var geometry = 
-    new THREE.SphereGeometry(2.45, 32); 
-    var material = new THREE.MeshBasicMaterial( {
-        color: 0xffffff,
-        opacity: 1,
-        transparent: true,
-        side: THREE.BackSide
-    } );
-
-    sphereMesh1 = new THREE.Mesh(geometry, material );
-    group.add(sphereMesh1);
-    //sphereMesh1.position.x= 5;
-    sphereMesh1.rotation.y = -(Math.PI/2);
-
-    new THREE.TextureLoader().load(
-    previousResolutionCanvas.toDataURL(), 
-    texture => {
-        sphereMesh1.material.transparent = true;
-        sphereMesh1.material.map = texture;
-        sphereMesh1.material.needsUpdate = true;
-    });
-
-    return;
-    var geometry = 
-    new THREE.CylinderGeometry(
-    0.9/(Math.PI/2), 0.9/(Math.PI/2), 2, 32); 
-    var material = new THREE.MeshStandardMaterial( {
-        color: 0x888888,
-        opacity: 0.5,
-        transparent: true
-    } );
-    var cylinder = new THREE.Mesh(geometry, material );
-    //group.add(cylinder);
-
     frontMesh = createMesh(0, 180);
-    backMesh = createMesh(180, 180);
 
-    //group.add(frontMesh.mesh);
-    //group.add(backMesh.mesh);
+    group.add(frontMesh.mesh);
 };
 
+var line = (numPixels/2)-1;
 var updateShape = function() {
+    if (!frontMesh) return;
     render = false;
 
     var resolutionCtx = resolutionCanvas.getContext("2d");
     resolutionCtx.imageSmoothingEnabled = false;
 
-    resolutionCtx.clearRect(0, 0, numPixels, numPixels);
-    resolutionCtx.drawImage(pictureView,
+    resolutionCtx.drawImage(pictureView, 
     0, 0, numPixels, numPixels);
-
-    new THREE.TextureLoader().load(
-    previousResolutionCanvas.toDataURL(), 
-    texture => {
-        cubeMesh.material[0].transparent = true;
-        cubeMesh.material[0].map = texture;
-        cubeMesh.material[0].needsUpdate = true;
-    });
-
-    new THREE.TextureLoader().load(
-    resolutionCanvas.toDataURL(), 
-    texture => {
-        cubeMesh.material[1].transparent = true;
-        cubeMesh.material[1].map = texture;
-        cubeMesh.material[1].needsUpdate = true;
-    });
-
-    return;
-    new THREE.TextureLoader().load(
-    previousResolutionCanvas.toDataURL(), 
-    texture => {
-        backMesh.mesh.material.transparent = true;
-        backMesh.mesh.material.map = texture;
-        backMesh.mesh.material.needsUpdate = true;
-    });
-
-    new THREE.TextureLoader().load(
-    resolutionCanvas.toDataURL(), 
-    texture => {
-        frontMesh.mesh.material.transparent = true;
-        frontMesh.mesh.material.map = texture;
-        frontMesh.mesh.material.needsUpdate = true;
-    });
 
     var imgData = 
     resolutionCtx.getImageData(0, 0, numPixels, numPixels);
@@ -481,7 +378,16 @@ var updateShape = function() {
     var vertexArray = 
     frontMesh.mesh.geometry.getAttribute("position").array;
 
-    for (var x = 1; x < numPixels; x++) {
+    line = line > ((numPixels/2)-1) && rotationY < 0 ? 
+    ((numPixels/2)-1) : line;
+    line = line < ((numPixels/2)-1) && rotationY > 0 ? 
+    ((numPixels/2)-1) : line;
+
+    line += rotationY;
+    line = line <= 0 ? 1 : line;
+    line = line > (numPixels-1) ? (numPixels-1) : line;
+
+    for (var x = (numPixels/2)-1; x < (numPixels/2); x++) {
     for (var y = 0; y < (numPixels-1); y++) {
 
         var n = ((x*numPixels)+y)*4;
@@ -493,10 +399,10 @@ var updateShape = function() {
         reachedHeight = brightness > reachedHeight ? 
         brightness : reachedHeight;
 
-        var a = (((x-1)*numPixels)+y);
-        var b = ((x*numPixels)+y);
-        var c = (((x-1)*numPixels)+(y+1));
-        var d = ((x*numPixels)+(y+1));
+        var a = (((line-1)*numPixels)+y);
+        var b = ((line*numPixels)+y);
+        var c = (((line-1)*numPixels)+(y+1));
+        var d = ((line*numPixels)+(y+1));
 
         vertexArray[(a*3)] = 
         positionArr[a].x * (1+brightness);
@@ -523,99 +429,16 @@ var updateShape = function() {
     frontMesh.mesh.
     geometry.getAttribute("position").needsUpdate = true;
 
+    var canvas = frontMesh.canvas;
+    var textureCtx = canvas.getContext("2d");
+    textureCtx.imageSmoothingEnabled = false;
+
+    textureCtx.drawImage(pictureView, 
+    line, 0, 1, numPixels);
+
+    frontMesh.mesh.loadTexture(
+        canvas.toDataURL()
+    );
+
     render = true;
-};
-
-var loadNormalMap = function(url) {
-    var geometry = 
-    new THREE.PlaneGeometry(5, 5, 32); 
-
-    var material = new THREE.MeshBasicMaterial( {
-        color: 0xffffff,
-        opacity: 1,
-        transparent: true
-    } );
-
-    plane = new THREE.Mesh(geometry, material );
-    group.add(plane);
-    plane.position.y = 7.5;
-
-    var img = document.createElement("img");
-    img.onload = function() {
-        var mapCanvas = document.createElement("canvas");
-        mapCanvas.width = numPixels;
-        mapCanvas.height = numPixels;
-
-        var mapCtx = mapCanvas.getContext("2d");
-
-        var size = {
-            width: this.naturalWidth,
-            height: this.naturalHeight
-        };
-        var frame = {
-            width: getSquare(this),
-            height: getSquare(this),
-        };
-        var format = fitImageCover(size, frame);
-            mapCtx.drawImage(this, 
-            -format.left, -format.top, frame.width, frame.height, 
-            0, 0, mapCanvas.width, mapCanvas.height);
-
-        new THREE.TextureLoader().load(
-        mapCanvas.toDataURL(), 
-        texture => {
-            plane.material.transparent = true;
-            plane.material.normalMap = texture;
-            plane.material.needsUpdate = true;
-        });
-
-        new THREE.TextureLoader().load(
-        resolutionCanvas.toDataURL(), 
-        texture => {
-            plane.material.transparent = true;
-            plane.material.map = texture;
-            plane.material.needsUpdate = true;
-        });
-    };
-
-    img.src = url;
-};
-
-var createNormalMap = function(canvas) {
-    var mapCanvas = document.createElement("canvas");
-    mapCanvas.width = numPixels;
-    mapCanvas.height = numPixels;
-
-    var ctx = canvas.getContext("2d");
-    var mapCtx = mapCanvas.getContext("2d");
-
-    var imgData = 
-    ctx.getImageData(0, 0, numPixels, numPixels);
-    var data = imgData.data;
-
-    var newImageArray = new Uint8ClampedArray(data);
-    for (var x = 0; x < numPixels; x++) {
-    for (var y = 0; y < numPixels; y++) {
-
-        var n = ((x*numPixels)+y)*4;
-        var brightness = 
-        (1/255) * 
-        ((data[n] * grayscaleRatio[grayscaleNo][0]) + 
-        (data[n + 1] * grayscaleRatio[grayscaleNo][1]) + 
-        (data[n + 2] * grayscaleRatio[grayscaleNo][2]));
-
-        newImageArray[n] = 128;
-        newImageArray[n + 1] = 128;
-        newImageArray[n + 2] = (brightness*255);
-        newImageArray[n + 3] = 255;
-
-    }
-    }
-
-    var newImageData = 
-    new ImageData(newImageArray, 
-    mapCanvas.width, mapCanvas.height);
-    mapCtx.putImageData(newImageData, 0, 0);
-
-    return mapCanvas.toDataURL();
 };

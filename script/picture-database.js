@@ -550,8 +550,7 @@ $(document).ready(function() {
         v.x = moveX > 50 ? 1 : (1/50)*moveX;
         v.y = moveY > 50 ? 1 : (1/50)*moveY;
 
-        rotationX = (-v.y)*((Math.PI*2)/60);
-        rotationY = (v.x)*((Math.PI*2)/60);
+        rotationY = v.x > 0 ? 1 : -1;
     };
     analogButton.ontouchend = function(e) {
         rotationX = 0;
@@ -739,8 +738,6 @@ var drawImage = function() {
     directionCanvas(resolutionCanvas);
     if (mode == 4)
     drawBinary(resolutionCanvas);
-    if (mode == 5)
-    drawFromCoordinates(resolutionCanvas);
 
     if (reachedHeight > ((1/7) * (track+1)) && 
     warningBeep.paused)
@@ -749,8 +746,16 @@ var drawImage = function() {
     warningBeep.pause();
 
     ctx.drawImage(resolutionCanvas, 0, 0, sw, sw);
-    //if (mode == 3)
-    //updateShape();
+    if (mode == 3) {
+        updateShape();
+        ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+        ctx.fillRect(0, 0, sw, sw);
+        ctx.strokeStyle = "rgba(150, 255, 150, 0.5)";
+        ctx.beginPath();
+        ctx.moveTo((sw/2), 0);
+        ctx.lineTo((sw/2), sw);
+        ctx.stroke();
+    }
 
     var measureCtx = measureView.getContext("2d");
     measureCtx.clearRect(0, 0, sw, sw);
