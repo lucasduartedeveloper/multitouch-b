@@ -361,10 +361,10 @@ $(document).ready(function() {
     startY = 0;
 
     positionArr = [
-        { x: (sw/2), y: (sw/2) },
-        { x: (sw/2), y: 0 },
-        { x: (sw/2), y: sw },
-        { x: (sw/2), y: (sw/2) }
+        { x: (sw/2)-(sw/4), y: (sw/2)+(sw/4) },
+        { x: (sw/2)-(sw/4), y: (sw/2)-(sw/4) },
+        { x: (sw/2)+(sw/4), y: (sw/2)+(sw/4) },
+        { x: (sw/2)+(sw/4), y: (sw/2)-(sw/4) }
     ];
     positionNo = 0;
 
@@ -790,43 +790,64 @@ var drawImage = function() {
 
     measureCtx.strokeStyle = "#000";
     measureCtx.beginPath();
-    measureCtx.moveTo(positionArr[0].x-10, positionArr[0].y);
-    measureCtx.lineTo(positionArr[0].x+10, positionArr[0].y);
+    measureCtx.moveTo(positionArr[0].x, positionArr[0].y);
+    measureCtx.lineTo(positionArr[1].x, positionArr[1].y);
     measureCtx.stroke();
 
     measureCtx.beginPath();
-    measureCtx.moveTo(positionArr[0].x, positionArr[0].y-10);
-    measureCtx.lineTo(positionArr[0].x, positionArr[0].y+10);
+    measureCtx.moveTo(positionArr[1].x, positionArr[1].y);
+    measureCtx.lineTo(positionArr[3].x, positionArr[3].y);
     measureCtx.stroke();
 
     measureCtx.beginPath();
-    measureCtx.moveTo(positionArr[1].x-10, positionArr[1].y);
-    measureCtx.lineTo(positionArr[1].x+10, positionArr[1].y);
+    measureCtx.moveTo(positionArr[2].x, positionArr[2].y);
+    measureCtx.lineTo(positionArr[3].x, positionArr[3].y);
     measureCtx.stroke();
 
     measureCtx.beginPath();
-    measureCtx.moveTo(positionArr[1].x, positionArr[1].y-10);
-    measureCtx.lineTo(positionArr[1].x, positionArr[1].y+10);
+    measureCtx.moveTo(positionArr[0].x, positionArr[0].y);
+    measureCtx.lineTo(positionArr[2].x, positionArr[2].y);
     measureCtx.stroke();
 
-    measureCtx.beginPath();
-    measureCtx.moveTo(positionArr[2].x-10, positionArr[2].y);
-    measureCtx.lineTo(positionArr[2].x+10, positionArr[2].y);
-    measureCtx.stroke();
+    return;
+    var v0 = {
+        x: positionArr[0].x+(positionArr[0].x-positionArr[3].x),
+        y: positionArr[0].y+(positionArr[0].y-positionArr[3].y)
+    };
 
     measureCtx.beginPath();
-    measureCtx.moveTo(positionArr[2].x, positionArr[2].y-10);
-    measureCtx.lineTo(positionArr[2].x, positionArr[2].y+10);
+    measureCtx.moveTo(positionArr[0].x, positionArr[0].y);
+    measureCtx.lineTo(v0.x, v0.y);
     measureCtx.stroke();
 
-    measureCtx.beginPath();
-    measureCtx.moveTo(positionArr[3].x-10, positionArr[3].y);
-    measureCtx.lineTo(positionArr[3].x+10, positionArr[3].y);
-    measureCtx.stroke();
+    var v1 = {
+        x: positionArr[1].x+(positionArr[1].x-positionArr[2].x),
+        y: positionArr[1].y+(positionArr[1].y-positionArr[2].y)
+    };
 
     measureCtx.beginPath();
-    measureCtx.moveTo(positionArr[3].x, positionArr[3].y-10);
-    measureCtx.lineTo(positionArr[3].x, positionArr[3].y+10);
+    measureCtx.moveTo(positionArr[1].x, positionArr[1].y);
+    measureCtx.lineTo(v1.x, v1.y);
+    measureCtx.stroke();
+
+    var v2 = {
+        x: positionArr[2].x+(positionArr[2].x-positionArr[1].x),
+        y: positionArr[2].y+(positionArr[2].y-positionArr[1].y)
+    };
+
+    measureCtx.beginPath();
+    measureCtx.moveTo(positionArr[2].x, positionArr[2].y);
+    measureCtx.lineTo(v2.x, v2.y);
+    measureCtx.stroke();
+
+    var v3 = {
+        x: positionArr[3].x+(positionArr[3].x-positionArr[0].x),
+        y: positionArr[3].y+(positionArr[3].y-positionArr[0].y)
+    };
+
+    measureCtx.beginPath();
+    measureCtx.moveTo(positionArr[3].x, positionArr[3].y);
+    measureCtx.lineTo(v3.x, v3.y);
     measureCtx.stroke();
 };
 
@@ -1255,25 +1276,25 @@ var drawBinary = function(canvas) {
 };
 
 var drawProjected = function(canvas) {
-    var width = 150;
-    var height = 150;
+    var width = sw;
+    var height = sw;
 
     var ctx = canvas.getContext("2d");
 
     var scale = (1/sw)*width;
 
-    var leftHeight = scale*(positionArr[1].y-positionArr[0].y);
-    var topWidth = scale*(positionArr[3].x-positionArr[0].x);
+    var leftHeight = scale*(positionArr[0].y-positionArr[1].y);
+    var topWidth = scale*(positionArr[3].x-positionArr[1].x);
     var rightHeight = scale*(positionArr[2].y-positionArr[3].y);
-    var bottomWidth = scale*(positionArr[2].x-positionArr[1].x);
+    var bottomWidth = scale*(positionArr[2].x-positionArr[0].x);
 
     if (leftHeight < 0) return;
     if (topWidth < 0) return;
     if (rightHeight < 0) return;
     if (bottomWidth < 0) return;
 
-    var offsetX = scale*(positionArr[1].x-positionArr[0].x);
-    var offsetY = scale*(positionArr[3].y-positionArr[0].y);
+    var offsetX = scale*(positionArr[0].x-positionArr[1].x);
+    var offsetY = scale*(positionArr[3].y-positionArr[1].y);
 
     var projectionCanvas = document.createElement("canvas");
     projectionCanvas.width = width;
@@ -1308,8 +1329,8 @@ var drawProjected = function(canvas) {
         var distX = ((1/width)*x);
         var distY = ((1/height)*y);
 
-        var startX = (scale*positionArr[0].x)+(distY*offsetX);
-        var startY = (scale*positionArr[0].y)+(distX*offsetY);
+        var startX = (scale*positionArr[1].x)+(distY*offsetX);
+        var startY = (scale*positionArr[1].y)+(distX*offsetY);
 
         var pWidth = topWidth+
         (distY*(bottomWidth-topWidth));
