@@ -789,24 +789,14 @@ var drawImage = function() {
     measureCtx.clearRect(0, 0, sw, sw);
 
     measureCtx.strokeStyle = "#5f5";
+    measureCtx.lineWidth = 5;
+
     measureCtx.beginPath();
     measureCtx.moveTo(positionArr[0].x, positionArr[0].y);
     measureCtx.lineTo(positionArr[1].x, positionArr[1].y);
-    measureCtx.stroke();
-
-    measureCtx.beginPath();
-    measureCtx.moveTo(positionArr[1].x, positionArr[1].y);
     measureCtx.lineTo(positionArr[3].x, positionArr[3].y);
-    measureCtx.stroke();
-
-    measureCtx.beginPath();
-    measureCtx.moveTo(positionArr[2].x, positionArr[2].y);
-    measureCtx.lineTo(positionArr[3].x, positionArr[3].y);
-    measureCtx.stroke();
-
-    measureCtx.beginPath();
-    measureCtx.moveTo(positionArr[0].x, positionArr[0].y);
     measureCtx.lineTo(positionArr[2].x, positionArr[2].y);
+    measureCtx.lineTo(positionArr[0].x, positionArr[0].y);
     measureCtx.stroke();
 
     return;
