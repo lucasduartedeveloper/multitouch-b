@@ -788,7 +788,7 @@ var drawImage = function() {
     var measureCtx = measureView.getContext("2d");
     measureCtx.clearRect(0, 0, sw, sw);
 
-    measureCtx.strokeStyle = "#000";
+    measureCtx.strokeStyle = "#5f5";
     measureCtx.beginPath();
     measureCtx.moveTo(positionArr[0].x, positionArr[0].y);
     measureCtx.lineTo(positionArr[1].x, positionArr[1].y);
@@ -1315,9 +1315,9 @@ var drawProjected = function(canvas) {
     for (var y = 0; y < height; y++) {
         var n = ((y*height)+x)*4;
 
-        newImageArray[n] = 255
-        newImageArray[n + 1] = 255;
-        newImageArray[n + 2] = 255;
+        newImageArray[n] = 0
+        newImageArray[n + 1] = 0;
+        newImageArray[n + 2] = 0;
         newImageArray[n + 3] = 255;
     }
     }
