@@ -277,6 +277,9 @@ var createMesh = function(start, size) {
         var p = { x: -1/(Math.PI/2), y: 0 };
         var rp = _rotate2d(c, p, start+(x*(size/numPixels)));
 
+        rp.x = -1+((2/numPixels)*x);
+        rp.y = 1;
+
         var py = 1+
         ((-2/numPixels)*y);
 
@@ -357,7 +360,7 @@ var createShape = function() {
     group.add(frontMesh.mesh);
 };
 
-var line = (numPixels/2)-1;
+var line = 0;
 var updateShape = function() {
     if (!frontMesh) return;
     render = false;
@@ -377,11 +380,6 @@ var updateShape = function() {
 
     var vertexArray = 
     frontMesh.mesh.geometry.getAttribute("position").array;
-
-    line = line > ((numPixels/2)-1) && rotationY < 0 ? 
-    ((numPixels/2)-1) : line;
-    line = line < ((numPixels/2)-1) && rotationY > 0 ? 
-    ((numPixels/2)-1) : line;
 
     line += rotationY;
     line = line <= 0 ? 1 : line;

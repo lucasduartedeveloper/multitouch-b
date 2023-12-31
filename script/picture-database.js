@@ -93,7 +93,6 @@ $(document).ready(function() {
     pictureView = document.createElement("canvas");
     pictureView.style.position = "absolute";
     pictureView.style.background = "#fff";
-    pictureView.style.objectFit = "cover";
     pictureView.width = (sw);
     pictureView.height = (sw); 
     pictureView.style.left = (0)+"px";
@@ -301,7 +300,7 @@ $(document).ready(function() {
         threejsEnabled = (mode == 3);
         if (threejsEnabled) {
             setTimeout(function() {
-            createShape(); 
+            //createShape(); 
             }, 1000);
             startAnimation();
         }
@@ -389,7 +388,7 @@ $(document).ready(function() {
             lastHyp = hyp;
         }
 
-        positionNo = no;
+        //positionNo = no;
 
         measureLineView.innerText = measureLineEnabled ? 
         "line: "+positionNo : "line: OFF";
@@ -406,6 +405,13 @@ $(document).ready(function() {
 
         positionArr[positionNo].x = Math.floor(moveX);
         positionArr[positionNo].y = Math.floor(moveY);
+    };
+    measureView.ontouchend = function() {
+        if (positionNo == 3) {
+            positionNo= 0;
+            measureLineEnabled = false;
+        }
+        measureLineView.click();
     };
 
     measureLineView = document.createElement("button");
@@ -486,11 +492,16 @@ $(document).ready(function() {
             pictureView.style.height = (sw)+"px";
         }
         else {
-            var size = parseInt(input);
-            pictureView.style.left = ((sw/2)-(size/2))+"px";
-            pictureView.style.top = ((sh/2)-(size/2))+"px";
-            pictureView.style.width = (size)+"px";
-            pictureView.style.height = (size)+"px";
+            var width = input.includes(",") ? 
+            parseInt(input.split(",")[0]) : parseInt(input);
+
+            var height = input.includes(",") ? 
+            parseInt(input.split(",")[1]) : parseInt(input);
+
+            pictureView.style.left = ((sw/2)-(width/2))+"px";
+            pictureView.style.top = ((sh/2)-(height/2))+"px";
+            pictureView.style.width = (width)+"px";
+            pictureView.style.height = (height)+"px";
         }
     };
 
@@ -692,6 +703,16 @@ var drawImage = function() {
     resolutionCtx.imageSmoothingEnabled = false;
 
     resolutionCtx.save();
+
+    if (measureLineEnabled) {
+        resolutionCtx.beginPath();
+        resolutionCtx.moveTo(positionArr[0].x, positionArr[0].y);
+        resolutionCtx.lineTo(positionArr[1].x, positionArr[1].y);
+        resolutionCtx.lineTo(positionArr[2].x, positionArr[2].y);
+        resolutionCtx.lineTo(positionArr[3].x, positionArr[3].y);
+        resolutionCtx.clip();
+    }
+
     if ((cameraOn && objectPosition == 0) || 
         (!cameraOn && objectPosition == 1)) {
         resolutionCtx.scale(-1, 1);
@@ -755,6 +776,10 @@ var drawImage = function() {
         ctx.moveTo((sw/2), 0);
         ctx.lineTo((sw/2), sw);
         ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(0, (sw/2));
+        ctx.lineTo(sw, (sw/2));
+        ctx.stroke();
     }
 
     var measureCtx = measureView.getContext("2d");
@@ -762,33 +787,43 @@ var drawImage = function() {
 
     measureCtx.strokeStyle = "#000";
     measureCtx.beginPath();
-    measureCtx.moveTo(0, positionArr[0].y);
-    measureCtx.lineTo(sw, positionArr[0].y);
+    measureCtx.moveTo(positionArr[0].x-10, positionArr[0].y);
+    measureCtx.lineTo(positionArr[0].x+10, positionArr[0].y);
     measureCtx.stroke();
 
     measureCtx.beginPath();
-    measureCtx.moveTo(positionArr[0].x, 0);
-    measureCtx.lineTo(positionArr[0].x, sw);
+    measureCtx.moveTo(positionArr[0].x, positionArr[0].y-10);
+    measureCtx.lineTo(positionArr[0].x, positionArr[0].y+10);
     measureCtx.stroke();
 
     measureCtx.beginPath();
-    measureCtx.moveTo(0, positionArr[1].y);
-    measureCtx.lineTo(sw, positionArr[1].y);
+    measureCtx.moveTo(positionArr[1].x-10, positionArr[1].y);
+    measureCtx.lineTo(positionArr[1].x+10, positionArr[1].y);
     measureCtx.stroke();
 
     measureCtx.beginPath();
-    measureCtx.moveTo(positionArr[1].x, 0);
-    measureCtx.lineTo(positionArr[1].x, sw);
+    measureCtx.moveTo(positionArr[1].x, positionArr[1].y-10);
+    measureCtx.lineTo(positionArr[1].x, positionArr[1].y+10);
     measureCtx.stroke();
 
     measureCtx.beginPath();
-    measureCtx.moveTo(0, positionArr[2].y);
-    measureCtx.lineTo(sw, positionArr[2].y);
+    measureCtx.moveTo(positionArr[2].x-10, positionArr[2].y);
+    measureCtx.lineTo(positionArr[2].x+10, positionArr[2].y);
     measureCtx.stroke();
 
     measureCtx.beginPath();
-    measureCtx.moveTo(positionArr[2].x, 0);
-    measureCtx.lineTo(positionArr[2].x, sw);
+    measureCtx.moveTo(positionArr[2].x, positionArr[2].y-10);
+    measureCtx.lineTo(positionArr[2].x, positionArr[2].y+10);
+    measureCtx.stroke();
+
+    measureCtx.beginPath();
+    measureCtx.moveTo(positionArr[3].x-10, positionArr[3].y);
+    measureCtx.lineTo(positionArr[3].x+10, positionArr[3].y);
+    measureCtx.stroke();
+
+    measureCtx.beginPath();
+    measureCtx.moveTo(positionArr[3].x, positionArr[3].y-10);
+    measureCtx.lineTo(positionArr[3].x, positionArr[3].y+10);
     measureCtx.stroke();
 };
 
