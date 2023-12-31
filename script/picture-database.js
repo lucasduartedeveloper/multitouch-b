@@ -568,6 +568,32 @@ $(document).ready(function() {
         rotationY = 0;
     };
 
+    followPlane = false;
+    planeView = document.createElement("button");
+    planeView.style.position = "absolute";
+    planeView.style.background = "#fff";
+    planeView.style.color = "#000";
+    planeView.innerText = followPlane ? 
+    "follow" : "through";
+    planeView.style.fontFamily = "Khand";
+    planeView.style.lineHeight = (25)+"px";
+    planeView.style.fontSize = (15)+"px";
+    planeView.style.left = ((sw/2)-(sw/2)+10)+"px";
+    planeView.style.top = 
+    ((sh/2)+(sw/2)+115)+"px";
+    planeView.style.width = (70)+"px";
+    planeView.style.height = (25)+"px";
+    planeView.style.border = "none";
+    planeView.style.borderRadius = "12.5px";
+    planeView.style.zIndex = "15";
+    document.body.appendChild(planeView);
+
+    planeView.onclick = function() {
+        followPlane = !followPlane;
+        planeView.innerText = followPlane ? 
+        "follow" : "through";
+    };
+
     load3D();
     animate();
 });
@@ -704,15 +730,14 @@ var drawImage = function() {
 
     resolutionCtx.save();
 
-    /*
-    if (measureLineEnabled) {
+    if (!followPlane && measureLineEnabled) {
         resolutionCtx.beginPath();
         resolutionCtx.moveTo(positionArr[0].x, positionArr[0].y);
         resolutionCtx.lineTo(positionArr[1].x, positionArr[1].y);
         resolutionCtx.lineTo(positionArr[2].x, positionArr[2].y);
         resolutionCtx.lineTo(positionArr[3].x, positionArr[3].y);
         resolutionCtx.clip();
-    }*/
+    }
 
     if ((cameraOn && objectPosition == 0) || 
         (!cameraOn && objectPosition == 1)) {
@@ -760,7 +785,7 @@ var drawImage = function() {
     directionCanvas(resolutionCanvas);
     if (mode == 4)
     drawBinary(resolutionCanvas);
-    if (measureLineEnabled)
+    if (followPlane && measureLineEnabled)
     drawProjected(resolutionCanvas);
 
     if (reachedHeight > ((1/7) * (track+1)) && 
@@ -794,9 +819,21 @@ var drawImage = function() {
     measureCtx.beginPath();
     measureCtx.moveTo(positionArr[0].x, positionArr[0].y);
     measureCtx.lineTo(positionArr[1].x, positionArr[1].y);
+    measureCtx.stroke();
+
+    measureCtx.beginPath();
+    measureCtx.moveTo(positionArr[1].x, positionArr[1].y);
     measureCtx.lineTo(positionArr[3].x, positionArr[3].y);
+    measureCtx.stroke();
+
+    measureCtx.beginPath();
+    measureCtx.moveTo(positionArr[2].x, positionArr[2].y);
+    measureCtx.lineTo(positionArr[3].x, positionArr[3].y);
+    measureCtx.stroke();
+
+    measureCtx.beginPath();
+    measureCtx.moveTo(positionArr[0].x, positionArr[0].y);
     measureCtx.lineTo(positionArr[2].x, positionArr[2].y);
-    measureCtx.lineTo(positionArr[0].x, positionArr[0].y);
     measureCtx.stroke();
 
     return;
