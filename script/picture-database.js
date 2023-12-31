@@ -704,6 +704,7 @@ var drawImage = function() {
 
     resolutionCtx.save();
 
+    /*
     if (measureLineEnabled) {
         resolutionCtx.beginPath();
         resolutionCtx.moveTo(positionArr[0].x, positionArr[0].y);
@@ -711,7 +712,7 @@ var drawImage = function() {
         resolutionCtx.lineTo(positionArr[2].x, positionArr[2].y);
         resolutionCtx.lineTo(positionArr[3].x, positionArr[3].y);
         resolutionCtx.clip();
-    }
+    }*/
 
     if ((cameraOn && objectPosition == 0) || 
         (!cameraOn && objectPosition == 1)) {
@@ -759,6 +760,8 @@ var drawImage = function() {
     directionCanvas(resolutionCanvas);
     if (mode == 4)
     drawBinary(resolutionCanvas);
+    if (measureLineEnabled)
+    drawProjected(resolutionCanvas);
 
     if (reachedHeight > ((1/7) * (track+1)) && 
     warningBeep.paused)
@@ -1249,6 +1252,91 @@ var drawBinary = function(canvas) {
         Math.PI*2);
         ctx.fill();
     }
+};
+
+var drawProjected = function(canvas) {
+    var width = 150;
+    var height = 150;
+
+    var ctx = canvas.getContext("2d");
+
+    var scale = (1/sw)*width;
+
+    var leftHeight = scale*(positionArr[1].y-positionArr[0].y);
+    var topWidth = scale*(positionArr[3].x-positionArr[0].x);
+    var rightHeight = scale*(positionArr[2].y-positionArr[3].y);
+    var bottomWidth = scale*(positionArr[2].x-positionArr[1].x);
+
+    if (leftHeight < 0) return;
+    if (topWidth < 0) return;
+    if (rightHeight < 0) return;
+    if (bottomWidth < 0) return;
+
+    var offsetX = scale*(positionArr[1].x-positionArr[0].x);
+    var offsetY = scale*(positionArr[3].y-positionArr[0].y);
+
+    var projectionCanvas = document.createElement("canvas");
+    projectionCanvas.width = width;
+    projectionCanvas.height = height;
+
+    var projectionCtx = projectionCanvas.getContext("2d");
+    projectionCtx.imageSmoothingEnabled = false;
+
+    projectionCtx.drawImage(canvas, 0, 0, width, height);
+
+    var imgData = 
+    projectionCtx.getImageData(0, 0, 
+    projectionCanvas.width, projectionCanvas.height);
+    var data = imgData.data;
+
+    var newImageArray = new Uint8ClampedArray(data);
+    for (var x = 0; x < width; x++) {
+    for (var y = 0; y < height; y++) {
+        var n = ((y*height)+x)*4;
+
+        newImageArray[n] = 255
+        newImageArray[n + 1] = 255;
+        newImageArray[n + 2] = 255;
+        newImageArray[n + 3] = 255;
+    }
+    }
+
+    for (var x = 0; x < width; x++) {
+    for (var y = 0; y < height; y++) {
+        var n = ((y*height)+x)*4;
+
+        var distX = ((1/width)*x);
+        var distY = ((1/height)*y);
+
+        var startX = (scale*positionArr[0].x)+(distY*offsetX);
+        var startY = (scale*positionArr[0].y)+(distX*offsetY);
+
+        var pWidth = topWidth+
+        (distY*(bottomWidth-topWidth));
+        var pHeight = leftHeight+
+        (distX*(rightHeight-leftHeight));
+
+        var xp = Math.floor(startX+
+        (((1/width)*x)*pWidth));
+
+        var yp = Math.floor(startY+
+        (((1/height)*y)*pHeight));
+
+        //console.log(xp, yp);
+
+        var np = ((yp*height)+xp)*4;
+        newImageArray[np] = data[n];
+        newImageArray[np + 1] = data[n + 1];
+        newImageArray[np + 2] = data[n + 2];
+        newImageArray[np + 3] = 255;
+    }
+    }
+
+    var newImageData = new ImageData(newImageArray, 
+    projectionCanvas.width, projectionCanvas.height);
+    projectionCtx.putImageData(newImageData, 0, 0);
+
+    ctx.drawImage(projectionCanvas, 0, 0, sw, sw);
 };
 
 var visibilityChange;
