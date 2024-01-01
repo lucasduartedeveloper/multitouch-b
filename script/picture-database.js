@@ -414,8 +414,8 @@ $(document).ready(function() {
         }
         else {
             if (!mousedown) return;
-            moveX = e.touches[0].clientX;
-            moveY = e.touches[0].clientY-((sh/2)-(sw/2));
+            moveX = e.clientX;
+            moveY = e.clientY-((sh/2)-(sw/2));
         }
 
         if (moveX < 0 || moveX > sw) return;
@@ -1386,11 +1386,10 @@ var drawProjected = function(canvas) {
         var n = ((y*height)+x)*4;
 
         /*
-        newImageArray[n] = 0
+        newImageArray[n] = 0;
         newImageArray[n + 1] = 0;
         newImageArray[n + 2] = 0;
-        newImageArray[n + 3] = 255;
-        */
+        newImageArray[n + 3] = 255;*/
     }
     }
 
@@ -1415,7 +1414,8 @@ var drawProjected = function(canvas) {
         var yp = Math.floor(startY+
         (((1/height)*y)*pHeight));
 
-        //console.log(xp, yp);
+        // set surrounding data to 0 opacity
+        newImageArray[n + 3] = 0;
 
         var np = ((yp*height)+xp)*4;
         newImageArray[np] = data[n];
