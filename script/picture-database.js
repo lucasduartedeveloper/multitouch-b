@@ -187,7 +187,10 @@ $(document).ready(function() {
     document.body.appendChild(sendView);
 
     sendView.onclick = function() {
-        uploadImage();
+        cameraView.pause();
+        uploadImage(function() {
+            cameraView.play();
+        });
     };
 
     powerView = document.createElement("button");
@@ -621,6 +624,39 @@ $(document).ready(function() {
         "follow" : "through";
     };
 
+    downloadView = document.createElement("button");
+    downloadView.style.position = "absolute";
+    downloadView.style.background = "#fff";
+    downloadView.style.color = "#000";
+    downloadView.innerText = "download";
+    downloadView.style.fontFamily = "Khand";
+    downloadView.style.lineHeight = (25)+"px";
+    downloadView.style.fontSize = (15)+"px";
+    downloadView.style.left = ((sw/2)-(sw/2)+90)+"px";
+    downloadView.style.top = 
+    ((sh/2)+(sw/2)+115)+"px";
+    downloadView.style.width = (70)+"px";
+    downloadView.style.height = (25)+"px";
+    downloadView.style.border = "none";
+    downloadView.style.borderRadius = "12.5px";
+    downloadView.style.zIndex = "15";
+    document.body.appendChild(downloadView);
+
+    downloadView.onclick = function() {
+        var name = "download.png";
+        var url = pictureView.toDataURL();
+        var a = document.createElement('a');
+        a.style.display = "none";
+        a.href = url;
+        a.download = name;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }, 100);
+    };
+
     motion = false;
     gyroUpdated = function(e) {
         var width = sw-((1/9.8)*e.accY)*sw;
@@ -1000,7 +1036,7 @@ var clearDatabase = function() {
     });
 };
 
-var uploadImage = function() {
+var uploadImage = function(callback) {
     $.ajax({
         url: "ajax/file-upload.php",
         type: "POST",
@@ -1011,6 +1047,7 @@ var uploadImage = function() {
         success: function(data) {
             alert("Save Complete");
             updatePicture(track, pictureView.toDataURL());
+            callback();
     }});
     console.log("data size: "+pictureView.toDataURL().length);
 };
