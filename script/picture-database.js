@@ -657,6 +657,43 @@ $(document).ready(function() {
         }, 100);
     };
 
+    recordingEnabled = false;
+    htmlRecorder = new CanvasRecorder(pictureView);
+
+    recordingView = document.createElement("button");
+    recordingView.style.position = "absolute";
+    recordingView.style.background = "#fff";
+    recordingView.style.color = "#000";
+    recordingView.innerText = recordingEnabled ? 
+    "REC" : "OFF";
+    recordingView.style.fontFamily = "Khand";
+    recordingView.style.lineHeight = (25)+"px";
+    recordingView.style.fontSize = (15)+"px";
+    recordingView.style.left = ((sw/2)+70)+"px";
+    recordingView.style.top = 
+    ((sh/2)+(sw/2)+10)+"px";
+    recordingView.style.width = (35)+"px";
+    recordingView.style.height = (25)+"px";
+    recordingView.style.border = "none";
+    recordingView.style.borderRadius = "12.5px";
+    recordingView.style.zIndex = "15";
+    document.body.appendChild(recordingView);
+
+    recordingView.onclick = function() {
+        recordingEnabled = !recordingEnabled;
+        recordingView.innerText = recordingEnabled ? 
+        "REC" : "OFF";
+
+        if (recordingEnabled) {
+            htmlRecorder.start();
+        }
+        else {
+            htmlRecorder.stop();
+            htmlRecorder.save("filename.webm");
+            recordingEnabled = false;
+        }
+    };
+
     motion = false;
     gyroUpdated = function(e) {
         var width = sw-((1/9.8)*e.accY)*sw;
