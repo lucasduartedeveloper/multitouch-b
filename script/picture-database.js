@@ -1425,8 +1425,10 @@ var drawProjected = function(canvas) {
         /*
         newImageArray[n] = 0;
         newImageArray[n + 1] = 0;
-        newImageArray[n + 2] = 0;
-        newImageArray[n + 3] = 255;*/
+        newImageArray[n + 2] = 0;*/
+
+        // set surrounding data to 0 opacity
+        newImageArray[n + 3] = 0;
     }
     }
 
@@ -1450,9 +1452,6 @@ var drawProjected = function(canvas) {
 
         var yp = Math.floor(startY+
         (((1/height)*y)*pHeight));
-
-        // set surrounding data to 0 opacity
-        newImageArray[n + 3] = 0;
 
         var np = ((yp*height)+xp)*4;
         newImageArray[np] = data[n];
