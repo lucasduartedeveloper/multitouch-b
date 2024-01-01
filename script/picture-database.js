@@ -368,9 +368,18 @@ $(document).ready(function() {
     ];
     positionNo = 0;
 
-    measureView.ontouchstart = function(e) {
-        startX = e.touches[0].clientX;
-        startY = e.touches[0].clientY-((sh/2)-(sw/2));
+    var mousedown = false;
+
+    var ontouchstart = function(e) {
+        if (e.touches) {
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY-((sh/2)-(sw/2));
+        }
+        else {
+            mousedown = true;
+            startX = e.clientX;
+            startY = e.clientY-((sh/2)-(sw/2));
+        }
 
         var no = positionNo;
         var lastHyp = (sw*Math.sqrt(2));
@@ -396,9 +405,18 @@ $(document).ready(function() {
         positionArr[positionNo].x = Math.floor(startX);
         positionArr[positionNo].y = Math.floor(startY);
     };
-    measureView.ontouchmove = function(e) {
-        var moveX = e.touches[0].clientX;
-        var moveY = e.touches[0].clientY-((sh/2)-(sw/2));
+    var ontouchmove = function(e) {
+        var moveX;
+        var moveY;
+        if (e.touches) {
+            moveX = e.touches[0].clientX;
+            moveY = e.touches[0].clientY-((sh/2)-(sw/2));
+        }
+        else {
+            if (!mousedown) return;
+            moveX = e.touches[0].clientX;
+            moveY = e.touches[0].clientY-((sh/2)-(sw/2));
+        }
 
         if (moveX < 0 || moveX > sw) return;
         if (moveY < 0 || moveY > sw) return;
@@ -406,13 +424,22 @@ $(document).ready(function() {
         positionArr[positionNo].x = Math.floor(moveX);
         positionArr[positionNo].y = Math.floor(moveY);
     };
-    measureView.ontouchend = function() {
+    var ontouchend = function() {
+        mousedown = false;
         if (positionNo == 3) {
             positionNo= 0;
             measureLineEnabled = false;
         }
         measureLineView.click();
     };
+
+    measureView.ontouchstart = ontouchstart;
+    measureView.ontouchmove = ontouchmove;
+    measureView.ontouchend = ontouchend;
+
+    measureView.onmousedown = ontouchstart;
+    measureView.onmousemove = ontouchmove;
+    measureView.onmouseup = ontouchend;
 
     measureLineView = document.createElement("button");
     measureLineView.style.position = "absolute";
