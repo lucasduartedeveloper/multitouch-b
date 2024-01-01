@@ -361,10 +361,10 @@ $(document).ready(function() {
     startY = 0;
 
     positionArr = [
-        { x: (sw/2)-(sw/4), y: (sw/2)+(sw/4) },
-        { x: (sw/2)-(sw/4), y: (sw/2)-(sw/4) },
-        { x: (sw/2)+(sw/4), y: (sw/2)+(sw/4) },
-        { x: (sw/2)+(sw/4), y: (sw/2)-(sw/4) }
+        { x: (sw/2), y: sw },
+        { x: 0, y: 0 },
+        { x: (sw/2), y: sw },
+        { x: sw, y: 0 }
     ];
     positionNo = 0;
 
@@ -594,6 +594,23 @@ $(document).ready(function() {
         "follow" : "through";
     };
 
+    motion = false;
+    gyroUpdated = function(e) {
+        var width = sw-((1/9.8)*e.accY)*sw;
+
+        positionArr[0].x = (sw/2)-(width/2);
+        positionArr[0].y = sw;
+
+        positionArr[2].x = (sw/2)+(width/2);
+        positionArr[2].y = sw;
+
+        positionArr[1].x = 0;
+        positionArr[1].y = 0;
+
+        positionArr[3].x = sw;
+        positionArr[3].y = 0;
+    };
+
     load3D();
     animate();
 });
@@ -728,6 +745,10 @@ var drawImage = function() {
     var resolutionCtx = resolutionCanvas.getContext("2d");
     resolutionCtx.imageSmoothingEnabled = false;
 
+    if (!followPlane && measureLineEnabled) {
+        drawPicture(resolutionCanvas);
+    }
+
     resolutionCtx.save();
 
     if (!followPlane && measureLineEnabled) {
@@ -760,21 +781,7 @@ var drawImage = function() {
         0, 0, resolutionCanvas.width, resolutionCanvas.height);
     }
     else {
-        if (track < pictureArr.length && pictureArr[track].found) {
-             var image = pictureArr[track];
-             var size = {
-                 width: image.naturalWidth,
-                 height: image.naturalHeight
-             }
-             var frame = {
-                 width: getSquare(image),
-                 height: getSquare(image),
-             };
-             var format = fitImageCover(size, frame);
-             resolutionCtx.drawImage(image, 
-             -format.left, -format.top, frame.width, frame.height, 
-             0, 0, resolutionCanvas.width, resolutionCanvas.height);
-        }
+        drawPicture(resolutionCanvas);
     }
 
     resolutionCtx.restore();
@@ -814,7 +821,7 @@ var drawImage = function() {
     measureCtx.clearRect(0, 0, sw, sw);
 
     measureCtx.strokeStyle = "#5f5";
-    measureCtx.lineWidth = 3;
+    measureCtx.lineWidth = 2;
 
     measureCtx.beginPath();
     measureCtx.moveTo(positionArr[0].x, positionArr[0].y);
@@ -865,6 +872,26 @@ var drawImage = function() {
     measureCtx.moveTo(positionArr[3].x, positionArr[3].y);
     measureCtx.lineTo(v3.x, v3.y);
     measureCtx.stroke();
+};
+
+var drawPicture = function(canvas) {
+    var ctx = canvas.getContext("2d");
+
+    if (track < pictureArr.length && pictureArr[track].found) {
+        var image = pictureArr[track];
+        var size = {
+            width: image.naturalWidth,
+            height: image.naturalHeight
+        }
+        var frame = {
+            width: getSquare(image),
+            height: getSquare(image),
+        };
+        var format = fitImageCover(size, frame);
+        ctx.drawImage(image, 
+        -format.left, -format.top, frame.width, frame.height, 
+        0, 0, canvas.width, canvas.height);
+    }
 };
 
 var getSquare = function(item) {
@@ -1331,10 +1358,12 @@ var drawProjected = function(canvas) {
     for (var y = 0; y < height; y++) {
         var n = ((y*height)+x)*4;
 
+        /*
         newImageArray[n] = 0
         newImageArray[n + 1] = 0;
         newImageArray[n + 2] = 0;
         newImageArray[n + 3] = 255;
+        */
     }
     }
 
@@ -1372,6 +1401,10 @@ var drawProjected = function(canvas) {
     var newImageData = new ImageData(newImageArray, 
     projectionCanvas.width, projectionCanvas.height);
     projectionCtx.putImageData(newImageData, 0, 0);
+
+    if (track < pictureArr.length && pictureArr[track].found) {
+        drawPicture(canvas);
+    }
 
     ctx.drawImage(projectionCanvas, 0, 0, sw, sw);
 };
