@@ -1,3 +1,4 @@
+var uploadAlert = new Audio("audio/ui-audio/upload-alert.wav");
 var warningBeep = new Audio("audio/warning_beep.wav");
 
 var sw = window.innerWidth;
@@ -187,10 +188,14 @@ $(document).ready(function() {
     document.body.appendChild(sendView);
 
     sendView.onclick = function() {
-        cameraView.pause();
-        uploadImage(function() {
-            cameraView.play();
-        });
+        setTimeout(function() {
+            cameraView.pause();
+            uploadImage(function() {
+                if (timeout > 0) 
+                uploadAlert.play();
+                cameraView.play();
+            });
+        }, (timeout*1000));
     };
 
     powerView = document.createElement("button");
@@ -266,7 +271,7 @@ $(document).ready(function() {
     rotationView.onclick = function() {
         rotationSpeed = (rotationSpeed+1) < 11 ? 
         (rotationSpeed+1) : 0;
-        rotationView.innerText = rotationSpeed+" squares/s";;
+        rotationView.innerText = rotationSpeed+" squares/s";
 
         console.log("pause");
         pauseRotation();
@@ -274,6 +279,31 @@ $(document).ready(function() {
             startRotation();
             console.log("start");
         }
+    };
+
+    timeout = 0;
+    timeoutView = document.createElement("button");
+    timeoutView.style.position = "absolute";
+    timeoutView.style.background = "#fff";
+    timeoutView.style.color = "#000";
+    timeoutView.innerText = (timeout)+" s";
+    timeoutView.style.fontFamily = "Khand";
+    timeoutView.style.lineHeight = (25)+"px";
+    timeoutView.style.fontSize = (15)+"px";
+    timeoutView.style.left = ((sw/2)+50)+"px";
+    timeoutView.style.top = 
+    ((sh/2)+(sw/2)+45)+"px";
+    timeoutView.style.width = (40)+"px";
+    timeoutView.style.height = (25)+"px";
+    timeoutView.style.border = "none";
+    timeoutView.style.borderRadius = "12.5px";
+    timeoutView.style.zIndex = "15";
+    document.body.appendChild(timeoutView);
+
+    timeoutView.onclick = function() {
+        timeout = (timeout+10) < 31 ? 
+        (timeout+10) : 0;
+        timeoutView.innerText = (timeout)+" s";
     };
 
     mode = 0;
@@ -632,7 +662,7 @@ $(document).ready(function() {
     downloadView.style.fontFamily = "Khand";
     downloadView.style.lineHeight = (25)+"px";
     downloadView.style.fontSize = (15)+"px";
-    downloadView.style.left = ((sw/2)-(sw/2)+90)+"px";
+    downloadView.style.left = ((sw/2)-(sw/2)+150)+"px";
     downloadView.style.top = 
     ((sh/2)+(sw/2)+115)+"px";
     downloadView.style.width = (70)+"px";
@@ -692,6 +722,31 @@ $(document).ready(function() {
             htmlRecorder.save("filename.webm");
             recordingEnabled = false;
         }
+    };
+
+    lineCount = 0;
+    lineCountView = document.createElement("button");
+    lineCountView.style.position = "absolute";
+    lineCountView.style.background = "#fff";
+    lineCountView.style.color = "#000";
+    lineCountView.innerText = (lineCount)+" lines";
+    lineCountView.style.fontFamily = "Khand";
+    lineCountView.style.lineHeight = (25)+"px";
+    lineCountView.style.fontSize = (15)+"px";
+    lineCountView.style.left = ((sw/2)-(sw/2)+90)+"px";
+    lineCountView.style.top = 
+    ((sh/2)+(sw/2)+115)+"px";
+    lineCountView.style.width = (50)+"px";
+    lineCountView.style.height = (25)+"px";
+    lineCountView.style.border = "none";
+    lineCountView.style.borderRadius = "12.5px";
+    lineCountView.style.zIndex = "15";
+    document.body.appendChild(lineCountView);
+
+    lineCountView.onclick = function() {
+        lineCount = (lineCount+1) < 11 ? 
+        (lineCount+1) : 0;
+        lineCountView.innerText = (lineCount)+" lines";
     };
 
     motion = false;
@@ -914,6 +969,14 @@ var drawImage = function() {
         ctx.beginPath();
         ctx.moveTo(0, (sw/2));
         ctx.lineTo(sw, (sw/2));
+        ctx.stroke();
+    }
+
+    ctx.strokeStyle = "#5f5";
+    for (var n = 0; n < lineCount; n++) {
+        ctx.beginPath();
+        ctx.moveTo((sw/(lineCount+1))*(n+1), 0);
+        ctx.lineTo((sw/(lineCount+1))*(n+1), sw);
         ctx.stroke();
     }
 
