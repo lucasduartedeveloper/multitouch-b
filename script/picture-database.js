@@ -724,29 +724,33 @@ $(document).ready(function() {
         }
     };
 
-    lineCount = 0;
-    lineCountView = document.createElement("button");
-    lineCountView.style.position = "absolute";
-    lineCountView.style.background = "#fff";
-    lineCountView.style.color = "#000";
-    lineCountView.innerText = (lineCount)+" lines";
-    lineCountView.style.fontFamily = "Khand";
-    lineCountView.style.lineHeight = (25)+"px";
-    lineCountView.style.fontSize = (15)+"px";
-    lineCountView.style.left = ((sw/2)-(sw/2)+90)+"px";
-    lineCountView.style.top = 
-    ((sh/2)+(sw/2)+115)+"px";
-    lineCountView.style.width = (50)+"px";
-    lineCountView.style.height = (25)+"px";
-    lineCountView.style.border = "none";
-    lineCountView.style.borderRadius = "12.5px";
-    lineCountView.style.zIndex = "15";
-    document.body.appendChild(lineCountView);
+    colorEnabled = false;
+    color = 0;
 
-    lineCountView.onclick = function() {
-        lineCount = (lineCount+1) < 11 ? 
-        (lineCount+1) : 0;
-        lineCountView.innerText = (lineCount)+" lines";
+    colorView = document.createElement("button");
+    colorView.style.position = "absolute";
+    colorView.style.background = "#fff";
+    colorView.style.color = "#000";
+    colorView.innerText = (color)+"x";
+    colorView.style.fontFamily = "Khand";
+    colorView.style.lineHeight = (25)+"px";
+    colorView.style.fontSize = (15)+"px";
+    colorView.style.left = ((sw/2)-(sw/2)+90)+"px";
+    colorView.style.top = 
+    ((sh/2)+(sw/2)+115)+"px";
+    colorView.style.width = (50)+"px";
+    colorView.style.height = (25)+"px";
+    colorView.style.border = "none";
+    colorView.style.borderRadius = "12.5px";
+    colorView.style.zIndex = "15";
+    document.body.appendChild(colorView);
+
+    colorView.onclick = function() {
+        color = (color+0.25) <= 1 ? 
+        (color+0.25) : 0;
+
+        colorEnabled = color > 0;
+        colorView.innerText = (color)+"x";
     };
 
     motion = false;
@@ -956,10 +960,8 @@ var drawImage = function() {
     else if (!warningBeep.paused)
     warningBeep.pause();
 
-    var stripeWidth = (resolutionCanvas.width/(lineCount+1));
-    for (var n = 0; n < lineCount; n++) {
-        colorStripe(resolutionCanvas, (1/lineCount)*n, 
-        { x: (n*stripeWidth), y: 0 }, stripeWidth);
+    if (colorEnabled) {
+        colorAmt(resolutionCanvas);
     }
 
     ctx.drawImage(resolutionCanvas, 0, 0, sw, sw);
@@ -1570,7 +1572,7 @@ var drawProjected = function(canvas) {
     ctx.drawImage(projectionCanvas, 0, 0, sw, sw);
 };
 
-var colorStripe = function(canvas, color, pos, stripeWidth) {
+var colorAmt = function(canvas) {
     var width = sw;
     var height = sw;
     //stripeWidth = Math.floor((10/sw)*stripeWidth);
@@ -1593,7 +1595,7 @@ var colorStripe = function(canvas, color, pos, stripeWidth) {
     var data = imgData.data;
 
     var newImageArray = new Uint8ClampedArray(data);
-    for (var x = pos.x; x < (pos.x+stripeWidth); x++) {
+    for (var x = 0; x < width; x++) {
     for (var y = 0; y < height; y++) {
         var n = ((y*height)+x)*4;
 
