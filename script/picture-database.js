@@ -725,7 +725,7 @@ $(document).ready(function() {
     };
 
     colorEnabled = false;
-    color = 0;
+    color = 1;
 
     colorView = document.createElement("button");
     colorView.style.position = "absolute";
@@ -749,7 +749,7 @@ $(document).ready(function() {
         color = (color+0.25) <= 1 ? 
         (color+0.25) : 0;
 
-        colorEnabled = color > 0;
+        colorEnabled = (1-color) > 0;
         colorView.innerText = (color)+"x";
     };
 
@@ -1625,7 +1625,37 @@ var colorAmt = function(canvas) {
     projectionCanvas.width, projectionCanvas.height);
     projectionCtx.putImageData(newImageData, 0, 0);
 
+    var x = (sw/2);
+    var y = (sw/2);
+
+    ctx.strokeStyle = "#000";
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(0, canvas.height);
+    ctx.lineTo(0, 0);
+    ctx.lineTo((canvas.width/2), 0);
+    for (var n = 0; n <= 100; n++) {
+        var c = {
+            x: x,
+            y: y
+        };
+        var p = {
+            x: c.x,
+            y: (c.y-25)
+        }
+        var rp = _rotate2d(c, p, n*(360/100));
+        ctx.lineTo(rp.x, rp.y);
+    }
+    ctx.lineTo((canvas.width/2), 0);
+    ctx.lineTo(canvas.width, 0);
+    ctx.lineTo(canvas.width, canvas.height);
+    ctx.lineTo(0, canvas.height);
+    ctx.clip();
+    //ctx.stroke();
+
     ctx.drawImage(projectionCanvas, 0, 0, sw, sw);
+    ctx.restore();
 };
 
 var visibilityChange;
