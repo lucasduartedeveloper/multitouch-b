@@ -103,6 +103,9 @@ $(document).ready(function() {
     pictureView.style.zIndex = "15";
     document.body.appendChild(pictureView);
 
+    startX = (sw/2);
+    startY = (sw/2);
+
     ontouch = false;
     pictureView.ontouchstart = function(e) {
         ontouchIteration = 0;
@@ -389,9 +392,6 @@ $(document).ready(function() {
     measureView.style.height = (sw)+"px";
     measureView.style.zIndex = "15";
     document.body.appendChild(measureView);
-
-    startX = 0;
-    startY = 0;
 
     positionArr = [
         { x: (sw/2), y: sw },
@@ -1625,8 +1625,8 @@ var colorAmt = function(canvas) {
     projectionCanvas.width, projectionCanvas.height);
     projectionCtx.putImageData(newImageData, 0, 0);
 
-    var x = (sw/2);
-    var y = (sw/2);
+    var x = startX;
+    var y = startY;
 
     ctx.strokeStyle = "#000";
 
