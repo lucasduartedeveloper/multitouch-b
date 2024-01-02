@@ -36,12 +36,27 @@ function startCamera(color=true) {
           } }, 
           audio: false })
           .then((stream) => {
+               console.log("camera started");
                cameraOn = true;
-               cameraElem.srcObject = stream;
-               var display = stream.
-               getVideoTracks()[0].getSettings();
+
+               var track = stream.getVideoTracks()[0];
+               var display = track.getSettings();
+
+               console.log(display);
                vw = display.width;
                vh = display.height;
+
+               var capabilities = track.getCapabilities();
+               console.log(capabilities);
+
+               focusMin = capabilities.zoom.min;
+               focusMax = capabilities.zoom.max;
+               focusStep = capabilities.zoom.step;
+               focusDistance = display.zoom;
+
+               cameraElem.srcObject = stream;
+               cameraElem.width = vw;
+               cameraElem.height = vh;
           });
     }
 }
@@ -147,6 +162,32 @@ var resizeFrame = function(frame, content) {
         frame.width = frame.width * r;
     }
     return frame;
+};
+
+var focusMin = 0;
+var focusMax = 0;
+var focusStep = 0;
+var focusDistance = 0;
+function setFocus(value) {
+    console.log(value);
+    focusDistance = value;
+
+    var track = cameraElem.srcObject.getVideoTracks()[0];
+    var settings = track.getSettings();
+    var capabilities = track.getCapabilities();
+
+    // Check whether focus distance is supported or not.
+    if (!capabilities.focusDistance) {
+        return;
+    }
+
+    track.applyConstraints({
+        "advanced": [{
+            "focusMode": "manual",
+            "zoom": value
+        }]
+    });
+    settings.focusDistance = focusDistance;
 };
 
 /*

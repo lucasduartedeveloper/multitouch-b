@@ -121,6 +121,78 @@ $(document).ready(function() {
         ontouch = false;
     };
 
+    paintView = document.createElement("canvas");
+    paintView.style.position = "absolute";
+    paintView.style.opacity = 0.1;
+    paintView.style.background = "#fff";
+    paintView.width = (sw);
+    paintView.height = (sw); 
+    paintView.style.left = (0)+"px";
+    paintView.style.top = ((sh/2)-(sw/2))+"px";
+    paintView.style.width = (sw)+"px";
+    paintView.style.height = (sw)+"px";
+    paintView.style.zIndex = "15";
+    document.body.appendChild(paintView);
+
+    paintView.ondblclick = function() {
+        var paintCtx = paintView.getContext("2d");
+        paintCtx.clearRect(0, 0, sw, sw);
+    };
+
+    var paint_ontouchstart = function(e) {
+        if (e.touches) {
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY-((sh/2)-(sw/2));
+        }
+        else {
+            mousedown = true;
+            startX = e.clientX;
+            startY = e.clientY-((sh/2)-(sw/2));
+        }
+
+        //console.log(e.touches[0]);
+
+        var ctx = paintView.getContext("2d");
+        ctx.strokeStyle = "#000";
+        ctx.lineWidth = 25;
+        ctx.lineJoin = "round";
+        ctx.lineCap = "round";
+
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+    };
+    var paint_ontouchmove = function(e) {
+        var moveX;
+        var moveY;
+        if (e.touches) {
+            moveX = e.touches[0].clientX;
+            moveY = e.touches[0].clientY-((sh/2)-(sw/2));
+        }
+        else {
+            if (!mousedown) return;
+            moveX = e.clientX;
+            moveY = e.clientY-((sh/2)-(sw/2));
+        }
+
+        if (moveX < 0 || moveX > sw) return;
+        if (moveY < 0 || moveY > sw) return;
+
+        var ctx = paintView.getContext("2d");
+        ctx.lineTo(moveX, moveY);
+        ctx.stroke();
+    };
+    var paint_ontouchend = function() {
+        mousedown = false;
+    };
+
+    paintView.ontouchstart = paint_ontouchstart;
+    paintView.ontouchmove = paint_ontouchmove;
+    paintView.ontouchend = paint_ontouchend;
+
+    paintView.onmousedown = paint_ontouchstart;
+    paintView.onmousemove = paint_ontouchmove;
+    paintView.onmouseup = paint_ontouchend;
+
     deviceNoView = document.createElement("button");
     deviceNoView.style.position = "absolute";
     deviceNoView.style.background = "#fff";
@@ -373,9 +445,9 @@ $(document).ready(function() {
     document.body.appendChild(resolutionView);
 
     resolutionView.onclick = function() {
-        resolution = (resolution+1) < 2 ? (resolution+1) : 0;
+        resolution = (resolution+1) < 10 ? (resolution+1) : 0;
         resolutionView.innerText = 
-        "res: "+(resolution == 0 ? "max" : "8x8");
+        "res: "+(resolution == 0 ? "max" : (resolution+"x"+resolution));
     };
 
     measureLineEnabled = false;
@@ -898,8 +970,10 @@ var drawImage = function() {
     ctx.clearRect(0, 0, sw, sw);
 
     var resolutionCanvas = document.createElement("canvas");
-    resolutionCanvas.width = resolution == 0 ? sw : 8;
-    resolutionCanvas.height = resolution == 0 ? sw : 8;
+    resolutionCanvas.width = 
+    resolution == 0 ? sw : (8*resolution);
+    resolutionCanvas.height = 
+    resolution == 0 ? sw : (8*resolution);
 
     var resolutionCtx = resolutionCanvas.getContext("2d");
     resolutionCtx.imageSmoothingEnabled = false;
@@ -1575,10 +1649,27 @@ var drawProjected = function(canvas) {
 var colorAmt = function(canvas) {
     var width = sw;
     var height = sw;
-    //stripeWidth = Math.floor((10/sw)*stripeWidth);
-    //pos.x = Math.floor((10/sw)*pos.x);
 
     var ctx = canvas.getContext("2d");
+    var paintCtx = paintView.getContext("2d");
+
+    /*
+    var paintProjectionCanvas = 
+    document.createElement("canvas");
+    paintProjectionCanvas.width = width;
+    paintProjectionCanvas.height = height;
+
+    var paintProjectionCtx = 
+    paintProjectionCanvas.getContext("2d");
+
+    paintProjectionCtx.drawImage(paintView, 
+    0, 0, paintProjectionCanvas.width, 
+    paintProjectionCanvas.height);*/
+
+    var paintImgData = 
+    paintCtx.getImageData(0, 0, 
+    paintView.width, paintView.height);
+    var paintData = paintImgData.data;
 
     var projectionCanvas = document.createElement("canvas");
     projectionCanvas.width = width;
@@ -1614,10 +1705,17 @@ var colorAmt = function(canvas) {
         var gm = g-m;
         var bm = b-m;
 
-        newImageArray[n] = m+(rm*color);
-        newImageArray[n + 1] = m+(gm*color);
-        newImageArray[n + 2] = m+(bm*color);
-        newImageArray[n + 3] = 255;
+        var paintBrightness = 
+        (1/255)*((paintData[n] + 
+        paintData[n + 1] + 
+        paintData[n + 2])/3);
+
+        if (paintData[n + 3] == 0) {
+            newImageArray[n] = m+(rm*color);
+            newImageArray[n + 1] = m+(gm*color);
+            newImageArray[n + 2] = m+(bm*color);
+            newImageArray[n + 3] = 255;
+        }
     }
     }
 
@@ -1625,6 +1723,9 @@ var colorAmt = function(canvas) {
     projectionCanvas.width, projectionCanvas.height);
     projectionCtx.putImageData(newImageData, 0, 0);
 
+    ctx.drawImage(projectionCanvas, 0, 0, sw, sw);
+
+    return;
     var x = startX;
     var y = startY;
 
