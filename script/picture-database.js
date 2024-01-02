@@ -956,6 +956,12 @@ var drawImage = function() {
     else if (!warningBeep.paused)
     warningBeep.pause();
 
+    var stripeWidth = (resolutionCanvas.width/(lineCount+1));
+    for (var n = 0; n < lineCount; n++) {
+        colorStripe(resolutionCanvas, (1/lineCount)*n, 
+        { x: (n*stripeWidth), y: 0 }, stripeWidth);
+    }
+
     ctx.drawImage(resolutionCanvas, 0, 0, sw, sw);
     if (mode == 3) {
         updateShape();
@@ -969,14 +975,6 @@ var drawImage = function() {
         ctx.beginPath();
         ctx.moveTo(0, (sw/2));
         ctx.lineTo(sw, (sw/2));
-        ctx.stroke();
-    }
-
-    ctx.strokeStyle = "#5f5";
-    for (var n = 0; n < lineCount; n++) {
-        ctx.beginPath();
-        ctx.moveTo((sw/(lineCount+1))*(n+1), 0);
-        ctx.lineTo((sw/(lineCount+1))*(n+1), sw);
         ctx.stroke();
     }
 
@@ -1568,6 +1566,62 @@ var drawProjected = function(canvas) {
     if (track < pictureArr.length && pictureArr[track].found) {
         drawPicture(canvas);
     }
+
+    ctx.drawImage(projectionCanvas, 0, 0, sw, sw);
+};
+
+var colorStripe = function(canvas, color, pos, stripeWidth) {
+    var width = sw;
+    var height = sw;
+    //stripeWidth = Math.floor((10/sw)*stripeWidth);
+    //pos.x = Math.floor((10/sw)*pos.x);
+
+    var ctx = canvas.getContext("2d");
+
+    var projectionCanvas = document.createElement("canvas");
+    projectionCanvas.width = width;
+    projectionCanvas.height = height;
+
+    var projectionCtx = projectionCanvas.getContext("2d");
+    projectionCtx.imageSmoothingEnabled = false;
+
+    projectionCtx.drawImage(canvas, 0, 0, width, height);
+
+    var imgData = 
+    projectionCtx.getImageData(0, 0, 
+    projectionCanvas.width, projectionCanvas.height);
+    var data = imgData.data;
+
+    var newImageArray = new Uint8ClampedArray(data);
+    for (var x = pos.x; x < (pos.x+stripeWidth); x++) {
+    for (var y = 0; y < height; y++) {
+        var n = ((y*height)+x)*4;
+
+        var brightness = 
+        (1/255) * 
+        ((data[n] * grayscaleRatio[grayscaleNo][0]) + 
+        (data[n + 1] * grayscaleRatio[grayscaleNo][1]) + 
+        (data[n + 2] * grayscaleRatio[grayscaleNo][2]));
+
+        var r = data[n];
+        var g = data[n + 1];
+        var b = data[n + 2];
+        var m = ((r+g+b)/3);
+
+        var rm = r-m;
+        var gm = g-m;
+        var bm = b-m;
+
+        newImageArray[n] = m+(rm*color);
+        newImageArray[n + 1] = m+(gm*color);
+        newImageArray[n + 2] = m+(bm*color);
+        newImageArray[n + 3] = 255;
+    }
+    }
+
+    var newImageData = new ImageData(newImageArray, 
+    projectionCanvas.width, projectionCanvas.height);
+    projectionCtx.putImageData(newImageData, 0, 0);
 
     ctx.drawImage(projectionCanvas, 0, 0, sw, sw);
 };
