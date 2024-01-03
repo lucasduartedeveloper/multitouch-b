@@ -898,10 +898,14 @@ $(document).ready(function() {
         "",
         "DATA DE NASCIMENTO: ",
         "NOME DO PAI: ",
-        "NOME DO MÃE: "
+        "NOME DA MÃE: "
     ];
     valueArr = [
-        "", "", "", "", ""
+        "IDENTIFICAÇÃO 2D", 
+        "LUCAS DUARTE DE OLIVEIRA", 
+        "14/12/1992", 
+        "JOSÉ PEREIRA DE OLIVEIRA", 
+        "JUDITH ALMEIDA DUARTE"
     ];
 
     load3D();
@@ -1880,10 +1884,10 @@ var drawIdentification = function(canvas) {
     (sw/6)+10+((sw/3)-10)+((sw/3)/3));
     indentificationCtx.stroke();
 
-    var fontSize = (sw/30);
+    var fontSize =(sw/30);
 
     indentificationCtx.fillStyle = "#000";
-    indentificationCtx.font = fontSize+"px sans";
+    indentificationCtx.font = "900 "+fontSize+"px sans";
     indentificationCtx.textBaseline = "top";
     indentificationCtx.textAlign = "left";
 
