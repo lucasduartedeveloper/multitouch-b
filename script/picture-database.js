@@ -1035,7 +1035,14 @@ var drawImage = function() {
         resolutionCtx.translate(-resolutionCanvas.width, 0);
     }
 
-    if (cameraOn) {
+    if (charNo > 0) {
+        resolutionCtx.fillStyle = "#000";
+        resolutionCtx.font = (sw/1.5)+"px sans";
+        resolutionCtx.textBaseline = "middle";
+        resolutionCtx.textAlign = "center";
+        resolutionCtx.fillText(charArr[charNo], (sw/2), (sw/2));
+    }
+    else if (cameraOn) {
         var video = {
             width: vw,
             height: vh
