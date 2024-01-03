@@ -150,11 +150,11 @@ $(document).ready(function() {
             startY = e.clientY-((sh/2)-(sw/2));
         }
 
-        //console.log(e.touches[0]);
+        var force = (e.touches[0].force*10);
 
         var ctx = paintView.getContext("2d");
         ctx.strokeStyle = "#000";
-        ctx.lineWidth = 25;
+        ctx.lineWidth = (25*force);
         ctx.lineJoin = "round";
         ctx.lineCap = "round";
 
@@ -177,7 +177,11 @@ $(document).ready(function() {
         if (moveX < 0 || moveX > sw) return;
         if (moveY < 0 || moveY > sw) return;
 
+        var force = (e.touches[0].force*10);
+
         var ctx = paintView.getContext("2d");
+        ctx.lineWidth = (25*force);
+
         ctx.lineTo(moveX, moveY);
         ctx.stroke();
     };
@@ -635,6 +639,38 @@ $(document).ready(function() {
             pictureView.style.width = (width)+"px";
             pictureView.style.height = (height)+"px";
         }
+    };
+
+    charArr = " ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    charNo = 0;
+
+    charView = document.createElement("button");
+    charView.style.position = "absolute";
+    charView.style.background = "#fff";
+    charView.style.color = "#000";
+    charView.innerText = charArr[charNo];
+    charView.style.fontFamily = "Khand";
+    charView.style.lineHeight = (25)+"px";
+    charView.style.fontSize = (15)+"px";
+    charView.style.left = ((sw/2)+(sw/2)-55)+"px";
+    charView.style.top = 
+    ((sh/2)+(sw/2)+80)+"px";
+    charView.style.width = (45)+"px";
+    charView.style.height = (25)+"px";
+    charView.style.border = "none";
+    charView.style.borderRadius = "12.5px";
+    charView.style.zIndex = "15";
+    document.body.appendChild(charView);
+
+    charView.ondblclick = function() {
+        charNo = 0;
+        charView.innerText = charArr[charNo];
+    };
+
+    charView.onclick = function() {
+        charNo = (charNo+1) < charArr.length ? 
+        (charNo+1) : 0;
+        charView.innerText = charArr[charNo];
     };
 
     previousResolutionCanvas = 
@@ -1584,6 +1620,17 @@ var drawProjected = function(canvas) {
     var projectionCtx = projectionCanvas.getContext("2d");
     projectionCtx.imageSmoothingEnabled = false;
 
+    if (charNo > 0) {
+        //projectionCtx.fillStyle = "#fff";
+        //projectionCtx.fillRect(0, 0, sw, sw);
+
+        projectionCtx.fillStyle = "#000";
+        projectionCtx.font = (sw/1.5)+"px sans";
+        projectionCtx.textBaseline = "middle";
+        projectionCtx.textAlign = "center";
+        projectionCtx.fillText(charArr[charNo], (sw/2), (sw/2));
+    }
+    else
     projectionCtx.drawImage(canvas, 0, 0, width, height);
 
     var imgData = 
@@ -1631,7 +1678,7 @@ var drawProjected = function(canvas) {
         newImageArray[np] = data[n];
         newImageArray[np + 1] = data[n + 1];
         newImageArray[np + 2] = data[n + 2];
-        newImageArray[np + 3] = 255;
+        newImageArray[np + 3] = data[n + 3];
     }
     }
 
