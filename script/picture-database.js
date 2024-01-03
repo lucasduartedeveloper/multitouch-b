@@ -406,7 +406,7 @@ $(document).ready(function() {
     document.body.appendChild(modeView);
 
     modeView.onclick = function() {
-        mode = (mode+1) < 5 ? (mode+1) : 0;
+        mode = (mode+1) < 6 ? (mode+1) : 0;
         modeView.innerText = "mode: "+mode;
 
         threejsEnabled = (mode == 3);
@@ -419,6 +419,14 @@ $(document).ready(function() {
         else {
             pauseAnimation();
         }
+
+        if (mode == 5) {
+            valueArr[0] = prompt(textArr[0], valueArr[0]);
+            valueArr[1] = prompt(textArr[1], valueArr[1]);
+            valueArr[2] = prompt(textArr[2], valueArr[2]);
+            valueArr[3] = prompt(textArr[3], valueArr[3]);
+            valueArr[4] = prompt(textArr[4], valueArr[4]);
+        };
 
         renderer.domElement.style.display = 
         threejsEnabled ? "initial" : "none";
@@ -878,6 +886,24 @@ $(document).ready(function() {
         positionArr[3].y = 0;
     };
 
+    textArr = [
+        "TITULO",
+        "NOME COMPLETO",
+        "DATA DE NASCIMENTO: 00/00/0000",
+        "NOME DO PAI: ",
+        "NOME DO MÃE: "
+    ];
+    preffixArr = [
+        "",
+        "",
+        "DATA DE NASCIMENTO: ",
+        "NOME DO PAI: ",
+        "NOME DO MÃE: "
+    ];
+    valueArr = [
+        "", "", "", "", ""
+    ];
+
     load3D();
     animate();
 });
@@ -1070,6 +1096,8 @@ var drawImage = function() {
     drawBinary(resolutionCanvas);
     if (followPlane && measureLineEnabled)
     drawProjected(resolutionCanvas);
+    if (mode == 5)
+    drawIdentification(resolutionCanvas);
 
     if (reachedHeight > ((1/7) * (track+1)) && 
     warningBeep.paused)
@@ -1811,6 +1839,80 @@ var colorAmt = function(canvas) {
 
     ctx.drawImage(projectionCanvas, 0, 0, sw, sw);
     ctx.restore();
+};
+
+var drawIdentification = function(canvas) {
+    var width = sw;
+    var height = sw;
+
+    var ctx = canvas.getContext("2d");
+
+    var indentificationCanvas = 
+    document.createElement("canvas");
+
+    indentificationCanvas.width = sw;
+    indentificationCanvas.height = sw;
+
+    var indentificationCtx = 
+    indentificationCanvas.getContext("2d");
+
+    indentificationCtx.clearRect(0, 0, sw, sw);
+
+    indentificationCtx.fillStyle = "#fff";
+    indentificationCtx.fillRect(0, (sw/6), sw, (sw/1.5));
+
+    indentificationCtx.strokeStyle = "#000";
+    indentificationCtx.lineWidth = 1;
+
+    indentificationCtx.beginPath();
+    indentificationCtx.moveTo(10+(((sw/3)-10)/3), (sw/6)+10+((sw/3)-10));
+    indentificationCtx.lineTo(10+(((sw/3)-10)/3), 
+    (sw/6)+10+((sw/3)-10)+((sw/3)/3));
+    indentificationCtx.lineTo(10+(((sw/3)-10)/3)-((((sw/3)-10)/3)/2), 
+    (sw/6)+10+((sw/3)-10)+((sw/3)/3));
+    indentificationCtx.stroke();
+
+    indentificationCtx.beginPath();
+    indentificationCtx.moveTo(10+((((sw/3)-10)/3)*2), (sw/6)+10+((sw/3)-10));
+    indentificationCtx.lineTo(10+((((sw/3)-10)/3)*2), 
+    (sw/6)+10+((sw/3)-10)+((sw/3)/3));
+    indentificationCtx.lineTo(10+((((sw/3)-10)/3)*2)+((((sw/3)-10)/3)/2), 
+    (sw/6)+10+((sw/3)-10)+((sw/3)/3));
+    indentificationCtx.stroke();
+
+    var fontSize = (sw/30);
+
+    indentificationCtx.fillStyle = "#000";
+    indentificationCtx.font = fontSize+"px sans";
+    indentificationCtx.textBaseline = "top";
+    indentificationCtx.textAlign = "left";
+
+    indentificationCtx.drawImage(canvas, 10, (sw/6)+10, 
+    ((sw/3)-10), ((sw/3)-10));
+
+    indentificationCtx.fillText(
+    valueArr[0] ? (preffixArr[0]+valueArr[0]) : textArr[0], 
+    (((sw/3)-10)+10)+10, ((sw/6)+10)+(fontSize/2));
+
+    indentificationCtx.fillText(
+    valueArr[1] ? (preffixArr[1]+valueArr[1]) : textArr[1], 
+    (((sw/3)-10)+10)+10, 
+    ((sw/6)+10)+(fontSize*2)+(fontSize/2));
+
+    indentificationCtx.fillText(
+    valueArr[2] ? (preffixArr[2]+valueArr[2]) : textArr[2], 
+    (((sw/3)-10)+10)+10, 
+    ((sw/6)+10)+(fontSize*6)+(fontSize/2));
+
+    indentificationCtx.fillText(
+    valueArr[3] ? (preffixArr[3]+valueArr[3]) : textArr[3], 
+    10, ((sw/6)+(sw/1.5))-10-(fontSize*4));
+
+    indentificationCtx.fillText(
+    valueArr[4] ? (preffixArr[4]+valueArr[4]) : textArr[4], 
+    10, ((sw/6)+(sw/1.5))-10-fontSize);
+
+    ctx.drawImage(indentificationCanvas, 0, 0, sw, sw);
 };
 
 var visibilityChange;
