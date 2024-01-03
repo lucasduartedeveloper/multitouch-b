@@ -869,21 +869,30 @@ $(document).ready(function() {
         colorView.innerText = (color)+"x";
     };
 
-    motion = false;
+    motion = true;
     gyroUpdated = function(e) {
-        var width = sw-((1/9.8)*e.accY)*sw;
+        var p0_fontSize = (sw/30);
 
-        positionArr[0].x = (sw/2)-(width/2);
-        positionArr[0].y = sw;
+        var c = { 
+            x: sw-10-(((sw/4)-10)/2), 
+            y: (sw/6)+(sw/1.5)-10-(((sw/4)-10)/2)
+        };
+        var p = {
+            x: 10+(((sw/3)-10)/2),
+            y: (sw/6)+10+(((sw/3)-10)/2)
+        };
+        var p0 = {
+            x: 0,
+            y: -(((sw/4)-10)/2)-(p0_fontSize)
+        };
 
-        positionArr[2].x = (sw/2)+(width/2);
-        positionArr[2].y = sw;
+        var co = (p.x-c.x);
+        var ca = (p.y-c.y);
+        var drawAngle = _angle2d(co, ca);
 
-        positionArr[1].x = 0;
-        positionArr[1].y = 0;
-
-        positionArr[3].x = sw;
-        positionArr[3].y = 0;
+        var co = e.accX;
+        var ca = e.accY;
+        northAngle = -(_angle2d(co, ca)-(Math.PI))+drawAngle;
     };
 
     textArr = [
@@ -1891,6 +1900,8 @@ var drawIdentification = function(canvas) {
 
     var co = (p.x-c.x);
     var ca = (p.y-c.y);
+
+    if (!hasMotionSensor)
     northAngle = _angle2d(co, ca);
 
     indentificationCtx.rotate(northAngle);
