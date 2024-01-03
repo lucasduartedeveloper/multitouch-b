@@ -402,23 +402,31 @@ var updateShape = function() {
         var c = (((x-1)*numPixels)+(y+1));
         var d = ((x*numPixels)+(y+1));
 
-        //vertexArray[(a*3)] = 
-        //positionArr[a].x * (1+brightness);
+        vertexArray[(a*3)] = 
+        positionArr[a].x / (1+brightness);
+        vertexArray[(a*3)+1] = 
+        positionArr[a].y / (1+brightness);
         vertexArray[(a*3)+2] = 
         positionArr[a].z * (1+brightness);
 
-        //vertexArray[(b*3)] = 
-        //positionArr[b].x * (1+brightness);
+        vertexArray[(b*3)] = 
+        positionArr[b].x / (1+brightness);
+        vertexArray[(b*3)+1] = 
+        positionArr[b].y / (1+brightness);
         vertexArray[(b*3)+2] = 
         positionArr[b].z * (1+brightness);
 
-        //vertexArray[(c*3)] = 
-        //positionArr[c].x * (1+brightness);
+        vertexArray[(c*3)] = 
+        positionArr[c].x / (1+brightness);
+        vertexArray[(c*3)+1] = 
+        positionArr[c].y / (1+brightness);
         vertexArray[(c*3)+2] = 
         positionArr[c].z * (1+brightness);
 
-        //vertexArray[(d*3)] = 
-        //positionArr[d].x * (1+brightness);
+        vertexArray[(d*3)] = 
+        positionArr[d].x / (1+brightness);
+        vertexArray[(d*3)+1] = 
+        positionArr[d].y / (1+brightness);
         vertexArray[(d*3)+2] = 
         positionArr[d].z * (1+brightness);
     }
