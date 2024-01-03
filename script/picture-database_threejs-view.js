@@ -338,6 +338,20 @@ var createMesh = function(start, size) {
     } );
     var mesh = new THREE.Mesh(geometry, material );
 
+    var size = Math.sqrt(2);
+    var geometry = new THREE.ConeGeometry( size, size, 4 ); 
+    var material = 
+    new THREE.MeshBasicMaterial( {
+       color: 0x55ff55,
+       wireframe: true
+    } );
+    cone = new THREE.Mesh(geometry, material ); 
+    //group.add( cone );
+    cone.rotateX((Math.PI/2));
+    cone.rotateY(-(Math.PI/4));
+
+    cone.position.z = 1+(size/2);
+
     var canvas = document.createElement("canvas");
     canvas.width = numPixels;
     canvas.height = numPixels;
@@ -361,7 +375,7 @@ var createShape = function() {
 };
 
 var line = 0;
-var updateShape = function() {
+var updateShape = function() {;
     if (!frontMesh) return;
     render = false;
 
@@ -388,14 +402,12 @@ var updateShape = function() {
     for (var x = 1; x < (numPixels); x++) {
     for (var y = 0; y < (numPixels-1); y++) {
 
-        var n = ((x*numPixels)+y)*4;
+        var n = ((y*numPixels)+x)*4;
         var brightness = 
         (1/255) * 
         ((data[n] * grayscaleRatio[grayscaleNo][0]) + 
         (data[n + 1] * grayscaleRatio[grayscaleNo][1]) + 
         (data[n + 2] * grayscaleRatio[grayscaleNo][2]));
-        reachedHeight = brightness > reachedHeight ? 
-        brightness : reachedHeight;
 
         var a = (((x-1)*numPixels)+y);
         var b = ((x*numPixels)+y);
@@ -403,30 +415,30 @@ var updateShape = function() {
         var d = ((x*numPixels)+(y+1));
 
         vertexArray[(a*3)] = 
-        positionArr[a].x / (1+brightness);
+        positionArr[a].x * (1+brightness);
         vertexArray[(a*3)+1] = 
-        positionArr[a].y / (1+brightness);
+        positionArr[a].y * (1+brightness);
         vertexArray[(a*3)+2] = 
         positionArr[a].z * (1+brightness);
 
         vertexArray[(b*3)] = 
-        positionArr[b].x / (1+brightness);
+        positionArr[b].x * (1+brightness);
         vertexArray[(b*3)+1] = 
-        positionArr[b].y / (1+brightness);
+        positionArr[b].y * (1+brightness);
         vertexArray[(b*3)+2] = 
         positionArr[b].z * (1+brightness);
 
         vertexArray[(c*3)] = 
-        positionArr[c].x / (1+brightness);
+        positionArr[c].x * (1+brightness);
         vertexArray[(c*3)+1] = 
-        positionArr[c].y / (1+brightness);
+        positionArr[c].y * (1+brightness);
         vertexArray[(c*3)+2] = 
         positionArr[c].z * (1+brightness);
 
         vertexArray[(d*3)] = 
-        positionArr[d].x / (1+brightness);
+        positionArr[d].x * (1+brightness);
         vertexArray[(d*3)+1] = 
-        positionArr[d].y / (1+brightness);
+        positionArr[d].y * (1+brightness);
         vertexArray[(d*3)+2] = 
         positionArr[d].z * (1+brightness);
     }
