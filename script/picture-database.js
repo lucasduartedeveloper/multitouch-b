@@ -412,12 +412,29 @@ $(document).ready(function() {
         threejsEnabled = (mode == 3);
         if (threejsEnabled) {
             setTimeout(function() {
-            //createShape(); 
+                createShape(); 
             }, 1000);
             startAnimation();
         }
         else {
             pauseAnimation();
+        }
+
+        if (mode == 2) {
+            positionArr = [
+                { x: (sw/2), y: (sw/2) },
+                { x: (sw/2), y: 0 },
+                { x: (sw/2), y: sw },
+                { x: (sw/2), y: (sw/2) }
+            ];
+        }
+        else {
+            positionArr = [
+                { x: (sw/2), y: sw },
+                { x: 0, y: 0 },
+                { x: (sw/2), y: sw },
+                { x: sw, y: 0 }
+            ];
         }
 
         if (mode == 5) {
@@ -722,9 +739,14 @@ $(document).ready(function() {
     rotationX = 0;
     rotationY = 0;
 
+    var gyroInterval = 0;
     analogButton.ontouchstart = function(e) {
         analogStartX = e.touches[0].clientX;
         analogStartY = e.touches[0].clientY;
+
+        gyroInterval = setInterval(function() {
+            navigator.vibrate(100);
+        }, 100);
     };
     analogButton.ontouchmove = function(e) {
         var moveX = e.touches[0].clientX - analogStartX;
@@ -740,6 +762,7 @@ $(document).ready(function() {
         rotationY = v.x > 0 ? 1 : -1;
     };
     analogButton.ontouchend = function(e) {
+        clearInterval(gyroInterval);
         rotationX = 0;
         rotationY = 0;
     };

@@ -101,7 +101,7 @@ var load3D = function() {
 
     rec = new CanvasRecorder(renderer.domElement);
 
-    virtualCamera.position.set(0, 0, 10);
+    virtualCamera.position.set(0, 0, 5);
     virtualCamera.lookAt(0, 0, 0);
 
     controls = new THREE.OrbitControls(virtualCamera,
@@ -385,7 +385,7 @@ var updateShape = function() {
     line = line <= 0 ? 1 : line;
     line = line > (numPixels-1) ? (numPixels-1) : line;
 
-    for (var x = (numPixels/2)-1; x < (numPixels/2); x++) {
+    for (var x = 1; x < (numPixels); x++) {
     for (var y = 0; y < (numPixels-1); y++) {
 
         var n = ((x*numPixels)+y)*4;
@@ -397,28 +397,28 @@ var updateShape = function() {
         reachedHeight = brightness > reachedHeight ? 
         brightness : reachedHeight;
 
-        var a = (((line-1)*numPixels)+y);
-        var b = ((line*numPixels)+y);
-        var c = (((line-1)*numPixels)+(y+1));
-        var d = ((line*numPixels)+(y+1));
+        var a = (((x-1)*numPixels)+y);
+        var b = ((x*numPixels)+y);
+        var c = (((x-1)*numPixels)+(y+1));
+        var d = ((x*numPixels)+(y+1));
 
-        vertexArray[(a*3)] = 
-        positionArr[a].x * (1+brightness);
+        //vertexArray[(a*3)] = 
+        //positionArr[a].x * (1+brightness);
         vertexArray[(a*3)+2] = 
         positionArr[a].z * (1+brightness);
 
-        vertexArray[(b*3)] = 
-        positionArr[b].x * (1+brightness);
+        //vertexArray[(b*3)] = 
+        //positionArr[b].x * (1+brightness);
         vertexArray[(b*3)+2] = 
         positionArr[b].z * (1+brightness);
 
-        vertexArray[(c*3)] = 
-        positionArr[c].x * (1+brightness);
+        //vertexArray[(c*3)] = 
+        //positionArr[c].x * (1+brightness);
         vertexArray[(c*3)+2] = 
         positionArr[c].z * (1+brightness);
 
-        vertexArray[(d*3)] = 
-        positionArr[d].x * (1+brightness);
+        //vertexArray[(d*3)] = 
+        //positionArr[d].x * (1+brightness);
         vertexArray[(d*3)+2] = 
         positionArr[d].z * (1+brightness);
     }
@@ -432,7 +432,7 @@ var updateShape = function() {
     textureCtx.imageSmoothingEnabled = false;
 
     textureCtx.drawImage(pictureView, 
-    line, 0, 1, numPixels);
+    0, 0, numPixels, numPixels);
 
     frontMesh.mesh.loadTexture(
         canvas.toDataURL()
