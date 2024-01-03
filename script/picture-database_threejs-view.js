@@ -101,7 +101,7 @@ var load3D = function() {
 
     rec = new CanvasRecorder(renderer.domElement);
 
-    virtualCamera.position.set(0, 0, 5);
+    virtualCamera.position.set(0, 0, 2.5);
     virtualCamera.lookAt(0, 0, 0);
 
     controls = new THREE.OrbitControls(virtualCamera,

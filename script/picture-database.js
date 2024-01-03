@@ -1504,7 +1504,25 @@ var directionCanvas = function(canvas, render=true) {
         if (n < positionArr[1].y) continue;
         if (n > positionArr[2].y) continue;
         ctx.lineTo(((positionArr[1].x+positionArr[2].x)/2)+
-        (x*(sw/4)), n);
+        (x*(sw/2)), (polygonY.length/2)+
+        ((1-x)*(n-(polygonY.length/2))));
+    }
+    ctx.lineTo(positionArr[2].x, positionArr[2].y);
+    ctx.fill();
+
+    ctx.fillStyle = "#fff";
+    ctx.beginPath();
+    var x = ((polygonY[0][0] + polygonY[0][1])/2)*directionY;
+    ctx.moveTo(positionArr[2].x, positionArr[2].y);
+    ctx.lineTo(sw, (sw/2));
+    ctx.lineTo(positionArr[1].x, positionArr[1].y);
+    for (var n = 0; n < polygonY.length; n++) {
+        var x = ((polygonY[n][0] + polygonY[n][1])/2)*directionY;
+        if (n < positionArr[1].y) continue;
+        if (n > positionArr[2].y) continue;
+        ctx.lineTo(((positionArr[1].x+positionArr[2].x)/2)+
+        (x*(sw/2)), (polygonY.length/2)+
+        ((1-x)*(n-(polygonY.length/2))));
     }
     ctx.lineTo(positionArr[2].x, positionArr[2].y);
     ctx.fill();
