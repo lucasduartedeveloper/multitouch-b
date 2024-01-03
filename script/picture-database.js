@@ -1901,6 +1901,26 @@ var drawIdentification = function(canvas) {
     indentificationCtx.textAlign = "center";
     indentificationCtx.fillText("N", p0.x, p0.y);
 
+    indentificationCtx.beginPath();
+    indentificationCtx.moveTo(
+        p0_fontSize, -(((sw/4)-10)/2)-(p0_fontSize)
+    );
+    for (var n = 1; n <= 10; n++) {
+        var c = { 
+            x: 0, 
+            y: 0 
+        };
+        var p0 = { 
+            x: p0_fontSize,
+            y: -(((sw/4)-10)/2)-(p0_fontSize)
+        };
+        var angle = (180/Math.PI)*(n*(northAngle/10));
+        var r0 = _rotate2d(c, p0, angle);
+
+        indentificationCtx.lineTo(r0.x, r0.y);
+    }
+    indentificationCtx.stroke();
+
     var path0 = [
        { x: 0, y: 0 },
        { x: -(((sw/4)-10)/2), y: 0 },
@@ -1990,7 +2010,7 @@ var drawIdentification = function(canvas) {
 
     indentificationCtx.fillText(
     valueArr[3] ? (preffixArr[3]+valueArr[3]) : textArr[3], 
-    10, ((sw/6)+(sw/1.5))-10-(fontSize*4));
+    10, ((sw/6)+(sw/1.5))-10-(fontSize*3));
 
     indentificationCtx.fillText(
     valueArr[4] ? (preffixArr[4]+valueArr[4]) : textArr[4], 
