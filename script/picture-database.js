@@ -944,6 +944,16 @@ $(document).ready(function() {
     animate();
 });
 
+var getHeight = function(width) {
+    var co = (width/2);
+    var ca = (width);
+    var hyp = Math.sqrt(
+        Math.pow(co, 2)+
+        Math.pow(ca, 2)
+    );
+    return hyp;
+};
+
 var rotationInterval = 0;
 var startRotation = function() {
     rotationInterval = setInterval(function() {

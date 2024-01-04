@@ -48,8 +48,8 @@ var load3D = function() {
         console.log(intersects.length);
 
         if (intersects.length > 0) {
-            var position = intersects[0].object.position;
-            controls.target = position.clone();
+            controls.target = 
+            new THREE.Vector3(0, 0, (1+Math.sqrt(2)));
             controls.update();
         };
     };
@@ -101,12 +101,12 @@ var load3D = function() {
 
     rec = new CanvasRecorder(renderer.domElement);
 
-    virtualCamera.position.set(0, 0, 2.5);
+    virtualCamera.position.set(0, 0, 3);
     virtualCamera.lookAt(0, 0, 0);
 
     controls = new THREE.OrbitControls(virtualCamera,
     renderer.domElement);
-    controls.target = new THREE.Vector3(0, 0, 0);
+    controls.target = new THREE.Vector3(0, 0, (1+Math.sqrt(2)));
     controls.update();
 
     変数 = sw/1.2;
@@ -339,6 +339,20 @@ var createMesh = function(start, size) {
     var mesh = new THREE.Mesh(geometry, material );
 
     var size = Math.sqrt(2);
+
+    var geometry = new THREE.SphereGeometry( 0.01, 32 ); 
+    var material = 
+    new THREE.MeshBasicMaterial( {
+       color: 0xffffff,
+       //opacity: 0.5,
+       //transparent: true,
+       //wireframe: true
+    } );
+    lightMesh = new THREE.Mesh(geometry, material ); 
+    group.add( lightMesh );
+
+    lightMesh.position.z = (1+size);
+
     var geometry = new THREE.ConeGeometry( size, size, 4 ); 
     var material = 
     new THREE.MeshBasicMaterial( {
