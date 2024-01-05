@@ -1949,7 +1949,7 @@ var colorAmt = function(canvas) {
     ctx.restore();
 };
 
-var northAngle = 0;
+var northAngle = -(Math.PI/4);
 var drawIdentification = function(canvas) {
     var width = sw;
     var height = sw;
