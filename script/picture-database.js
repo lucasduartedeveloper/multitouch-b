@@ -1520,12 +1520,11 @@ var directionCanvas = function(canvas, render=true) {
     var pictureHeight = getHeight(sw);
     drawLightRotationGraph(ctx, polygonX, polygonY, 
     directionX, directionY, 
-    (sw/2), (sw/2));
+    (sw/2), (sw));
 
-    /*
     drawLightRotationGraph(ctx, polygonX, polygonY, 
     directionX, directionY, 
-    (sw/2)-pictureHeight, pictureHeight);*/
+    (sw/2)-sw, (sw));
 
     var n0 = Math.floor(positionArr[0].y);
     var n1 = Math.floor(positionArr[1].y);
@@ -1605,8 +1604,8 @@ var drawLightRotationGraph =
         var x = ((polygonY[n][0] + polygonY[n][1])/2)*directionY;
         if (n < positionArr[1].y) continue;
         if (n > positionArr[2].y) continue;
-        ctx.lineTo(((startX+positionArr[2].x)/2)+
-        (x*(width)), (polygonY.length/2)+
+        ctx.lineTo(((startX)+
+        (x*(width))), (polygonY.length/2)+
         ((1-x)*(n-(polygonY.length/2))));
     }
     ctx.lineTo(startX, positionArr[2].y);
@@ -1622,8 +1621,8 @@ var drawLightRotationGraph =
         var x = ((polygonY[n][0] + polygonY[n][1])/2)*directionY;
         if (n < positionArr[1].y) continue;
         if (n > positionArr[2].y) continue;
-        ctx.lineTo(((startX+positionArr[2].x)/2)+
-        (x*(width)), (polygonY.length/2)+
+        ctx.lineTo(((startX)+
+        (x*(width))), (polygonY.length/2)+
         ((1-x)*(n-(polygonY.length/2))));
     }
     ctx.lineTo(startX, positionArr[2].y);
