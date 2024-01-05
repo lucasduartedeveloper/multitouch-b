@@ -409,6 +409,10 @@ $(document).ready(function() {
         mode = (mode+1) < 6 ? (mode+1) : 0;
         modeView.innerText = "mode: "+mode;
 
+        if (mode == 0) {
+            northAngle = -(Math.PI/4);
+        }
+
         threejsEnabled = (mode == 3);
         if (threejsEnabled) {
             setTimeout(function() {
@@ -1513,55 +1517,15 @@ var directionCanvas = function(canvas, render=true) {
 
     ctx.fillRect(0, 0, sw, sw);
 
-    var grd = ctx.createLinearGradient(0, 0, 0, sw);
-    for (var n = 0; n <= 1; n+=0.1) {
-        grd.addColorStop(n, getColor(n, true));
-    }
+    var pictureHeight = getHeight(sw);
+    drawLightRotationGraph(ctx, polygonX, polygonY, 
+    directionX, directionY, 
+    (sw/2), (sw/2));
 
-    ctx.fillStyle = grd;
-
-    ctx.strokeStyle = "#000";
-    ctx.beginPath();
-    var y = ((polygonX[0][0] + polygonX[0][1])/2)*directionX;
-    ctx.moveTo(0, (sw/2)+(y*(sw/4)));
-    for (var n = 1; n < polygonX.length; n++) {
-        var y = ((polygonX[n][0] + polygonX[n][1])/2)*directionX;
-        ctx.lineTo(sw, (sw/2)+(y*(sw/4)));
-    }
-    //ctx.stroke();
-
-    ctx.beginPath();
-    var x = ((polygonY[0][0] + polygonY[0][1])/2)*directionY;
-    ctx.moveTo(positionArr[2].x, positionArr[2].y);
-    ctx.lineTo(positionArr[0].x, positionArr[0].y);
-    ctx.lineTo(positionArr[1].x, positionArr[1].y);
-    for (var n = 0; n < polygonY.length; n++) {
-        var x = ((polygonY[n][0] + polygonY[n][1])/2)*directionY;
-        if (n < positionArr[1].y) continue;
-        if (n > positionArr[2].y) continue;
-        ctx.lineTo(((positionArr[1].x+positionArr[2].x)/2)+
-        (x*(sw/2)), (polygonY.length/2)+
-        ((1-x)*(n-(polygonY.length/2))));
-    }
-    ctx.lineTo(positionArr[2].x, positionArr[2].y);
-    ctx.fill();
-
-    ctx.fillStyle = "#fff";
-    ctx.beginPath();
-    var x = ((polygonY[0][0] + polygonY[0][1])/2)*directionY;
-    ctx.moveTo(positionArr[2].x, positionArr[2].y);
-    ctx.lineTo(sw, (sw/2));
-    ctx.lineTo(positionArr[1].x, positionArr[1].y);
-    for (var n = 0; n < polygonY.length; n++) {
-        var x = ((polygonY[n][0] + polygonY[n][1])/2)*directionY;
-        if (n < positionArr[1].y) continue;
-        if (n > positionArr[2].y) continue;
-        ctx.lineTo(((positionArr[1].x+positionArr[2].x)/2)+
-        (x*(sw/2)), (polygonY.length/2)+
-        ((1-x)*(n-(polygonY.length/2))));
-    }
-    ctx.lineTo(positionArr[2].x, positionArr[2].y);
-    ctx.fill();
+    /*
+    drawLightRotationGraph(ctx, polygonX, polygonY, 
+    directionX, directionY, 
+    (sw/2)-pictureHeight, pictureHeight);*/
 
     var n0 = Math.floor(positionArr[0].y);
     var n1 = Math.floor(positionArr[1].y);
@@ -1610,6 +1574,60 @@ var directionCanvas = function(canvas, render=true) {
     ctx.fill();
 
     //console.log(polygon);
+};
+
+var drawLightRotationGraph = 
+    function(ctx, polygonX, polygonY, directionX, directionY, 
+    startX, width) {
+    var grd = ctx.createLinearGradient(0, 0, 0, sw);
+    for (var n = 0; n <= 1; n+=0.1) {
+        grd.addColorStop(n, getColor(n, true));
+    }
+
+    ctx.fillStyle = grd;
+
+    ctx.strokeStyle = "#000";
+    ctx.beginPath();
+    var y = ((polygonX[0][0] + polygonX[0][1])/2)*directionX;
+    ctx.moveTo(0, (sw/2)+(y*(sw/4)));
+    for (var n = 1; n < polygonX.length; n++) {
+        var y = ((polygonX[n][0] + polygonX[n][1])/2)*directionX;
+        ctx.lineTo(sw, (sw/2)+(y*(sw/4)));
+    }
+    //ctx.stroke();
+
+    ctx.beginPath();
+    var x = ((polygonY[0][0] + polygonY[0][1])/2)*directionY;
+    ctx.moveTo(startX, positionArr[2].y);
+    ctx.lineTo(startX, positionArr[0].y);
+    ctx.lineTo(startX, positionArr[1].y);
+    for (var n = 0; n < polygonY.length; n++) {
+        var x = ((polygonY[n][0] + polygonY[n][1])/2)*directionY;
+        if (n < positionArr[1].y) continue;
+        if (n > positionArr[2].y) continue;
+        ctx.lineTo(((startX+positionArr[2].x)/2)+
+        (x*(width)), (polygonY.length/2)+
+        ((1-x)*(n-(polygonY.length/2))));
+    }
+    ctx.lineTo(startX, positionArr[2].y);
+    ctx.fill();
+
+    ctx.fillStyle = "#fff";
+    ctx.beginPath();
+    var x = ((polygonY[0][0] + polygonY[0][1])/2)*directionY;
+    ctx.moveTo(startX, positionArr[2].y);
+    ctx.lineTo(startX+(width), (sw/2));
+    ctx.lineTo(startX, positionArr[1].y);
+    for (var n = 0; n < polygonY.length; n++) {
+        var x = ((polygonY[n][0] + polygonY[n][1])/2)*directionY;
+        if (n < positionArr[1].y) continue;
+        if (n > positionArr[2].y) continue;
+        ctx.lineTo(((startX+positionArr[2].x)/2)+
+        (x*(width)), (polygonY.length/2)+
+        ((1-x)*(n-(polygonY.length/2))));
+    }
+    ctx.lineTo(startX, positionArr[2].y);
+    ctx.fill();
 };
 
 var ontouchIteration = 0;
@@ -2038,7 +2056,7 @@ var drawCompass =
     var co = (p.x-c.x);
     var ca = (p.y-c.y);
 
-    if (!hasMotionSensor && !motion && !open)
+    if ((!hasMotionSensor || !motion) && !open)
     northAngle = _angle2d(co, ca);
 
     ctx.rotate(northAngle);
