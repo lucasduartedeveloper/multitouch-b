@@ -1118,12 +1118,6 @@ var drawImage = function() {
         resolutionCtx.translate(-resolutionCanvas.width, 0);
     }
 
-    if (mode == 0) {
-        resolutionCtx.translate((sw/2), (sw/2));
-        resolutionCtx.rotate(northAngle+(Math.PI/4));
-        resolutionCtx.translate(-(sw/2), -(sw/2));
-    }
-
     if (charNo > 0) {
         resolutionCtx.fillStyle = "#000";
         resolutionCtx.font = (sw/1.5)+"px sans";
@@ -1152,6 +1146,9 @@ var drawImage = function() {
     resolutionCtx.restore();
 
     if (mode == 0) {
+        if (northAngle < -(Math.PI/4))
+        kaleidoscopeEffect(resolutionCanvas);
+
         var pos = {
             x: (sw-10)-(((sw/4)-10)/2), 
             y: (sw-10)-(((sw/4)-10)/2)
@@ -1256,6 +1253,175 @@ var drawImage = function() {
     measureCtx.moveTo(positionArr[3].x, positionArr[3].y);
     measureCtx.lineTo(v3.x, v3.y);
     measureCtx.stroke();
+};
+
+var kaleidoscopeEffect = function(canvas) {
+    var ctx = canvas.getContext("2d");
+
+    var kaleidoscopeCanvas = 
+    document.createElement("canvas");
+    kaleidoscopeCanvas.width = sw;
+    kaleidoscopeCanvas.height = sw;
+
+    var kaleidoscopeCtx = kaleidoscopeCanvas.getContext("2d");
+
+    var v = {
+        x: (sw/2)/4,
+        y: (sw/2)/4
+    };
+    var hyp = Math.sqrt(Math.pow(v.x, 2)+Math.pow(v.y, 2));
+
+    kaleidoscopeCtx.strokeStyle = "#000";
+    kaleidoscopeCtx.lineWidth = 1;
+
+    kaleidoscopeCtx.save();
+
+    kaleidoscopeCtx.beginPath();
+    kaleidoscopeCtx.moveTo(0, (sw/2));
+    kaleidoscopeCtx.lineTo(0, 0);
+    kaleidoscopeCtx.lineTo((sw/2), 0);
+    kaleidoscopeCtx.lineTo(0, (sw/2));
+    kaleidoscopeCtx.closePath();
+    kaleidoscopeCtx.stroke();
+    kaleidoscopeCtx.clip();
+
+    kaleidoscopeCtx.translate(v.x, v.y);
+    kaleidoscopeCtx.rotate(-northAngle-(Math.PI/4));
+    kaleidoscopeCtx.translate(-v.x, -v.y);
+    kaleidoscopeCtx.drawImage(canvas, 
+    -(sw/2)+v.x, -(sw/2)+v.y, sw, sw);
+    kaleidoscopeCtx.restore();
+
+    kaleidoscopeCtx.save();
+
+    kaleidoscopeCtx.beginPath();
+    kaleidoscopeCtx.moveTo(sw, (sw/2));
+    kaleidoscopeCtx.lineTo((sw/2), 0);
+    kaleidoscopeCtx.lineTo(sw, 0);
+    kaleidoscopeCtx.lineTo(sw, (sw/2));
+    kaleidoscopeCtx.closePath();
+    kaleidoscopeCtx.stroke();
+    kaleidoscopeCtx.clip();
+
+    kaleidoscopeCtx.translate(sw-v.x, v.y);
+    kaleidoscopeCtx.rotate(northAngle+(Math.PI/4));
+    kaleidoscopeCtx.translate(-sw+v.x, v.y);
+    kaleidoscopeCtx.drawImage(canvas, 
+    (sw/2)-v.x, -(sw/2)-v.y, sw, sw);
+    kaleidoscopeCtx.restore();
+
+    kaleidoscopeCtx.save();
+
+    kaleidoscopeCtx.beginPath();
+    kaleidoscopeCtx.moveTo(0, sw);
+    kaleidoscopeCtx.lineTo(0, (sw/2));
+    kaleidoscopeCtx.lineTo((sw/2), sw);
+    kaleidoscopeCtx.lineTo(0, sw);
+    kaleidoscopeCtx.closePath();
+    kaleidoscopeCtx.stroke();
+    kaleidoscopeCtx.clip();
+
+    kaleidoscopeCtx.translate(v.x, sw-v.y);
+    kaleidoscopeCtx.rotate(northAngle+(Math.PI/4));
+    kaleidoscopeCtx.translate(-v.x, -sw+v.y);
+    kaleidoscopeCtx.drawImage(canvas, 
+    -(sw/2)+v.x, (sw/2)-v.y, sw, sw);
+    kaleidoscopeCtx.restore();
+
+    kaleidoscopeCtx.save();
+
+    kaleidoscopeCtx.beginPath();
+    kaleidoscopeCtx.moveTo((sw/2), sw);
+    kaleidoscopeCtx.lineTo(sw, (sw/2));
+    kaleidoscopeCtx.lineTo(sw, sw);
+    kaleidoscopeCtx.lineTo((sw/2), sw);
+    kaleidoscopeCtx.closePath();
+    kaleidoscopeCtx.stroke();
+    kaleidoscopeCtx.clip();
+
+    kaleidoscopeCtx.translate(sw-v.x, sw-v.y);
+    kaleidoscopeCtx.rotate(-northAngle-(Math.PI/4));
+    kaleidoscopeCtx.translate(-sw+v.x, -sw+v.y);
+    kaleidoscopeCtx.drawImage(canvas, 
+    (sw/2)-v.x, (sw/2)-v.y, sw, sw);
+    kaleidoscopeCtx.restore();
+
+    v.x = ((sw/2)/2)+v.x;
+    v.y = ((sw/2)/2)+v.y;
+
+    kaleidoscopeCtx.save();
+
+    kaleidoscopeCtx.beginPath();
+    kaleidoscopeCtx.moveTo(0, (sw/2));
+    kaleidoscopeCtx.lineTo((sw/2), 0);
+    kaleidoscopeCtx.lineTo((sw/2), (sw/2));
+    kaleidoscopeCtx.lineTo(0, (sw/2));
+    kaleidoscopeCtx.closePath();
+    kaleidoscopeCtx.stroke();
+    kaleidoscopeCtx.clip();
+
+    kaleidoscopeCtx.translate(v.x, v.y);
+    kaleidoscopeCtx.rotate(-northAngle-(Math.PI/4));
+    kaleidoscopeCtx.translate(-v.x, -v.y);
+    kaleidoscopeCtx.drawImage(canvas, 
+    -(sw/2)+v.x, -(sw/2)+v.y, sw, sw);
+    kaleidoscopeCtx.restore();
+
+    kaleidoscopeCtx.save();
+
+    kaleidoscopeCtx.beginPath();
+    kaleidoscopeCtx.moveTo((sw/2), (sw/2));
+    kaleidoscopeCtx.lineTo((sw/2), 0);
+    kaleidoscopeCtx.lineTo(sw, (sw/2));
+    kaleidoscopeCtx.lineTo((sw/2), (sw/2));
+    kaleidoscopeCtx.closePath();
+    kaleidoscopeCtx.stroke();
+    kaleidoscopeCtx.clip();
+
+    kaleidoscopeCtx.translate(sw-v.x, v.y);
+    kaleidoscopeCtx.rotate(northAngle+(Math.PI/4));
+    kaleidoscopeCtx.translate(-sw+v.x, -v.y);
+    kaleidoscopeCtx.drawImage(canvas, 
+    (sw/2)-v.x, -(sw/2)+v.y, sw, sw);
+    kaleidoscopeCtx.restore();
+
+    kaleidoscopeCtx.save();
+
+    kaleidoscopeCtx.beginPath();
+    kaleidoscopeCtx.moveTo((sw/2), sw);
+    kaleidoscopeCtx.lineTo(0, (sw/2));
+    kaleidoscopeCtx.lineTo((sw/2), (sw/2));
+    kaleidoscopeCtx.lineTo((sw/2), sw);
+    kaleidoscopeCtx.closePath();
+    kaleidoscopeCtx.stroke();
+    kaleidoscopeCtx.clip();
+
+    kaleidoscopeCtx.translate(v.x, sw-v.y);
+    kaleidoscopeCtx.rotate(northAngle+(Math.PI/4));
+    kaleidoscopeCtx.translate(-v.x, -sw+v.y);
+    kaleidoscopeCtx.drawImage(canvas, 
+    -(sw/2)+v.x, (sw/2)-v.y, sw, sw);
+    kaleidoscopeCtx.restore();
+
+    kaleidoscopeCtx.save();
+
+    kaleidoscopeCtx.beginPath();
+    kaleidoscopeCtx.moveTo((sw/2), sw);
+    kaleidoscopeCtx.lineTo((sw/2), (sw/2));
+    kaleidoscopeCtx.lineTo(sw, (sw/2));
+    kaleidoscopeCtx.lineTo((sw/2), sw);
+    kaleidoscopeCtx.closePath();
+    kaleidoscopeCtx.stroke();
+    kaleidoscopeCtx.clip();
+
+    kaleidoscopeCtx.translate(sw-v.x, sw-v.y);
+    kaleidoscopeCtx.rotate(-northAngle-(Math.PI/4));
+    kaleidoscopeCtx.translate(-sw+v.x, -sw+v.y);
+    kaleidoscopeCtx.drawImage(canvas, 
+    (sw/2)-v.x, (sw/2)-v.y, sw, sw);
+    kaleidoscopeCtx.restore();
+
+    ctx.drawImage(kaleidoscopeCanvas, 0, 0, sw, sw);
 };
 
 var drawPicture = function(canvas) {
