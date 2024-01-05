@@ -739,6 +739,7 @@ $(document).ready(function() {
     rotationX = 0;
     rotationY = 0;
 
+    open = false;
     var gyroInterval = 0;
     analogButton.ontouchstart = function(e) {
         analogStartX = e.touches[0].clientX;
@@ -747,6 +748,11 @@ $(document).ready(function() {
         gyroInterval = setInterval(function() {
             navigator.vibrate(100);
         }, 100);
+
+        if (!open) {
+            northAngle = -(Math.PI/4);
+        }
+        open = true;
     };
     analogButton.ontouchmove = function(e) {
         var moveX = e.touches[0].clientX - analogStartX;
@@ -760,6 +766,7 @@ $(document).ready(function() {
         v.y = moveY > 50 ? 1 : (1/50)*moveY;
 
         rotationY = v.x > 0 ? 1 : -1;
+        northAngle += (v.x * ((Math.PI*2)/360));
     };
     analogButton.ontouchend = function(e) {
         clearInterval(gyroInterval);
@@ -1105,6 +1112,12 @@ var drawImage = function() {
         (!cameraOn && objectPosition == 1)) {
         resolutionCtx.scale(-1, 1);
         resolutionCtx.translate(-resolutionCanvas.width, 0);
+    }
+
+    if (mode == 0) {
+        resolutionCtx.translate((sw/2), (sw/2));
+        resolutionCtx.rotate(northAngle+(Math.PI/4));
+        resolutionCtx.translate(-(sw/2), -(sw/2));
     }
 
     if (charNo > 0) {
@@ -2025,7 +2038,7 @@ var drawCompass =
     var co = (p.x-c.x);
     var ca = (p.y-c.y);
 
-    if (!hasMotionSensor || !motion)
+    if (!hasMotionSensor && !motion && !open)
     northAngle = _angle2d(co, ca);
 
     ctx.rotate(northAngle);
@@ -2106,6 +2119,11 @@ var drawCompass =
     }
 
     ctx.restore();
+};
+
+var getDarkestColorPosition = function(canvas) {
+    var ctx = canvas.getContext("2d");
+    
 };
 
 var visibilityChange;
