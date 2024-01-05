@@ -892,7 +892,7 @@ $(document).ready(function() {
         colorView.innerText = (color)+"x";
     };
 
-    motion = true;
+    motion = false;
     gyroUpdated = function(e) {
         var p0_fontSize = (sw/30);
 
@@ -1134,6 +1134,19 @@ var drawImage = function() {
 
     resolutionCtx.restore();
 
+    if (mode == 0) {
+        var pos = {
+            x: (sw-10)-(((sw/4)-10)/2), 
+            y: (sw-10)-(((sw/4)-10)/2)
+        };
+        var dest = { 
+            x: (sw/2), 
+            y: (sw/2)
+        };
+
+        drawCompass(resolutionCanvas, 
+        pos, dest, "#000", "#fff");
+    }
     if (mode == 1)
     lowHeightCanvas(resolutionCanvas);
     if (mode == 2)
@@ -1930,105 +1943,17 @@ var drawIdentification = function(canvas) {
     indentificationCtx.strokeStyle = "#000";
     indentificationCtx.lineWidth = 1;
 
-    indentificationCtx.save();
-    indentificationCtx.translate(sw-10-(((sw/4)-10)/2), 
-    (sw/6)+(sw/1.5)-10-(((sw/4)-10)/2));
-
-    var p0_fontSize = (sw/30);
-
-    var c = { 
+    var pos = {
         x: sw-10-(((sw/4)-10)/2), 
         y: (sw/6)+(sw/1.5)-10-(((sw/4)-10)/2)
     };
-    var p = {
+    var dest = {
         x: 10+(((sw/3)-10)/2),
         y: (sw/6)+10+(((sw/3)-10)/2)
     };
-    var p0 = {
-        x: 0,
-        y: -(((sw/4)-10)/2)-(p0_fontSize)
-    };
 
-    var co = (p.x-c.x);
-    var ca = (p.y-c.y);
-
-    if (!hasMotionSensor)
-    northAngle = _angle2d(co, ca);
-
-    indentificationCtx.rotate(northAngle);
-
-    indentificationCtx.fillStyle = "#000";
-    indentificationCtx.font = "900 "+p0_fontSize+"px sans";
-    indentificationCtx.textBaseline = "middle";
-    indentificationCtx.textAlign = "center";
-    indentificationCtx.fillText("N", p0.x, p0.y);
-
-    indentificationCtx.beginPath();
-    indentificationCtx.moveTo(
-        p0_fontSize, -(((sw/4)-10)/2)-(p0_fontSize)
-    );
-    for (var n = 1; n <= 10; n++) {
-        var c = { 
-            x: 0, 
-            y: 0 
-        };
-        var p0 = { 
-            x: p0_fontSize,
-            y: -(((sw/4)-10)/2)-(p0_fontSize)
-        };
-        var angle = (180/Math.PI)*(n*(northAngle/10));
-        var r0 = _rotate2d(c, p0, angle);
-
-        indentificationCtx.lineTo(r0.x, r0.y);
-    }
-    indentificationCtx.stroke();
-
-    var path0 = [
-       { x: 0, y: 0 },
-       { x: -(((sw/4)-10)/2), y: 0 },
-       { x: -10, y: -10 }
-    ];
-    var path1 = [
-       { x: 0, y: 0 },
-       { x: -(((sw/4)-10)/2), y: 0 },
-       { x: -10, y: 10 }
-    ];
-
-    for (var n = 0; n < 4; n++) {
-        var c = { x: 0, y: 0 };
-        var p0 = { x: path0[0].x, y: path0[0].y };
-        var p1 = { x: path0[1].x, y: path0[1].y };
-        var p2 = { x: path0[2].x, y: path0[2].y };
-
-        var r0 = _rotate2d(c, p0, (n*90));
-        var r1 = _rotate2d(c, p1, (n*90));
-        var r2 = _rotate2d(c, p2, (n*90));
-
-        indentificationCtx.beginPath();
-        indentificationCtx.moveTo(r0.x, r0.y);
-        indentificationCtx.lineTo(r1.x, r1.y);
-        indentificationCtx.lineTo(r2.x, r2.y);
-        indentificationCtx.closePath();
-        indentificationCtx.stroke();
-
-        var p3 = { x: path1[0].x, y: path1[0].y };
-        var p4 = { x: path1[1].x, y: path1[1].y };
-        var p5 = { x: path1[2].x, y: path1[2].y };
-
-        var r3 = _rotate2d(c, p3, (n*90));
-        var r4 = _rotate2d(c, p4, (n*90));
-        var r5 = _rotate2d(c, p5, (n*90));
-
-        indentificationCtx.beginPath();
-        indentificationCtx.moveTo(r3.x, r3.y);
-        indentificationCtx.lineTo(r4.x, r4.y);
-        indentificationCtx.lineTo(r5.x, r5.y);
-        indentificationCtx.closePath();
-        indentificationCtx.fill();
-        indentificationCtx.stroke();
-    }
-
-    indentificationCtx.restore();
+    drawCompass(indentificationCanvas, 
+    pos, dest, "#000", "#fff");
 
     indentificationCtx.beginPath();
     indentificationCtx.moveTo(10+(((sw/3)-10)/3), (sw/6)+10+((sw/3)-10));
@@ -2079,6 +2004,108 @@ var drawIdentification = function(canvas) {
     10, ((sw/6)+(sw/1.5))-10-fontSize);
 
     ctx.drawImage(indentificationCanvas, 0, 0, sw, sw);
+};
+
+var drawCompass = 
+    function(canvas, pos, dest, color0, color1) {
+    var ctx = canvas.getContext("2d");
+
+    ctx.save();
+    ctx.translate(pos.x, pos.y);
+
+    var p0_fontSize = (sw/30);
+
+    var c = pos;
+    var p = dest;
+    var p0 = {
+        x: 0,
+        y: -(((sw/4)-10)/2)-(p0_fontSize)
+    };
+
+    var co = (p.x-c.x);
+    var ca = (p.y-c.y);
+
+    if (!hasMotionSensor || !motion)
+    northAngle = _angle2d(co, ca);
+
+    ctx.rotate(northAngle);
+
+    ctx.fillStyle = color0;
+    ctx.font = "900 "+p0_fontSize+"px sans";
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "center";
+    ctx.fillText("N", p0.x, p0.y);
+
+    ctx.strokeStyle = color0;
+    ctx.beginPath();
+    ctx.moveTo(
+        p0_fontSize, -(((sw/4)-10)/2)-(p0_fontSize)
+    );
+    for (var n = 1; n <= 10; n++) {
+        var c = { 
+            x: 0, 
+            y: 0 
+        };
+        var p0 = { 
+            x: p0_fontSize,
+            y: -(((sw/4)-10)/2)-(p0_fontSize)
+        };
+        var angle = (180/Math.PI)*(n*(northAngle/10));
+        var r0 = _rotate2d(c, p0, angle);
+
+        ctx.lineTo(r0.x, r0.y);
+    }
+    ctx.stroke();
+
+    var path0 = [
+       { x: 0, y: 0 },
+       { x: -(((sw/4)-10)/2), y: 0 },
+       { x: -10, y: -10 }
+    ];
+    var path1 = [
+       { x: 0, y: 0 },
+       { x: -(((sw/4)-10)/2), y: 0 },
+       { x: -10, y: 10 }
+    ];
+
+    for (var n = 0; n < 4; n++) {
+        var c = { x: 0, y: 0 };
+        var p0 = { x: path0[0].x, y: path0[0].y };
+        var p1 = { x: path0[1].x, y: path0[1].y };
+        var p2 = { x: path0[2].x, y: path0[2].y };
+
+        var r0 = _rotate2d(c, p0, (n*90));
+        var r1 = _rotate2d(c, p1, (n*90));
+        var r2 = _rotate2d(c, p2, (n*90));
+
+        ctx.fillStyle = color1;
+        ctx.beginPath();
+        ctx.moveTo(r0.x, r0.y);
+        ctx.lineTo(r1.x, r1.y);
+        ctx.lineTo(r2.x, r2.y);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        var p3 = { x: path1[0].x, y: path1[0].y };
+        var p4 = { x: path1[1].x, y: path1[1].y };
+        var p5 = { x: path1[2].x, y: path1[2].y };
+
+        var r3 = _rotate2d(c, p3, (n*90));
+        var r4 = _rotate2d(c, p4, (n*90));
+        var r5 = _rotate2d(c, p5, (n*90));
+
+        ctx.fillStyle = color0;
+        ctx.beginPath();
+        ctx.moveTo(r3.x, r3.y);
+        ctx.lineTo(r4.x, r4.y);
+        ctx.lineTo(r5.x, r5.y);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+    }
+
+    ctx.restore();
 };
 
 var visibilityChange;

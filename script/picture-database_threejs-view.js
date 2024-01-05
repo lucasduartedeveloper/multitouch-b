@@ -352,6 +352,7 @@ var createMesh = function(start, size) {
     group.add( lightMesh );
 
     lightMesh.position.z = (1+size);
+    lightMesh.loadTexture("img/globe-texture-0.png");
 
     var geometry = new THREE.ConeGeometry( size, size, 4 ); 
     var material = 
