@@ -1520,11 +1520,12 @@ var directionCanvas = function(canvas, render=true) {
     var pictureHeight = getHeight(sw);
     drawLightRotationGraph(ctx, polygonX, polygonY, 
     directionX, directionY, 
-    (sw/2), (sw));
+    (sw/2), (sw/2));
 
+    /*
     drawLightRotationGraph(ctx, polygonX, polygonY, 
     directionX, directionY, 
-    (sw/2)-sw, (sw));
+    (sw/2)-sw, (sw));*/
 
     var n0 = Math.floor(positionArr[0].y);
     var n1 = Math.floor(positionArr[1].y);
