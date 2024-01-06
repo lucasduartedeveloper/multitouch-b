@@ -123,6 +123,7 @@ $(document).ready(function() {
 
     paintView = document.createElement("canvas");
     paintView.style.position = "absolute";
+    paintView.style.display = "none";
     paintView.style.opacity = 0.1;
     paintView.style.background = "#fff";
     paintView.width = (sw);
@@ -954,8 +955,8 @@ $(document).ready(function() {
     document.body.appendChild(backgroundView);
 
     backgroundView.onclick = function() {
-        backgroundOffset = (backgroundOffset+0.05) < 0.3 ? 
-        (backgroundOffset+0.05) : 0;
+        var value = parseFloat(prompt("Background offset:", "0"));
+        backgroundOffset = value;
         backgroundView.innerText = "bg: "+
         ((100/1)*backgroundOffset).toFixed(2)+"%";
     };
@@ -1308,8 +1309,6 @@ var drawImage = function() {
     measureCtx.stroke();
 };
 
-var brightnessArr = [];
-
 var compareImageData = function(canvas, previousCanvas) {
     var ctx = canvas.getContext("2d");
 
@@ -1325,11 +1324,13 @@ var compareImageData = function(canvas, previousCanvas) {
     var previousData = previousImgData.data;
 
     var currentResolution = resolution == 0 ? sw : (8*resolution);
-    var positionArr = [];
 
-    var brightnessSum = 0;
+    var newImageArray = 
+    new Uint8ClampedArray(data);
 
-    var newImageArray = new Uint8ClampedArray(data);
+    var previousNewImageArray = 
+    new Uint8ClampedArray(previousData);
+
     for (var y = 0; y < currentResolution; y++) {
     for (var x = 0; x < currentResolution; x++) {
 
@@ -1341,8 +1342,6 @@ var compareImageData = function(canvas, previousCanvas) {
         (data[n + 1] * grayscaleRatio[grayscaleNo][1]) + 
         (data[n + 2] * grayscaleRatio[grayscaleNo][2]));
 
-        brightnessSum += brightness;
-
         var previousBrightness = 
         (1/255) * 
         ((previousData[n] * grayscaleRatio[grayscaleNo][0]) + 
@@ -1350,17 +1349,20 @@ var compareImageData = function(canvas, previousCanvas) {
         (previousData[n + 2] * grayscaleRatio[grayscaleNo][2]));
 
         if (Math.abs((brightness - previousBrightness)) <= backgroundOffset) {
+            previousNewImageArray[n] = 0;
+            previousNewImageArray[n + 1] = 0;
+            previousNewImageArray[n + 2] = 0;
+
             newImageArray[n] = 0;
             newImageArray[n + 1] = 0;
             newImageArray[n + 2] = 0;
         }
 
         if (Math.abs((brightness - previousBrightness)) > backgroundOffset) {
-            var pos = {
-                x: x,
-                y: y
-            };
-            positionArr.push(pos);
+            /*
+            newImageArray[n] = 100;
+            newImageArray[n + 1] = 255;
+            newImageArray[n + 2] = 100;*/
         }
 
     }
@@ -1368,6 +1370,11 @@ var compareImageData = function(canvas, previousCanvas) {
 
     var newImageData = new ImageData(newImageArray, canvas.width, canvas.height);
     ctx.putImageData(newImageData, 0, 0);
+
+    var previousNewImageData = new ImageData(
+    previousNewImageArray, 
+    previousCanvas.width, previousCanvas.height);
+    previousCtx.putImageData(previousNewImageData, 0, 0);
 
     ctx.fillStyle = "#000";
     ctx.strokeStyle = "#000";
@@ -1399,7 +1406,7 @@ var compareImageData = function(canvas, previousCanvas) {
     ctx.lineTo(sw, sw);
     ctx.lineTo(0, sw);
     //ctx.clip();
-    ctx.fill();
+    //ctx.fill();
 
     ctx.restore();
 };
