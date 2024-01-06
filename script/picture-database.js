@@ -1405,6 +1405,26 @@ var compareImageData = function(canvas, previousCanvas) {
     (brightnessSum/(currentResolution*currentResolution));
     brightnessArr.push(avgBrightness);
 
+    ctx.beginPath();
+    ctx.moveTo(
+    (sw/2)-(currentResolution/30), ((currentResolution/2)-
+    (-0.5+avgBrightness)*(currentResolution/2)));
+    ctx.lineTo(
+    (sw/2)+(currentResolution/30), ((currentResolution/2)-
+    (-0.5+avgBrightness)*(currentResolution/2)));
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(
+    (sw/2), ((currentResolution/2)-
+    (-0.5+avgBrightness)*(currentResolution/2))
+    -(currentResolution/30));
+    ctx.lineTo(
+    (sw/2), ((currentResolution/2)-
+    (-0.5+avgBrightness)*(currentResolution/2))
+    +(currentResolution/30));
+    ctx.stroke();
+
     if (brightnessArr.length > (currentResolution/2))
     brightnessArr = brightnessArr.slice(1);
 
@@ -1419,7 +1439,7 @@ var compareImageData = function(canvas, previousCanvas) {
         ((currentResolution/2)-
         (-0.5+brightnessArr[n])*(currentResolution/5)));
     }
-    ctx.stroke();
+    //ctx.stroke();
 };
 
 var kaleidoscopeEffect = function(canvas) {
