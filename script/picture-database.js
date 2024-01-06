@@ -705,8 +705,12 @@ $(document).ready(function() {
     previousResolutionCanvas = 
     document.createElement("canvas");
     previousResolutionCanvas.style.position = "absolute";
-    previousResolutionCanvas.width = numPixels;
-    previousResolutionCanvas.height = numPixels;
+    previousResolutionCanvas.width = 
+    resolution == 0 ? sw : (8*resolution);
+    previousResolutionCanvas.height = 
+    resolution == 0 ? sw : (8*resolution);
+    //previousResolutionCanvas.width = numPixels;
+    //previousResolutionCanvas.height = numPixels;
     previousResolutionCanvas.style.left = (0)+"px";
     previousResolutionCanvas.style.top = ((sh/2)-(sw/2))+"px";
     previousResolutionCanvas.style.width = (sw)+"px";
@@ -1088,6 +1092,10 @@ var drawImage = function() {
     ctx.imageSmoothingEnabled = false;
     ctx.clearRect(0, 0, sw, sw);
 
+    var previousResolutionCtx = 
+    previousResolutionCanvas.getContext("2d");
+    previousResolutionCtx.imageSmoothingEnabled = false;
+
     var resolutionCanvas = document.createElement("canvas");
     resolutionCanvas.width = 
     resolution == 0 ? sw : (8*resolution);
@@ -1102,6 +1110,7 @@ var drawImage = function() {
     }
 
     resolutionCtx.save();
+    previousResolutionCtx.save();
 
     if (!followPlane && measureLineEnabled) {
         resolutionCtx.beginPath();
@@ -1114,6 +1123,11 @@ var drawImage = function() {
 
     if ((cameraOn && objectPosition == 0) || 
         (!cameraOn && objectPosition == 1)) {
+
+        previousResolutionCtx.scale(-1, 1);
+        previousResolutionCtx.translate(
+        -previousResolutionCanvas.width, 0);
+
         resolutionCtx.scale(-1, 1);
         resolutionCtx.translate(-resolutionCanvas.width, 0);
     }
@@ -1135,7 +1149,16 @@ var drawImage = function() {
             height: getSquare(video)
         };
         var format = fitImageCover(video, frame);
+
         resolutionCtx.drawImage(cameraView,
+        -format.left, -format.top, frame.width, frame.height, 
+        0, 0, resolutionCanvas.width, resolutionCanvas.height);
+
+        compareImageData(
+        resolutionCanvas, 
+        previousResolutionCanvas);
+
+        previousResolutionCtx.drawImage(cameraView,
         -format.left, -format.top, frame.width, frame.height, 
         0, 0, resolutionCanvas.width, resolutionCanvas.height);
     }
@@ -1144,6 +1167,7 @@ var drawImage = function() {
     }
 
     resolutionCtx.restore();
+    previousResolutionCtx.restore();
 
     if (mode == 0) {
         if (northAngle < -(Math.PI/4))
@@ -1253,6 +1277,149 @@ var drawImage = function() {
     measureCtx.moveTo(positionArr[3].x, positionArr[3].y);
     measureCtx.lineTo(v3.x, v3.y);
     measureCtx.stroke();
+};
+
+var brightnessArr = [];
+
+var compareImageData = function(canvas, previousCanvas) {
+    var ctx = canvas.getContext("2d");
+
+    var imgData = 
+    ctx.getImageData(0, 0, canvas.width, canvas.height);
+    var data = imgData.data;
+
+    var previousCtx = previousCanvas.getContext("2d");
+
+    var previousImgData = 
+    previousCtx.getImageData(0, 0, 
+    previousCanvas.width, previousCanvas.height)
+    var previousData = previousImgData.data;
+
+    var currentResolution = resolution == 0 ? sw : (8*resolution);
+    var positionArr = [];
+
+    var brightnessSum = 0;
+
+    for (var y = 0; y < currentResolution; y++) {
+    for (var x = 0; x < currentResolution; x++) {
+
+        var n = (y*currentResolution)+x;
+
+        var brightness = 
+        (1/255) * 
+        ((data[n] * grayscaleRatio[grayscaleNo][0]) + 
+        (data[n + 1] * grayscaleRatio[grayscaleNo][1]) + 
+        (data[n + 2] * grayscaleRatio[grayscaleNo][2]));
+
+        brightnessSum += brightness;
+
+        var previousBrightness = 
+        (1/255) * 
+        ((previousData[n] * grayscaleRatio[grayscaleNo][0]) + 
+        (previousData[n + 1] * grayscaleRatio[grayscaleNo][1]) + 
+        (previousData[n + 2] * grayscaleRatio[grayscaleNo][2]));
+
+        if (Math.abs((brightness - previousBrightness)) > 0.3) {
+            var pos = {
+                x: x,
+                y: y
+            };
+            positionArr.push(pos);
+        }
+
+    }
+    }
+
+    var width = (currentResolution/5);
+    var height = (currentResolution/5);
+
+    var minX = currentResolution;
+    var minY = currentResolution;
+    var maxX = 0;
+    var maxY = 0;
+
+    var sumX = (positionArr.length > 0 ? 0 : currentResolution/2);
+    var sumY = (positionArr.length > 0 ? 0 : currentResolution/2);
+    for (var n = 0; n < positionArr.length; n++) {
+        if (positionArr[n].x < minX)
+        minX = positionArr[n].x;
+        if (positionArr[n].y < minY)
+        minY = positionArr[n].y;
+        if (positionArr[n].x > maxX)
+        maxX = positionArr[n].x;
+        if (positionArr[n].y > maxY)
+        maxY = positionArr[n].y;
+
+        sumX += positionArr[n].x;
+        sumY += positionArr[n].y;
+    }
+
+    width = maxX-minX;
+    height = maxY-minY;
+
+    var count = (positionArr.length > 0 ? positionArr.length : 1);
+    var c = {
+        x: (sumX/count),
+        y: (sumY/count)
+    };
+
+    console.log(positionArr.length);
+
+    ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+
+    ctx.beginPath();
+    ctx.moveTo(0, sw);
+    ctx.lineTo(sw, sw);
+    ctx.lineTo(sw, 0);
+    ctx.lineTo(0, 0);
+    ctx.lineTo(0, sw);
+    ctx.lineTo(
+    c.x-(width/2), c.y+(height/2));
+    ctx.lineTo(
+    c.x-(width/2), c.y-(height/2));
+    ctx.lineTo(
+    c.x+(width/2), c.y-(height/2));
+    ctx.lineTo(
+    c.x+(width/2), c.y+(height/2));
+    ctx.lineTo(
+    c.x-(width/2), c.y+(height/2));
+    //ctx.fill();
+
+    ctx.strokeStyle = "lightblue";
+    ctx.lineWidth = 1;
+
+    ctx.beginPath();
+    ctx.moveTo(
+    c.x-(width/2), c.y+(height/2));
+    ctx.lineTo(
+    c.x-(width/2), c.y-(height/2));
+    ctx.lineTo(
+    c.x+(width/2), c.y-(height/2));
+    ctx.lineTo(
+    c.x+(width/2), c.y+(height/2));
+    ctx.lineTo(
+    c.x-(width/2), c.y+(height/2));
+    //ctx.stroke();
+
+    var avgBrightness = 
+    (brightnessSum/(currentResolution*currentResolution));
+    brightnessArr.push(avgBrightness);
+
+    if (brightnessArr.length > (currentResolution/2))
+    brightnessArr = brightnessArr.slice(1);
+
+    ctx.beginPath();
+    ctx.moveTo(
+    (objectPosition == 0 ? currentResolution : 0), 
+    ((currentResolution/2)-
+    (-0.5+brightnessArr[0])*(currentResolution/5)));
+    for (var n = 1; n < brightnessArr.length; n++) {
+        ctx.lineTo(
+        (objectPosition == 0 ? (currentResolution-n) : n), 
+        ((currentResolution/2)-
+        (-0.5+brightnessArr[n])*(currentResolution/5)));
+    }
+    ctx.stroke();
 };
 
 var kaleidoscopeEffect = function(canvas) {
