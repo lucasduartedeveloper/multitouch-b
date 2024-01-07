@@ -509,6 +509,12 @@ $(document).ready(function() {
 
     var mousedown = false;
 
+    var x0 = 0;
+    var y0 = 0;
+
+    var x1 = 0;
+    var y1 = 0;
+
     var ontouchstart = function(e) {
         if (e.touches) {
             startX = e.touches[0].clientX;
@@ -541,8 +547,33 @@ $(document).ready(function() {
         measureLineView.innerText = measureLineEnabled ? 
         "line: "+positionNo : "line: OFF";
 
-        positionArr[positionNo].x = Math.floor(startX);
-        positionArr[positionNo].y = Math.floor(startY);
+        var x = 
+        Math.floor((((sw/gridSize)/2+startX)/(sw/gridSize)))*
+        (sw/gridSize);
+        var y = 
+        Math.floor((((sw/gridSize)/2+startY)/(sw/gridSize)))*
+        (sw/gridSize);
+
+        x0 = x;
+        y0 = y;
+
+        x1 = x;
+        y1 = y;
+
+        positionArr[0].x = x0;
+        positionArr[0].y = y1;
+
+        positionArr[1].x = x0;
+        positionArr[1].y = y0;
+
+        positionArr[2].x = x1;
+        positionArr[2].y = y1;
+
+        positionArr[3].x = x1;
+        positionArr[3].y = y0;
+
+        //positionArr[positionNo].x = x;
+        //positionArr[positionNo].y = y;
     };
     var ontouchmove = function(e) {
         var moveX;
@@ -560,8 +591,30 @@ $(document).ready(function() {
         if (moveX < 0 || moveX > sw) return;
         if (moveY < 0 || moveY > sw) return;
 
-        positionArr[positionNo].x = Math.floor(moveX);
-        positionArr[positionNo].y = Math.floor(moveY);
+        var x = 
+        Math.floor(((((sw/gridSize)/2)+moveX)/(sw/gridSize)))*
+        (sw/gridSize);
+        var y = 
+        Math.floor(((((sw/gridSize)/2)+moveY)/(sw/gridSize)))*
+        (sw/gridSize);
+
+        x1 = x;
+        y1 = y;
+
+        positionArr[0].x = x0;
+        positionArr[0].y = y1;
+
+        positionArr[1].x = x0;
+        positionArr[1].y = y0;
+
+        positionArr[2].x = x1;
+        positionArr[2].y = y1;
+
+        positionArr[3].x = x1;
+        positionArr[3].y = y0;
+
+        //positionArr[positionNo].x = x;
+        //positionArr[positionNo].y = y;
     };
     var ontouchend = function() {
         mousedown = false;
@@ -742,6 +795,10 @@ $(document).ready(function() {
     analogButton.style.zIndex = "15";
     document.body.appendChild(analogButton);
 
+    analogButton.ondblclick = function() {
+        northAngle = -(Math.PI/4);
+    };
+
     analogStartX = 0;
     analogStartY = 0;
 
@@ -829,7 +886,7 @@ $(document).ready(function() {
 
     downloadView.onclick = function() {
         var name = "download.png";
-        var url = pictureView.toDataURL();
+        var url = drawImage(false);
         var a = document.createElement('a');
         a.style.display = "none";
         a.href = url;
@@ -959,6 +1016,33 @@ $(document).ready(function() {
         backgroundOffset = value;
         backgroundView.innerText = "bg: "+
         ((100/1)*backgroundOffset).toFixed(2)+"%";
+    };
+
+    positionToViewer = 0;
+    gridSize = 10;
+
+    positionToViewerView = document.createElement("button");
+    positionToViewerView.style.position = "absolute";
+    positionToViewerView.style.background = "#fff";
+    positionToViewerView.style.color = "#000";
+    positionToViewerView.innerText = positionToViewer+"°";
+    positionToViewerView.style.fontFamily = "Khand";
+    positionToViewerView.style.lineHeight = (25)+"px";
+    positionToViewerView.style.fontSize = (15)+"px";
+    positionToViewerView.style.left = (sw-80)+"px";
+    positionToViewerView.style.top = (10)+"px";
+    positionToViewerView.style.width = (70)+"px";
+    positionToViewerView.style.height = (25)+"px";
+    positionToViewerView.style.border = "none";
+    positionToViewerView.style.borderRadius = "12.5px";
+    positionToViewerView.style.zIndex = "15";
+    document.body.appendChild(positionToViewerView);
+
+    positionToViewerView.onclick = function() {
+        positionToViewer = (positionToViewer+90) <= 360 ? 
+        (positionToViewer+90) : 0;
+        positionToViewerView.innerText = 
+        positionToViewer+"°";
     };
 
     textArr = [
@@ -1092,7 +1176,7 @@ var animate = function() {
     requestAnimationFrame(animate);
 };
 
-var drawImage = function() {
+var drawImage = function(alignmentOverlay=true) {
     var ctx = gradientView.getContext("2d");
 
     var count = Math.floor((sw/tileSize));
@@ -1160,6 +1244,26 @@ var drawImage = function() {
         resolutionCtx.translate(-resolutionCanvas.width, 0);
     }
 
+    if (positionToViewer > 0 && positionToViewer < 360) {
+        previousResolutionCtx.translate(
+        (previousResolutionCanvas.width/2), 
+        (previousResolutionCanvas.height/2));
+        previousResolutionCtx.rotate(
+        positionToViewer*(Math.PI/180));
+        previousResolutionCtx.translate(
+        -(previousResolutionCanvas.width/2), 
+        -(previousResolutionCanvas.height/2));
+
+        resolutionCtx.translate(
+        (resolutionCanvas.width/2), 
+        (resolutionCanvas.height/2));
+        resolutionCtx.rotate(
+        positionToViewer*(Math.PI/180));
+        resolutionCtx.translate(
+        -(resolutionCanvas.width/2), 
+        -(resolutionCanvas.height/2));
+    }
+
     if (charNo > 0) {
         resolutionCtx.fillStyle = "#000";
         resolutionCtx.font = (sw/1.5)+"px sans";
@@ -1199,9 +1303,9 @@ var drawImage = function() {
     resolutionCtx.restore();
     previousResolutionCtx.restore();
 
-    if (mode == 0) {
+    if (mode == 0 && alignmentOverlay) {
         if (northAngle < -(Math.PI/4))
-        kaleidoscopeEffect(resolutionCanvas);
+        kaleidoscopeEffect2(resolutionCanvas);
 
         var pos = {
             x: (sw-10)-(((sw/4)-10)/2), 
@@ -1252,6 +1356,25 @@ var drawImage = function() {
         ctx.stroke();
     }
 
+    if (alignmentOverlay) {
+    for (var y = 0; y <= gridSize; y++) {
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = "rgba(0, 0, 0, 0.1)";
+        ctx.beginPath();
+        ctx.moveTo(0, y*(sw/gridSize));
+        ctx.lineTo(sw, y*(sw/gridSize));
+        ctx.stroke();
+    }
+    for (var x = 0; x <= gridSize; x++) {
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = "rgba(0, 0, 0, 0.1)";
+        ctx.beginPath();
+        ctx.moveTo(x*(sw/gridSize), 0);
+        ctx.lineTo(x*(sw/gridSize), sw);
+        ctx.stroke();
+    }
+    }
+
     var measureCtx = measureView.getContext("2d");
     measureCtx.clearRect(0, 0, sw, sw);
 
@@ -1267,46 +1390,8 @@ var drawImage = function() {
     measureCtx.closePath();
     measureCtx.stroke();
 
-    return;
-    var v0 = {
-        x: positionArr[0].x+(positionArr[0].x-positionArr[3].x),
-        y: positionArr[0].y+(positionArr[0].y-positionArr[3].y)
-    };
-
-    measureCtx.beginPath();
-    measureCtx.moveTo(positionArr[0].x, positionArr[0].y);
-    measureCtx.lineTo(v0.x, v0.y);
-    measureCtx.stroke();
-
-    var v1 = {
-        x: positionArr[1].x+(positionArr[1].x-positionArr[2].x),
-        y: positionArr[1].y+(positionArr[1].y-positionArr[2].y)
-    };
-
-    measureCtx.beginPath();
-    measureCtx.moveTo(positionArr[1].x, positionArr[1].y);
-    measureCtx.lineTo(v1.x, v1.y);
-    measureCtx.stroke();
-
-    var v2 = {
-        x: positionArr[2].x+(positionArr[2].x-positionArr[1].x),
-        y: positionArr[2].y+(positionArr[2].y-positionArr[1].y)
-    };
-
-    measureCtx.beginPath();
-    measureCtx.moveTo(positionArr[2].x, positionArr[2].y);
-    measureCtx.lineTo(v2.x, v2.y);
-    measureCtx.stroke();
-
-    var v3 = {
-        x: positionArr[3].x+(positionArr[3].x-positionArr[0].x),
-        y: positionArr[3].y+(positionArr[3].y-positionArr[0].y)
-    };
-
-    measureCtx.beginPath();
-    measureCtx.moveTo(positionArr[3].x, positionArr[3].y);
-    measureCtx.lineTo(v3.x, v3.y);
-    measureCtx.stroke();
+    if (!alignmentOverlay)
+    return pictureView.toDataURL();
 };
 
 var compareImageData = function(canvas, previousCanvas) {
@@ -1348,21 +1433,24 @@ var compareImageData = function(canvas, previousCanvas) {
         (previousData[n + 1] * grayscaleRatio[grayscaleNo][1]) + 
         (previousData[n + 2] * grayscaleRatio[grayscaleNo][2]));
 
-        if (Math.abs((brightness - previousBrightness)) <= backgroundOffset) {
-            previousNewImageArray[n] = 0;
-            previousNewImageArray[n + 1] = 0;
-            previousNewImageArray[n + 2] = 0;
+        if (Math.abs((brightness - previousBrightness)) > backgroundOffset) {
+            previousNewImageArray[n] = data[n];
+            previousNewImageArray[n + 1] = data[n + 1];
+            previousNewImageArray[n + 2] = data[n + 2];
 
             newImageArray[n] = 0;
             newImageArray[n + 1] = 0;
             newImageArray[n + 2] = 0;
         }
 
-        if (Math.abs((brightness - previousBrightness)) > backgroundOffset) {
-            /*
-            newImageArray[n] = 100;
+        if (Math.abs((brightness - previousBrightness)) <= backgroundOffset) {
+            var stripe = ((1/currentResolution)*x)
+            -(((1/currentResolution)*x) % 0.1);
+            var rgb = getColor(stripe);
+
+            newImageArray[n] = 255;
             newImageArray[n + 1] = 255;
-            newImageArray[n + 2] = 100;*/
+            newImageArray[n + 2] = 255;
         }
 
     }
@@ -1410,6 +1498,58 @@ var compareImageData = function(canvas, previousCanvas) {
 
     ctx.restore();
 };
+
+var kaleidoscopeEffect2 = function(canvas) {
+    var ctx = canvas.getContext("2d");
+
+    var kaleidoscopeCanvas = 
+    document.createElement("canvas");
+    kaleidoscopeCanvas.width = sw;
+    kaleidoscopeCanvas.height = sw;
+
+    var kaleidoscopeCtx = kaleidoscopeCanvas.getContext("2d");
+
+    var offset = ((Math.sqrt(2)*(sw/gridSize))-(sw/gridSize))/2;
+
+    for (var y = 0; y < gridSize; y++) {
+    for (var x = 0; x < gridSize; x++) {
+        kaleidoscopeCtx.save();
+
+        kaleidoscopeCtx.beginPath();
+        kaleidoscopeCtx.moveTo(
+        (x*(sw/gridSize)), (y+1)*(sw/gridSize));
+        kaleidoscopeCtx.lineTo(
+        (x*(sw/gridSize)), y*(sw/gridSize));
+        kaleidoscopeCtx.lineTo(
+        ((x+1)*(sw/gridSize)), y*(sw/gridSize));
+        kaleidoscopeCtx.lineTo(
+        ((x+1)*(sw/gridSize)), (y+1)*(sw/gridSize));
+        kaleidoscopeCtx.lineTo(
+        (x*(sw/gridSize)), (y+1)*(sw/gridSize));
+        kaleidoscopeCtx.clip();
+
+        kaleidoscopeCtx.translate(
+        ((x*(sw/gridSize))+((sw/gridSize)/2)),
+        ((y*(sw/gridSize))+((sw/gridSize)/2)));
+        kaleidoscopeCtx.rotate(northAngle+(Math.PI/4));
+        kaleidoscopeCtx.translate(
+        -((x*(sw/gridSize))+((sw/gridSize)/2)),
+        -((y*(sw/gridSize))+((sw/gridSize)/2)));
+
+        kaleidoscopeCtx.drawImage(canvas, 
+        (x*(sw/gridSize))-offset, (y*(sw/gridSize))-offset,
+        (Math.sqrt(2)*(sw/gridSize)), 
+        (Math.sqrt(2)*(sw/gridSize)),
+        (x*(sw/gridSize))-offset, (y*(sw/gridSize))-offset,
+        (Math.sqrt(2)*(sw/gridSize)), 
+        (Math.sqrt(2)*(sw/gridSize)));
+
+        kaleidoscopeCtx.restore();
+    }
+    }
+
+    ctx.drawImage(kaleidoscopeCanvas, 0, 0, sw, sw);
+}
 
 var kaleidoscopeEffect = function(canvas) {
     var ctx = canvas.getContext("2d");
@@ -1680,19 +1820,20 @@ var clearDatabase = function() {
 };
 
 var uploadImage = function(callback) {
+    var dataURL = drawImage(false);
     $.ajax({
         url: "ajax/file-upload.php",
         type: "POST",
         data: { 
             no: track,
-            image: pictureView.toDataURL()
+            image: dataURL
         },
         success: function(data) {
             alert("Save Complete");
-            updatePicture(track, pictureView.toDataURL());
+            updatePicture(track, dataURL);
             callback();
     }});
-    console.log("data size: "+pictureView.toDataURL().length);
+    console.log("data size: "+dataURL.length);
 };
 
 var grayscaleNo = 0;
