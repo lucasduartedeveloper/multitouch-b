@@ -1,4 +1,5 @@
-var host = "wss://192.168.15.4:3000";
+var host = "wss://websocket-sv.onrender.com/";
+//var host = "wss://192.168.15.2:3000";
 
 var wsh = null;
 

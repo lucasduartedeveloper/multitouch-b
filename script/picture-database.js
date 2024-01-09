@@ -1137,6 +1137,10 @@ $(document).ready(function() {
     animate();
 });
 
+var sendImage = function(dataURL) {
+    ws.send("PAPER|"+playerId+"|image-data|"+dataURL);
+};
+
 var map;
 var marker;
 var startMap = function() {
@@ -1259,6 +1263,7 @@ var animate = function() {
             updateTime = new Date().getTime();
         }
         drawImage();
+        sendImage(pictureView.toDataURL());
     }
     renderTime = new Date().getTime();
     requestAnimationFrame(animate);
