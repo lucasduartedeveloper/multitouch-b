@@ -12,6 +12,26 @@ var setupCanvas = function() {
     backgroundView.style.zIndex = "15";
     document.body.appendChild(backgroundView);
 
+    backgroundOffset = 0.1;
+
+    backgroundOffsetView = document.createElement("input");
+    backgroundOffsetView.style.position = "absolute";
+    backgroundOffsetView.type = "range";
+    backgroundOffsetView.value = backgroundOffset;
+    backgroundOffsetView.min = 0.01;
+    backgroundOffsetView.max = 1;
+    backgroundOffsetView.step = 0.01;
+    backgroundOffsetView.style.left = (10)+"px";
+    backgroundOffsetView.style.top = ((sh/2)-(sw/2)-60)+"px";
+    backgroundOffsetView.style.width = (sw-20)+"px";
+    backgroundOffsetView.style.height = (50)+"px";
+    backgroundOffsetView.style.zIndex = "15";
+    document.body.appendChild(backgroundOffsetView);
+
+    backgroundOffsetView.oninput = function(e) {
+        backgroundOffset = e.target.value;
+    };
+
     pictureView = document.createElement("canvas");
     pictureView.style.position = "absolute";
     pictureView.style.background = "#fff";
@@ -51,8 +71,6 @@ var setupCanvas = function() {
 
     video = document.getElementsByTagName("video")[0];
     console.log(video);
-
-    backgroundOffset = 0.1;
 
     resolution = 0;
     var currentResolution = resolution == 0 ? sw : (8*resolution);
@@ -251,8 +269,6 @@ var fitImageCover = function(img, frame) {
 
     return obj;
 };
-
-setupCanvas();
 
 var visibilityChange;
 if (typeof document.hidden !== "undefined") { // Opera 12.10 and Firefox 18 and later support
