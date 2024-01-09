@@ -13,6 +13,10 @@ function success(pos) {
     console.log(`More or less ${crd.accuracy} meters.`);
 
     locationName(crd.latitude, crd.longitude);
+    map.setView([ 
+        crd.latitude, 
+        crd.longitude
+    ], 18);
 }
 
 function error(err) {

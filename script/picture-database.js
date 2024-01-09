@@ -1067,9 +1067,71 @@ $(document).ready(function() {
         "JUDITH ALMEIDA DUARTE"
     ];
 
+    mapView = document.createElement("div");
+    mapView.style.position = "absolute";
+    mapView.id = "map";
+    mapView.style.display = "none";
+    mapView.className = "map-box";
+    mapView.style.left = (0)+"px";
+    mapView.style.top = ((sh/2)-(sw/2))+"px";
+    mapView.style.width = (sw/4)+"px";
+    mapView.style.height = (sw/4)+"px"; 
+    mapView.style.border = "1px";
+    mapView.style.zIndex = "17";
+    document.body.appendChild(mapView);
+
+    recordedVideo = document.createElement("video");
+    recordedVideo.style.position = "absolute";
+    recordedVideo.style.display = "none";
+    recordedVideo.crossOrigin = "anonymous";
+    recordedVideo.style.objectFit = "cover";
+    recordedVideo.style.left = (0)+"px";
+    recordedVideo.style.top = ((sh/2)-(sw/2))+"px";
+    recordedVideo.width = (sw);
+    recordedVideo.height = (sw);
+    recordedVideo.style.width = (sw)+"px";
+    recordedVideo.style.height = (sw)+"px";
+    recordedVideo.style.border = "none";
+    recordedVideo.style.zIndex = "35";
+    document.body.appendChild(recordedVideo);
+
+    recordedVideo.src = 
+    "https://192.168.15.2:8443/movies/avengers.mp4";
+
+    //startMap();
+
+    var currentResolution = resolution == 0 ? sw : (8*resolution);
+
+    previousVideoCanvas = 
+    document.createElement("canvas");
+    previousVideoCanvas.width = (currentResolution);
+    previousVideoCanvas.height = (currentResolution);
+
     load3D();
     animate();
 });
+
+var map;
+var marker;
+var startMap = function() {
+    // Create the map
+    map = L.map('map').setView([-23.37062642645644,  -51.15587314318577], 18);
+
+    var tileLayer = L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+        attribution: "",
+        maxZoom: 20,
+        id: 'mapbox/streets-v11',
+        tileSize: 512,
+        zoomOffset: -1,
+        accessToken: 'pk.eyJ1IjoibHVjYXNkdWFydGUxOTkyIiwiYSI6ImNreGZieWE3ODFwNTQyb3N0cW4zNHMxMG8ifQ.HXS54wWrm6wPz-29LVVRbg'
+    }).addTo(map);
+
+    var marker = 
+    L.marker([-23.37062642645644,  -51.15587314318577])
+    .addTo(map);
+
+    $(".leaflet-control-container").hide();
+};
 
 var getHeight = function(width) {
     var co = (width/2);
@@ -1340,6 +1402,45 @@ var drawImage = function(alignmentOverlay=true) {
         colorAmt(resolutionCanvas);
     }
 
+    var videoCanvas = document.createElement("canvas");
+    videoCanvas.width = resolutionCanvas.width;
+    videoCanvas.height = resolutionCanvas.height;
+
+    var videoCtx = videoCanvas.getContext("2d");
+
+    var video = {
+        width: recordedVideo.videoWidth,
+        height: recordedVideo.videoHeight
+    };
+    var frame = {
+        width: 
+        recordedVideo.videoWidth > 
+        recordedVideo.videoHeight ? 
+        recordedVideo.videoHeight : 
+        recordedVideo.videoWidth,
+        height: 
+        recordedVideo.videoWidth > 
+        recordedVideo.videoHeight ? 
+        recordedVideo.videoHeight : 
+        recordedVideo.videoWidth
+    };
+    var format = fitImageCover(video, frame);
+
+    videoCtx.drawImage(recordedVideo,
+    -format.left, -format.top, frame.width, frame.height, 
+    0, 0, videoCanvas.width, videoCanvas.height);
+
+    drawVideo(videoCanvas);
+
+    resolutionCtx.save();
+    resolutionCtx.opacity = 0.5;
+    resolutionCtx.drawImage(videoCanvas, 
+    0, 0, sw, sw);
+    /*positionArr[1].x, positionArr[1].y, 
+    positionArr[3].x-positionArr[1].x, 
+    positionArr[0].y-positionArr[1].y);*/
+    resolutionCtx.restore();
+
     ctx.drawImage(resolutionCanvas, 0, 0, sw, sw);
     if (mode == 3) {
         updateShape();
@@ -1392,6 +1493,87 @@ var drawImage = function(alignmentOverlay=true) {
 
     if (!alignmentOverlay)
     return pictureView.toDataURL();
+};
+
+var drawVideo = function(canvas) {
+    var videoCtx = canvas.getContext("2d");
+
+    var videoImgData = 
+    videoCtx.getImageData(0, 0, 
+    canvas.width, canvas.height);
+    var videoData = videoImgData.data;
+
+    var previousVideoCtx = 
+    previousVideoCanvas.getContext("2d");
+
+    var previousVideoImgData = 
+    previousVideoCtx.getImageData(0, 0, 
+    previousVideoCanvas.width, previousVideoCanvas.height);
+    var previousVideoData = previousVideoImgData.data;
+
+    var currentResolution = resolution == 0 ? sw : (8*resolution);
+
+    var newImageArray = 
+    new Uint8ClampedArray(videoData);
+
+    var previousNewImageArray = 
+    new Uint8ClampedArray(previousVideoData);
+
+    for (var y = 0; y < currentResolution; y++) {
+    for (var x = 0; x < currentResolution; x++) {
+
+        var n = ((y*currentResolution)+x)*4;
+
+        var brightness = 
+        (1/255) * 
+        ((videoData[n] * grayscaleRatio[grayscaleNo][0]) + 
+        (videoData[n + 1] * grayscaleRatio[grayscaleNo][1]) + 
+        (videoData[n + 2] * grayscaleRatio[grayscaleNo][2]));
+
+        var previousBrightness = 
+        (1/255) * 
+        ((previousVideoData[n] * grayscaleRatio[grayscaleNo][0]) + 
+        (previousVideoData[n + 1] * grayscaleRatio[grayscaleNo][1]) + 
+        (previousVideoData[n + 2] * grayscaleRatio[grayscaleNo][2]));
+
+        newImageArray[n] = 
+        videoData[n] * grayscaleRatio[grayscaleNo][0];
+        newImageArray[n + 1] = 
+        videoData[n + 1] * grayscaleRatio[grayscaleNo][1];
+        newImageArray[n + 2] = 
+        videoData[n + 2] * grayscaleRatio[grayscaleNo][2];
+
+        if (Math.abs((brightness - previousBrightness)) > backgroundOffset) {
+            previousNewImageArray[n] = videoData[n];
+            previousNewImageArray[n + 1] = videoData[n + 1];
+            previousNewImageArray[n + 2] = videoData[n + 2];
+
+            newImageArray[n] = 255;
+            newImageArray[n + 1] = 255;
+            newImageArray[n + 2] = 255;
+        }
+
+        if (Math.abs((brightness - previousBrightness)) <= backgroundOffset) {
+            var stripe = ((1/currentResolution)*x)
+            -(((1/currentResolution)*x) % 0.1);
+            var rgb = getColor(stripe);
+
+            newImageArray[n] = 0;
+            newImageArray[n + 1] = 0;
+            newImageArray[n + 2] = 0;
+        }
+
+    }
+    }
+
+    var newImageData = new ImageData(newImageArray, canvas.width, canvas.height);
+    videoCtx.putImageData(newImageData, 0, 0);
+
+    var previousNewImageData = new ImageData(
+    previousNewImageArray, 
+    previousVideoCanvas.width, previousVideoCanvas.height);
+    previousVideoCtx.putImageData(
+    previousNewImageData, 0, 0);
 };
 
 var compareImageData = function(canvas, previousCanvas) {
