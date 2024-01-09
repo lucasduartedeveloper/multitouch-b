@@ -1264,6 +1264,7 @@ var animate = function() {
     requestAnimationFrame(animate);
 };
 
+var offsetValue = 1;
 var offsetOrder = [ 0, 0, 0, 0, 0 ];
 var offsetNo = 0;
 
@@ -1327,10 +1328,19 @@ var drawImage = function(alignmentOverlay=true) {
     var offsetDir = offsetOrder[offsetNo];
     var offsetX = 0;
     var offsetY = 0;
-    if (offsetDir == 1) offsetX = -1;
-    if (offsetDir == 2) offsetY = -1;
-    if (offsetDir == 3) offsetX = 1;
-    if (offsetDir == 4) offsetY = 1;
+    var diffX = 0;
+    var diffY = 0;
+
+    if (offsetDir == 1) offsetX = -offsetValue;
+    if (offsetDir == 2) offsetY = -offsetValue;
+    if (offsetDir == 3) offsetX = offsetValue;
+    if (offsetDir == 4) offsetY = offsetValue;
+    if (offsetDir == -1) {
+       offsetX = offsetValue;
+       offsetY = offsetValue;
+       diffX = (offsetValue*2);
+       diffY = (offsetValue*2);
+    }
 
     offsetNo = (offsetNo+1) < offsetOrder.length ? 
     (offsetNo+1) : 0;
@@ -1386,8 +1396,9 @@ var drawImage = function(alignmentOverlay=true) {
 
         resolutionCtx.drawImage(cameraView,
         -format.left, -format.top, frame.width, frame.height, 
-        0+offsetX, 0+offsetX, 
-        resolutionCanvas.width, resolutionCanvas.height);
+        0+offsetX, 0+offsetY, 
+        resolutionCanvas.width-diffX,
+        resolutionCanvas.height-diffY);
 
         if (backgroundOffset > 0)
         compareImageData(
@@ -1400,7 +1411,7 @@ var drawImage = function(alignmentOverlay=true) {
         0, 0, resolutionCanvas.width, resolutionCanvas.height);
     }
     else {
-        drawPicture(resolutionCanvas, offsetX, offsetY);
+        drawPicture(resolutionCanvas, offsetX, offsetY, diffX, diffY);
     }
 
     resolutionCtx.restore();
@@ -1482,6 +1493,15 @@ var drawImage = function(alignmentOverlay=true) {
     positionArr[3].x-positionArr[1].x, 
     positionArr[0].y-positionArr[1].y);*/
     resolutionCtx.restore();
+
+    if (offsetDir != 0) {
+        resolutionCtx.strokeStyle = "#000";
+        resolutionCtx.lineWidth = offsetValue;
+        resolutionCtx.strokeRect(
+        (offsetValue/2), (offsetValue/2),
+        resolutionCanvas.width-(offsetValue),
+        resolutionCanvas.height-(offsetValue));
+    }
 
     ctx.drawImage(resolutionCanvas, 0, 0, sw, sw);
     if (mode == 3) {
@@ -1944,7 +1964,8 @@ var kaleidoscopeEffect = function(canvas) {
     ctx.drawImage(kaleidoscopeCanvas, 0, 0, sw, sw);
 };
 
-var drawPicture = function(canvas, offsetX, offsetY) {
+var drawPicture = 
+    function(canvas, offsetX, offsetY, diffX, diffY) {
     var ctx = canvas.getContext("2d");
     var previousResolutionCtx = 
     previousResolutionCanvas.getContext("2d");
@@ -1962,7 +1983,8 @@ var drawPicture = function(canvas, offsetX, offsetY) {
         var format = fitImageCover(size, frame);
         ctx.drawImage(image, 
         -format.left, -format.top, frame.width, frame.height, 
-        0+offsetX, 0+offsetY, canvas.width, canvas.height);
+        0+offsetX, 0+offsetY, 
+        canvas.width-diffX, canvas.height-diffY);
 
         if (backgroundOffset > 0)
         compareImageData(
