@@ -1400,7 +1400,7 @@ var drawImage = function(alignmentOverlay=true) {
         0, 0, resolutionCanvas.width, resolutionCanvas.height);
     }
     else {
-        drawPicture(resolutionCanvas);
+        drawPicture(resolutionCanvas, offsetX, offsetY);
     }
 
     resolutionCtx.restore();
@@ -1944,8 +1944,10 @@ var kaleidoscopeEffect = function(canvas) {
     ctx.drawImage(kaleidoscopeCanvas, 0, 0, sw, sw);
 };
 
-var drawPicture = function(canvas) {
+var drawPicture = function(canvas, offsetX, offsetY) {
     var ctx = canvas.getContext("2d");
+    var previousResolutionCtx = 
+    previousResolutionCanvas.getContext("2d");
 
     if (track < pictureArr.length && pictureArr[track].found) {
         var image = pictureArr[track];
@@ -1959,6 +1961,16 @@ var drawPicture = function(canvas) {
         };
         var format = fitImageCover(size, frame);
         ctx.drawImage(image, 
+        -format.left, -format.top, frame.width, frame.height, 
+        0+offsetX, 0+offsetY, canvas.width, canvas.height);
+
+        if (backgroundOffset > 0)
+        compareImageData(
+        canvas, 
+        previousResolutionCanvas);
+
+        if (backgroundOffset == 0)
+        previousResolutionCtx.drawImage(image,
         -format.left, -format.top, frame.width, frame.height, 
         0, 0, canvas.width, canvas.height);
     }
