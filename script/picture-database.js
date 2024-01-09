@@ -1018,6 +1018,32 @@ $(document).ready(function() {
         ((100/1)*backgroundOffset).toFixed(2)+"%";
     };
 
+    offsetOrderView = document.createElement("button");
+    offsetOrderView.style.position = "absolute";
+    offsetOrderView.style.background = "#fff";
+    offsetOrderView.style.color = "#000";
+    offsetOrderView.innerText = offsetOrder.join(", ");
+    offsetOrderView.style.fontFamily = "Khand";
+    offsetOrderView.style.lineHeight = (25)+"px";
+    offsetOrderView.style.fontSize = (5)+"px";
+    offsetOrderView.style.left = (90)+"px";
+    offsetOrderView.style.top = (10)+"px";
+    offsetOrderView.style.width = (35)+"px";
+    offsetOrderView.style.height = (25)+"px";
+    offsetOrderView.style.border = "none";
+    offsetOrderView.style.borderRadius = "12.5px";
+    offsetOrderView.style.zIndex = "15";
+    document.body.appendChild(offsetOrderView);
+
+    offsetOrderView.onclick = function() {
+        var value = (prompt("Offset order:", "0, 0, 0, 0, 0")).split(",");
+        for (var n = 0; n < value.length; n++) {
+            value[n] = parseInt(value[n]);
+        }
+        offsetOrder = value;
+        offsetOrderView.innerText = offsetOrder.join(", ");
+    };
+
     positionToViewer = 0;
     gridSize = 10;
 
@@ -1238,6 +1264,9 @@ var animate = function() {
     requestAnimationFrame(animate);
 };
 
+var offsetOrder = [ 0, 0, 0, 0, 0 ];
+var offsetNo = 0;
+
 var drawImage = function(alignmentOverlay=true) {
     var ctx = gradientView.getContext("2d");
 
@@ -1295,6 +1324,17 @@ var drawImage = function(alignmentOverlay=true) {
         resolutionCtx.clip();
     }
 
+    var offsetDir = offsetOrder[offsetNo];
+    var offsetX = 0;
+    var offsetY = 0;
+    if (offsetDir == 1) offsetX = -1;
+    if (offsetDir == 2) offsetY = -1;
+    if (offsetDir == 3) offsetX = 1;
+    if (offsetDir == 4) offsetY = 1;
+
+    offsetNo = (offsetNo+1) < offsetOrder.length ? 
+    (offsetNo+1) : 0;
+
     if ((cameraOn && objectPosition == 0) || 
         (!cameraOn && objectPosition == 1)) {
 
@@ -1346,7 +1386,8 @@ var drawImage = function(alignmentOverlay=true) {
 
         resolutionCtx.drawImage(cameraView,
         -format.left, -format.top, frame.width, frame.height, 
-        0, 0, resolutionCanvas.width, resolutionCanvas.height);
+        0+offsetX, 0+offsetX, 
+        resolutionCanvas.width, resolutionCanvas.height);
 
         if (backgroundOffset > 0)
         compareImageData(
@@ -1428,7 +1469,8 @@ var drawImage = function(alignmentOverlay=true) {
 
     videoCtx.drawImage(recordedVideo,
     -format.left, -format.top, frame.width, frame.height, 
-    0, 0, videoCanvas.width, videoCanvas.height);
+    0, 0, 
+    videoCanvas.width, videoCanvas.height);
 
     drawVideo(videoCanvas);
 
