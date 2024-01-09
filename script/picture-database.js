@@ -1133,12 +1133,23 @@ $(document).ready(function() {
     previousVideoCanvas.width = (currentResolution);
     previousVideoCanvas.height = (currentResolution);
 
+    remoteImageRendered = true;
+    ws.onmessage = function(e) {
+        var msg = e.data.split("|");
+        if (msg[0] == "PAPER" &&
+            msg[1] != playerId &&
+            msg[2] == "image-received") {
+            remoteImageRendered = true;
+        }
+    };
+
     load3D();
     animate();
 });
 
 var sendImage = function(dataURL) {
     ws.send("PAPER|"+playerId+"|image-data|"+dataURL);
+    remoteImageRendered = false;
 };
 
 var map;
@@ -1263,6 +1274,7 @@ var animate = function() {
             updateTime = new Date().getTime();
         }
         drawImage();
+        if (remoteImageRendered)
         sendImage(pictureView.toDataURL());
     }
     renderTime = new Date().getTime();
@@ -1272,6 +1284,8 @@ var animate = function() {
 var offsetValue = 1;
 var offsetOrder = [ 0, 0, 0, 0, 0 ];
 var offsetNo = 0;
+
+var offsetAngle = -(Math.PI/180);
 
 var drawImage = function(alignmentOverlay=true) {
     var ctx = gradientView.getContext("2d");
@@ -1341,10 +1355,10 @@ var drawImage = function(alignmentOverlay=true) {
     if (offsetDir == 3) offsetX = offsetValue;
     if (offsetDir == 4) offsetY = offsetValue;
     if (offsetDir == -1) {
-       offsetX = offsetValue;
-       offsetY = offsetValue;
-       diffX = (offsetValue*2);
-       diffY = (offsetValue*2);
+        offsetX = offsetValue;
+        offsetY = offsetValue;
+        diffX = (offsetValue*2);
+        diffY = (offsetValue*2);
     }
 
     offsetNo = (offsetNo+1) < offsetOrder.length ? 
@@ -1359,6 +1373,28 @@ var drawImage = function(alignmentOverlay=true) {
 
         resolutionCtx.scale(-1, 1);
         resolutionCtx.translate(-resolutionCanvas.width, 0);
+    }
+
+    if (offsetDir == -2) {
+        resolutionCtx.translate(
+        (resolutionCanvas.width/2), 
+        (resolutionCanvas.height/2));
+
+        resolutionCtx.rotate(offsetAngle);
+
+        resolutionCtx.translate(
+        -(resolutionCanvas.width/2), 
+        -(resolutionCanvas.height/2));
+
+        previousResolutionCtx.translate(
+        (previousResolutionCanvas.width/2), 
+        (previousResolutionCanvas.height/2));
+
+        previousResolutionCtx.rotate(offsetAngle);
+
+        previousResolutionCtx.translate(
+        -(previousResolutionCanvas.width/2), 
+        -(previousResolutionCanvas.height/2));
     }
 
     if (positionToViewer > 0 && positionToViewer < 360) {
