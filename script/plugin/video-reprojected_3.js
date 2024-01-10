@@ -324,7 +324,6 @@ var drawImage = function() {
         height: getSquare(image)
     };
     var format = fitImageCover(image, frame);
-    console.log(format);
 
     var left = (switchSide && !rotateCamera) || 
     (!switchSide && rotateCamera) ? 
