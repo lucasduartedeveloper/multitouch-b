@@ -1071,6 +1071,30 @@ $(document).ready(function() {
         positionToViewer+"°";
     };
 
+    angleEnabled = false;
+
+    angleView = document.createElement("button");
+    angleView.style.position = "absolute";
+    angleView.style.background = "#fff";
+    angleView.style.color = "#000";
+    angleView.innerText = angleEnabled ? "-90°" : "off";
+    angleView.style.fontFamily = "Khand";
+    angleView.style.lineHeight = (25)+"px";
+    angleView.style.fontSize = (15)+"px";
+    angleView.style.left = (sw-125)+"px";
+    angleView.style.top = (10)+"px";
+    angleView.style.width = (35)+"px";
+    angleView.style.height = (25)+"px";
+    angleView.style.border = "none";
+    angleView.style.borderRadius = "12.5px";
+    angleView.style.zIndex = "15";
+    document.body.appendChild(angleView);
+
+    angleView.onclick = function() {
+        angleEnabled = !angleEnabled;
+        angleView.innerText = angleEnabled ? "-90°" : "off";
+    };
+
     textArr = [
         "TITULO",
         "NOME COMPLETO",
@@ -1495,45 +1519,47 @@ var drawImage = function(alignmentOverlay=true) {
         colorAmt(resolutionCanvas);
     }
 
-    var videoCanvas = document.createElement("canvas");
-    videoCanvas.width = resolutionCanvas.width;
-    videoCanvas.height = resolutionCanvas.height;
+    if (!recordedVideo.paused) {
+        var videoCanvas = document.createElement("canvas");
+        videoCanvas.width = resolutionCanvas.width;
+        videoCanvas.height = resolutionCanvas.height;
 
-    var videoCtx = videoCanvas.getContext("2d");
+        var videoCtx = videoCanvas.getContext("2d");
 
-    var video = {
-        width: recordedVideo.videoWidth,
-        height: recordedVideo.videoHeight
-    };
-    var frame = {
-        width: 
-        recordedVideo.videoWidth > 
-        recordedVideo.videoHeight ? 
-        recordedVideo.videoHeight : 
-        recordedVideo.videoWidth,
-        height: 
-        recordedVideo.videoWidth > 
-        recordedVideo.videoHeight ? 
-        recordedVideo.videoHeight : 
-        recordedVideo.videoWidth
-    };
-    var format = fitImageCover(video, frame);
+        var video = {
+            width: recordedVideo.videoWidth,
+            height: recordedVideo.videoHeight
+        };
+        var frame = {
+            width: 
+            recordedVideo.videoWidth > 
+            recordedVideo.videoHeight ? 
+            recordedVideo.videoHeight : 
+            recordedVideo.videoWidth,
+            height: 
+            recordedVideo.videoWidth > 
+            recordedVideo.videoHeight ? 
+            recordedVideo.videoHeight : 
+            recordedVideo.videoWidth
+        };
+        var format = fitImageCover(video, frame);
 
-    videoCtx.drawImage(recordedVideo,
-    -format.left, -format.top, frame.width, frame.height, 
-    0, 0, 
-    videoCanvas.width, videoCanvas.height);
+        videoCtx.drawImage(recordedVideo,
+        -format.left, -format.top, frame.width, frame.height, 
+        0, 0, 
+        videoCanvas.width, videoCanvas.height);
 
-    drawVideo(videoCanvas);
+        drawVideo(videoCanvas);
 
-    resolutionCtx.save();
-    resolutionCtx.opacity = 0.5;
-    resolutionCtx.drawImage(videoCanvas, 
-    0, 0, sw, sw);
-    /*positionArr[1].x, positionArr[1].y, 
-    positionArr[3].x-positionArr[1].x, 
-    positionArr[0].y-positionArr[1].y);*/
-    resolutionCtx.restore();
+        resolutionCtx.save();
+        resolutionCtx.opacity = 0.5;
+        resolutionCtx.drawImage(videoCanvas, 
+        0, 0, sw, sw);
+        /*positionArr[1].x, positionArr[1].y, 
+        positionArr[3].x-positionArr[1].x, 
+        positionArr[0].y-positionArr[1].y);*/
+        resolutionCtx.restore();
+    }
 
     if (offsetDir != 0) {
         resolutionCtx.strokeStyle = "#000";
@@ -1543,6 +1569,9 @@ var drawImage = function(alignmentOverlay=true) {
         resolutionCanvas.width-(offsetValue),
         resolutionCanvas.height-(offsetValue));
     }
+
+    if (angleEnabled)
+    drawAngle(resolutionCanvas);
 
     ctx.drawImage(resolutionCanvas, 0, 0, sw, sw);
     if (mode == 3) {
@@ -1596,6 +1625,96 @@ var drawImage = function(alignmentOverlay=true) {
 
     if (!alignmentOverlay)
     return pictureView.toDataURL();
+};
+
+var drawAngle = function(canvas) {
+    var ctx = canvas.getContext("2d");
+
+    var imgData = 
+    ctx.getImageData(0, 0, canvas.width, canvas.height);
+    var data = imgData.data;
+
+    var currentResolution = resolution == 0 ? sw : (8*resolution);
+
+    var newImageArray = 
+    new Uint8ClampedArray(data);
+
+    /*
+    for (var y = 0; y < currentResolution; y++) {
+    for (var x = 0; x < currentResolution; x++) {
+
+        var n = ((y*currentResolution)+x)*4;
+
+        newImageArray[n] = 0;
+        newImageArray[n + 1] = 0;
+        newImageArray[n + 2] = 0;
+
+    }
+    }*/
+
+    var polygon0 = [];
+    var polygon1 = [];
+
+    for (var y = 0; y < currentResolution; y++) {
+    for (var x = (currentResolution/2)-1; x < (currentResolution/2)+1; x++) {
+
+        var n = ((y*currentResolution)+x)*4;
+
+        var brightness = 
+        (1/255) * 
+        ((data[n] * grayscaleRatio[grayscaleNo][0]) + 
+        (data[n + 1] * grayscaleRatio[grayscaleNo][1]) + 
+        (data[n + 2] * grayscaleRatio[grayscaleNo][2]));
+
+        var xl = Math.floor((x-(brightness*(currentResolution/4))));
+        var xd = Math.floor((x+(brightness*(currentResolution/4))));
+
+        /*
+        var nd = ((y*currentResolution)+xu)*4;*/
+
+        /*
+        newImageArray[nd] = 255;
+        newImageArray[nd + 1] = 255;
+        newImageArray[nd + 2] = 255;*/
+
+        var obj = {
+            x: (x == ((currentResolution/2)-1) ? xl : xd),
+            y: y
+        };
+
+        if (x == (currentResolution/2)-1)
+        polygon0.push(obj);
+        else if (x == (currentResolution/2))
+        polygon1.push(obj);
+
+    }
+    }
+
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, currentResolution, currentResolution);
+
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "#fff";
+    ctx.fillStyle = "#fff";
+
+    ctx.beginPath();
+    ctx.moveTo(polygon0[0].x, polygon0[0].y);
+    for (var n = 1; n < polygon0.length; n++) {
+        ctx.lineTo(polygon0[n].x, polygon0[n].y);
+    }
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(polygon1[0].x, polygon1[0].y);
+    for (var n = 1; n < polygon1.length; n++) {
+        ctx.lineTo(polygon1[n].x, polygon1[n].y);
+    }
+    ctx.stroke();
+
+    /*
+    var newImageData = new ImageData(newImageArray, 
+    canvas.width, canvas.height);
+    ctx.putImageData(newImageData, 0, 0);*/
 };
 
 var drawVideo = function(canvas) {
