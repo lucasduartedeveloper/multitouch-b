@@ -991,7 +991,7 @@ $(document).ready(function() {
         northAngle = -(_angle2d(co, ca)-(Math.PI))+drawAngle;
     };
 
-    backgroundOffset = 0;
+    backgroundOffset = 0.45;
 
     backgroundView = document.createElement("button");
     backgroundView.style.position = "absolute";
@@ -2032,10 +2032,10 @@ var drawPicture =
         canvas, 
         previousResolutionCanvas);
 
-        if (backgroundOffset == 0)
-        previousResolutionCtx.drawImage(image,
-        -format.left, -format.top, frame.width, frame.height, 
-        0, 0, canvas.width, canvas.height);
+        previousResolutionCtx.fillStyle = "#fff";
+        previousResolutionCtx.fillRect(0, 0, 
+        previousResolutionCanvas.width, 
+        previousResolutionCanvas.height);
     }
 };
 

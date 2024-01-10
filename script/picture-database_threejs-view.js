@@ -349,7 +349,7 @@ var createMesh = function(start, size) {
        //wireframe: true
     } );
     lightMesh = new THREE.Mesh(geometry, material ); 
-    group.add( lightMesh );
+    //group.add( lightMesh );
 
     lightMesh.position.z = (1+size);
     lightMesh.loadTexture("img/globe-texture-0.png");
@@ -363,7 +363,7 @@ var createMesh = function(start, size) {
        //wireframe: true
     } );
     cone = new THREE.Mesh(geometry, material ); 
-    group.add( cone );
+    //group.add( cone );
     cone.rotateX((Math.PI/2));
     cone.rotateY(-(Math.PI/4));
 
@@ -432,30 +432,30 @@ var updateShape = function() {;
         var d = ((x*numPixels)+(y+1));
 
         vertexArray[(a*3)] = 
-        positionArr[a].x * (1-brightness);
+        positionArr[a].x * (1+brightness);
         vertexArray[(a*3)+1] = 
-        positionArr[a].y * (1-brightness);
+        positionArr[a].y * (1+brightness);
         vertexArray[(a*3)+2] = 
         positionArr[a].z * (1+(brightness*Math.sqrt(2)));
 
         vertexArray[(b*3)] = 
-        positionArr[b].x * (1-brightness);
+        positionArr[b].x * (1+brightness);
         vertexArray[(b*3)+1] = 
-        positionArr[b].y * (1-brightness);
+        positionArr[b].y * (1+brightness);
         vertexArray[(b*3)+2] = 
         positionArr[b].z * (1+(brightness*Math.sqrt(2)));
 
         vertexArray[(c*3)] = 
-        positionArr[c].x * (1-brightness);
+        positionArr[c].x * (1+brightness);
         vertexArray[(c*3)+1] = 
-        positionArr[c].y * (1-brightness);
+        positionArr[c].y * (1+brightness);
         vertexArray[(c*3)+2] = 
         positionArr[c].z * (1+(brightness*Math.sqrt(2)));
 
         vertexArray[(d*3)] = 
-        positionArr[d].x * (1-brightness);
+        positionArr[d].x * (1+brightness);
         vertexArray[(d*3)+1] = 
-        positionArr[d].y * (1-brightness);
+        positionArr[d].y * (1+brightness);
         vertexArray[(d*3)+2] = 
         positionArr[d].z * (1+(brightness*Math.sqrt(2)));
     }

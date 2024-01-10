@@ -190,6 +190,28 @@ function setFocus(value) {
     settings.focusDistance = focusDistance;
 };
 
+var torchEnabled = false;
+var setTorch = function(action) {
+    if (!cameraOn) return;
+
+    var track = cameraElem.srcObject.getVideoTracks()[0];
+    var settings = track.getSettings();
+    var capabilities = track.getCapabilities();
+
+    if (action == "toggle")
+    torchEnabled = !settings.torch;
+    else if (action == "on")
+    torchEnabled = true;
+    else if (action == "off")
+    torchEnabled = false;
+
+    track.applyConstraints({
+        "advanced": [{
+            "torch": torchEnabled
+        }]
+    });
+};
+
 /*
     console.log(
         { width: vw, height: vh }, 
