@@ -60,6 +60,7 @@ function startCamera(color=true) {
           });
     }
 }
+
 function stopCamera() {
     if (cameraElem.srcObject) {
          cameraOn = false;

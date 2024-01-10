@@ -1636,21 +1636,12 @@ var drawAngle = function(canvas) {
 
     var currentResolution = resolution == 0 ? sw : (8*resolution);
 
+    var sketchCanvas = document.createElement("canvas");
+    sketchCanvas.width = currentResolution;
+    sketchCanvas.height = currentResolution;
+
     var newImageArray = 
     new Uint8ClampedArray(data);
-
-    /*
-    for (var y = 0; y < currentResolution; y++) {
-    for (var x = 0; x < currentResolution; x++) {
-
-        var n = ((y*currentResolution)+x)*4;
-
-        newImageArray[n] = 0;
-        newImageArray[n + 1] = 0;
-        newImageArray[n + 2] = 0;
-
-    }
-    }*/
 
     var polygon0 = [];
     var polygon1 = [];
