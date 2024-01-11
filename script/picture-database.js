@@ -112,10 +112,44 @@ $(document).ready(function() {
         ontouch = true;
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY-((sh/2)-(sw/2));
+
+        var x = 
+        Math.floor((((sw/gridSize)/2+startX)/(sw/gridSize)));
+        var y = 
+        Math.floor((((sw/gridSize)/2+startY)/(sw/gridSize)));
+
+        gridDestination.x = x;
+        gridDestination.y = y;
+
+        x = 
+        Math.floor((startX/(sw/gridSize)));
+        y = 
+        Math.floor((startY/(sw/gridSize)));
+
+        selectPosition(x, y);
+        if (x == largestPosition.x && y == largestPosition.y)
+        shattered = true;
     };
     pictureView.ontouchmove = function(e) {
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY-((sh/2)-(sw/2));
+
+        var x = 
+        Math.floor((((sw/gridSize)/2+startX)/(sw/gridSize)));
+        var y = 
+        Math.floor((((sw/gridSize)/2+startY)/(sw/gridSize)));
+
+        gridDestination.x = x;
+        gridDestination.y = y;
+
+        x = 
+        Math.floor((startX/(sw/gridSize)));
+        y = 
+        Math.floor((startY/(sw/gridSize)));
+
+        selectPosition(x, y);
+        if (x == largestPosition.x && y == largestPosition.y)
+        shattered = true;
     };
     pictureView.ontouchend = function(e) {
         ontouch = false;
@@ -407,7 +441,7 @@ $(document).ready(function() {
     document.body.appendChild(modeView);
 
     modeView.onclick = function() {
-        mode = (mode+1) < 6 ? (mode+1) : 0;
+        mode = (mode+1) < 7 ? (mode+1) : 0;
         modeView.innerText = "mode: "+mode;
 
         if (mode == 0) {
@@ -449,6 +483,9 @@ $(document).ready(function() {
             valueArr[3] = prompt(textArr[3], valueArr[3]);
             valueArr[4] = prompt(textArr[4], valueArr[4]);
         };
+
+        if (mode == 6)
+        shattered = true;
 
         renderer.domElement.style.display = 
         threejsEnabled ? "initial" : "none";
@@ -1045,7 +1082,6 @@ $(document).ready(function() {
     };
 
     positionToViewer = 0;
-    gridSize = 10;
 
     positionToViewerView = document.createElement("button");
     positionToViewerView.style.position = "absolute";
@@ -1167,9 +1203,162 @@ $(document).ready(function() {
         }
     };
 
+    setInterval(function() {
+        if (gridPosition0.x == gridDestination.x && 
+            gridPosition0.y == gridDestination.y && 
+            gridPosition1.x == gridDestination.x && 
+            gridPosition1.y == gridDestination.y) {
+            gridDestination.x = Math.floor((Math.random()*gridSize));
+            gridDestination.y = Math.floor((Math.random()*gridSize));
+            return;
+        }
+
+        if (gridTurn == 0) {
+            var diffX = Math.abs(gridDestination.x-gridPosition0.x);
+            var diffY = Math.abs(gridDestination.y-gridPosition0.y);
+
+            if (gridPosition0.x > gridDestination.x && 
+                (diffX >= diffY || diffY == 0)) {
+                gridPosition0.x -= 1;
+                gridDirection0 = 0;
+            }
+            else if (gridPosition0.y > gridDestination.y && 
+                (diffY >= diffX || diffX == 0)) {
+                gridPosition0.y -= 1;
+                gridDirection0 = 1;
+            }
+            else if (gridPosition0.x < gridDestination.x && 
+                (diffX >= diffY || diffY == 0)) {
+                gridPosition0.x += 1;
+                gridDirection0 = 2;
+            }
+            else if (gridPosition0.y < gridDestination.y && 
+                (diffY >= diffX || diffX == 0)) {
+                gridPosition0.y += 1;
+                gridDirection0 = 3;
+            }
+            gridTurn = 1;
+            selectPosition(gridPosition0.x, gridPosition0.y);
+        }
+        else if (gridTurn == 1) {
+            var diffX = Math.abs(gridDestination.x-gridPosition1.x);
+            var diffY = Math.abs(gridDestination.y-gridPosition1.y);
+
+            if (gridPosition1.x > gridDestination.x && 
+                (diffX >= diffY || diffY == 0)) {
+                gridPosition1.x -= 1;
+                gridDirection1 = 0;
+            }
+            else if (gridPosition1.y > gridDestination.y && 
+                (diffY >= diffX || diffX == 0)) {
+                gridPosition1.y -= 1;
+                gridDirection1 = 1;
+            }
+            else if (gridPosition1.x < gridDestination.x && 
+                (diffX >= diffY || diffY == 0)) {
+                gridPosition1.x += 1;
+                gridDirection1 = 2;
+            }
+            else if (gridPosition1.y < gridDestination.y && 
+                (diffY >= diffX || diffX == 0)) {
+                gridPosition1.y += 1;
+                gridDirection1 = 3;
+            }
+            gridTurn = 0;
+            selectPosition(gridPosition1.x, gridPosition1.y);
+        }
+    }, 250);
+
+    setInterval(function() {
+        if (gridPosition0.x == gridDestination.x && 
+            gridPosition0.y == gridDestination.y && 
+            gridPosition1.x == gridDestination.x && 
+            gridPosition1.y == gridDestination.y) {
+            gridDestination.x = Math.floor((Math.random()*gridSize));
+            gridDestination.y = Math.floor((Math.random()*gridSize));
+            return;
+        }
+
+        if (gridTurn == 0) {
+            var diffX = Math.abs(gridDestination.x-gridPosition0.x);
+            var diffY = Math.abs(gridDestination.y-gridPosition0.y);
+
+            if (gridPosition0.x > gridDestination.x && 
+                (diffX >= diffY || diffY == 0)) {
+                gridPosition0.x -= 1;
+                gridDirection0 = 0;
+            }
+            else if (gridPosition0.y > gridDestination.y && 
+                (diffY >= diffX || diffX == 0)) {
+                gridPosition0.y -= 1;
+                gridDirection0 = 1;
+            }
+            else if (gridPosition0.x < gridDestination.x && 
+                (diffX >= diffY || diffY == 0)) {
+                gridPosition0.x += 1;
+                gridDirection0 = 2;
+            }
+            else if (gridPosition0.y < gridDestination.y && 
+                (diffY >= diffX || diffX == 0)) {
+                gridPosition0.y += 1;
+                gridDirection0 = 3;
+            }
+            gridTurn = 1;
+            selectPosition(gridPosition0.x, gridPosition0.y);
+        }
+        else if (gridTurn == 1) {
+            var diffX = Math.abs(gridDestination.x-gridPosition1.x);
+            var diffY = Math.abs(gridDestination.y-gridPosition1.y);
+
+            if (gridPosition1.x > gridDestination.x && 
+                (diffX >= diffY || diffY == 0)) {
+                gridPosition1.x -= 1;
+                gridDirection1 = 0;
+            }
+            else if (gridPosition1.y > gridDestination.y && 
+                (diffY >= diffX || diffX == 0)) {
+                gridPosition1.y -= 1;
+                gridDirection1 = 1;
+            }
+            else if (gridPosition1.x < gridDestination.x && 
+                (diffX >= diffY || diffY == 0)) {
+                gridPosition1.x += 1;
+                gridDirection1 = 2;
+            }
+            else if (gridPosition1.y < gridDestination.y && 
+                (diffY >= diffX || diffX == 0)) {
+                gridPosition1.y += 1;
+                gridDirection1 = 3;
+            }
+            gridTurn = 0;
+            selectPosition(gridPosition1.x, gridPosition1.y);
+        }
+    }, 250);
+
+    footIcon = document.createElement("img");
+    footIcon.src = "img/picture-database/foot-icon.png";
+
     load3D();
     animate();
 });
+
+var gridSize = 10;
+
+var gridTurn = 1;
+var gridDirection0 = 1;
+var gridDirection1 = 1;
+var gridPosition0 = {
+    x: 0,
+    y: (gridSize-1)
+};
+var gridPosition1 = {
+    x: 0,
+    y: (gridSize-1)
+};
+var gridDestination = {
+    x: 0,
+    y: (gridSize-1)
+};
 
 var sendImage = function(dataURL) {
     ws.send("PAPER|"+playerId+"|image-data|"+dataURL);
@@ -1508,6 +1697,8 @@ var drawImage = function(alignmentOverlay=true) {
     drawProjected(resolutionCanvas);
     if (mode == 5)
     drawIdentification(resolutionCanvas);
+    if (mode == 6)
+    shatterSquare(resolutionCanvas);
 
     if (reachedHeight > ((1/7) * (track+1)) && 
     warningBeep.paused)
@@ -1573,6 +1764,8 @@ var drawImage = function(alignmentOverlay=true) {
     if (angleEnabled)
     drawAngle(resolutionCanvas);
 
+    //drawIcon(resolutionCanvas);
+
     ctx.drawImage(resolutionCanvas, 0, 0, sw, sw);
     if (mode == 3) {
         updateShape();
@@ -1617,7 +1810,7 @@ var drawImage = function(alignmentOverlay=true) {
     measureCtx.beginPath();
     measureCtx.moveTo(positionArr[0].x, positionArr[0].y);
     measureCtx.lineTo(positionArr[1].x, positionArr[1].y);
-    measureCtx.lineTo(positionArr[3].x, positionArr[3].y);;
+    measureCtx.lineTo(positionArr[3].x, positionArr[3].y);
     measureCtx.lineTo(positionArr[3].x, positionArr[3].y);
     measureCtx.lineTo(positionArr[2].x, positionArr[2].y);
     measureCtx.closePath();
@@ -1625,6 +1818,136 @@ var drawImage = function(alignmentOverlay=true) {
 
     if (!alignmentOverlay)
     return pictureView.toDataURL();
+};
+
+var selectPosition = function(x, y) {
+    var search = shatterPosition.filter((o) => {
+        return o.x == x && o.y == y;
+    });
+    if (search.length > 0) {
+        search[0].selected = !search[0].selected;
+    }
+};
+
+var largestPosition = {
+    x: 0,
+    y: (gridSize-1)
+};
+
+var shattered = false;
+var shatterPosition = [];
+var shatterSquare = function(canvas) {
+    var rnd = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    //var rnd = 10+Math.floor(Math.random()*15);
+
+    if (shattered) {
+        shatterSelection = [];
+        shatterPosition = [];
+
+        for (var y = 0; y < gridSize; y++) {
+        for (var x = 0; x < gridSize; x++) {
+            var obj = {
+                x: x,
+                y: y,
+                value: rnd[Math.floor(Math.random()*rnd.length)],
+                selected: false
+            };
+            shatterPosition.push(obj);
+        }
+        }
+        shattered = false;
+    }
+
+    var ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, sw, sw);
+
+    ctx.fillStyle = "#000";
+    ctx.font = ((sw/gridSize)*0.75)+"px sans";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    for (var n = 0; n < shatterPosition.length; n++) {
+        if (shatterPosition[n].selected) continue;
+        if (shatterPosition[n].x == largestPosition.x && 
+        shatterPosition[n].y == largestPosition.y) {
+            ctx.fillStyle = "#0f0";
+        }
+        else {
+            ctx.fillStyle = "#000";
+        }
+        ctx.fillText(
+        shatterPosition[n].value, 
+        shatterPosition[n].x*(sw/gridSize)+((sw/gridSize)/2), 
+        shatterPosition[n].y*(sw/gridSize)+((sw/gridSize)/2));
+    }
+};
+
+var drawShattered = function(canvas) {
+    var ctx = canvas.getContext("2d");
+};
+
+var drawIcon = function(canvas) {
+    var ctx = canvas.getContext("2d");
+
+    var image = {
+        width: footIcon.naturalWidth,
+        height: footIcon.naturalHeight
+    };
+    var frame = {
+        width: getSquare(image),
+        height: getSquare(image)
+    };
+    var format = fitImageCover(image, frame);
+
+    var size = (sw/gridSize)*0.75;
+    var offset = ((sw/gridSize)-size)/2;
+
+    var left = gridDestination.x * (sw/gridSize);
+    var top = gridDestination.y * (sw/gridSize);
+
+    ctx.fillStyle = "#000";
+    ctx.beginPath();
+    ctx.arc(left+((sw/gridSize)/2), top+((sw/gridSize)/2), 
+    (sw/gridSize)/10, 0, (Math.PI*2));
+    ctx.fill();
+
+    var left0 = gridPosition0.x * (sw/gridSize);
+    var top0 = gridPosition0.y * (sw/gridSize);
+
+    ctx.save();
+    ctx.translate(left0+((sw/gridSize)/2), top0+((sw/gridSize)/2));
+    ctx.rotate((gridDirection0-1)*(Math.PI/2));
+    ctx.translate(
+    -(left0+((sw/gridSize)/2)), 
+    -(top0+((sw/gridSize)/2)));
+
+    ctx.drawImage(footIcon, 
+    format.left, format.top, format.width, format.height, 
+    left0+offset-(size/3), top0+offset, size, size);
+
+    ctx.restore();
+
+    var left1 = gridPosition1.x * (sw/gridSize);
+    var top1 = gridPosition1.y * (sw/gridSize);
+
+    ctx.save();
+    ctx.scale(-1, 1);
+    ctx.translate(-sw, 0);
+
+    ctx.translate(((sw-left1)-(sw/gridSize))+((sw/gridSize)/2), 
+    top1+((sw/gridSize)/2));
+    ctx.rotate(-((gridDirection1-1)*(Math.PI/2)));
+    ctx.translate(
+    -(((sw-left1)-(sw/gridSize))+((sw/gridSize)/2)), 
+    -(top1+((sw/gridSize)/2)));
+
+    ctx.drawImage(footIcon, 
+    format.left, format.top, format.width, format.height, 
+    ((sw-left1)-(sw/gridSize))+offset-(size/3), top1+offset, 
+    size, size);
+
+    ctx.restore();
 };
 
 var drawAngle = function(canvas) {
