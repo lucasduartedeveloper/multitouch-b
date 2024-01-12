@@ -44,6 +44,18 @@ $(document).ready(function() {
     pictureView.style.zIndex = "15";
     document.body.appendChild(pictureView);
 
+    matterJsView = document.createElement("canvas");
+    matterJsView.style.position = "absolute";
+    matterJsView.style.background = "#fff";
+    matterJsView.width = (sw);
+    matterJsView.height = (sh); 
+    matterJsView.style.left = (0)+"px";
+    matterJsView.style.top = (0)+"px";
+    matterJsView.style.width = (sw)+"px";
+    matterJsView.style.height = (sh)+"px";
+    matterJsView.style.zIndex = "15";
+    document.body.appendChild(matterJsView);
+
     startX = (sw/2);
     startY = (sw/2);
 
@@ -54,19 +66,19 @@ $(document).ready(function() {
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
 
-        position.x = startX;
-        position.y = startY;
+        position0.x = startX;
+        position0.y = startY;
 
-        sendPosition(position);
+        sendPosition(position0);
     };
     pictureView.ontouchmove = function(e) {
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
 
-        position.x = startX;
-        position.y = startY;
+        position0.x = startX;
+        position0.y = startY;
 
-        sendPosition(position);
+        sendPosition(position0);
     };
     pictureView.ontouchend = function(e) {
         ontouch = false;
@@ -102,6 +114,11 @@ $(document).ready(function() {
         }
         var rp0 = _rotate2d(c0, p0, direction0);
 
+        Body.setVelocity(body0, {
+            x: rp0.x-c0.x,
+            y: rp0.y-c0.y
+        });
+
         var collided0 = false;
         if (rp0.x < ((sw/gridSize)/2)) {
             collided0 = true;
@@ -129,6 +146,11 @@ $(document).ready(function() {
             y: c1.y-(micAvgValue*(sw/gridSize))
         }
         var rp1 = _rotate2d(c1, p1, direction1);
+
+        Body.setVelocity(body0, {
+            x: rp1.x-c1.x,
+            y: rp1.y-c1.y
+        });
 
         var collided1 = false;
         if (rp1.x < ((sw/gridSize)/4)) {
@@ -175,6 +197,8 @@ $(document).ready(function() {
 
         if (collided1 || collidedPosition)
         direction1 = Math.floor(Math.random()*360);
+
+
     };
     mic.onclose = function() { 
         console.log("mic closed");
@@ -212,7 +236,11 @@ $(document).ready(function() {
     };
 
     resolution = 0;
-    animate();
+
+    //animate();
+    drawImage();
+
+    matterJs();
 });
 
 var gridSize = 10;
@@ -307,6 +335,7 @@ var drawImage = function(alignmentOverlay=true) {
         ctx.stroke();
     }
 
+    /*
     ctx.fillStyle = "#fff";
     ctx.beginPath();
     ctx.arc(position0.x, position0.y, ((sw/gridSize)/2), 
@@ -317,10 +346,217 @@ var drawImage = function(alignmentOverlay=true) {
     ctx.beginPath();
     ctx.arc(position1.x, position1.y, ((sw/gridSize)/4), 
     0, (Math.PI*2));
-    ctx.fill();
+    ctx.fill();*/
 
     ctx.drawImage(resolutionCanvas, 0, 0, sw, sw);
 };
+
+// module aliases
+var Engine = Matter.Engine,
+    Render = Matter.Render,
+    Runner = Matter.Runner,
+    Bodies = Matter.Bodies,
+    Composite = Matter.Composite;
+
+var Body = Matter.Body;
+
+// create an engine
+var engine = Engine.create();
+
+// create two boxes and a ground
+var body0 = 
+Bodies.circle((sw/2)-(sw/gridSize), 
+(sh/2), ((sw/gridSize)/2), {
+    label: "body0",
+    render: {
+         fillStyle: '#cacab5',
+         strokeStyle: '#cacab5' }});
+
+var body1 = 
+Bodies.circle((sw/2)+(sw/gridSize), 
+(sh/2), ((sw/gridSize)/4), {
+    label: "body1",
+    render: {
+         fillStyle: '#cacab5',
+         strokeStyle: '#cacab5' }});
+
+var ceiling = Bodies.rectangle(sw/2, 5, sw-20, 10,
+{ //isStatic: true,
+    label: "ceiling",
+    render: {
+         fillStyle: '#2f2e40',
+         strokeStyle: '#2f2e40' }});
+
+var wallA = Bodies.rectangle(5, sh/2, 10, sh-20,
+{ //isStatic: true,
+    label: "wallA",
+    render: {
+         fillStyle: '#2f2e40',
+         strokeStyle: '#2f2e40' }});
+    
+var wallB = Bodies.rectangle(sw-5, sh/2, 10, sh-20, 
+{ //isStatic: true,
+    label: "wallB",
+    render: {
+         fillStyle: '#2f2e40',
+         strokeStyle: '#2f2e40' }});
+
+var ground = Bodies.rectangle(sw/2, sh-5, sw-20, 10,
+{ //isStatic: true,
+    label: "ground",
+    render: {
+         fillStyle: '#2f2e40',
+         strokeStyle: '#2f2e40' }});
+
+function matterJs() {
+    // create a renderer
+    var render = Render.create({
+        engine: engine,
+        canvas: matterJsView,
+        options: {
+            width: sw,
+            height: sh,
+            background: "transparent",
+            wireframes: false
+            //showPerformance: true
+        }
+    });
+
+    engine.world.gravity.y = 0;
+
+    Matter.Events.on(engine, "collisionStart", function (event) {
+        pairs = [ ...event.pairs ];
+        console.log(event);
+
+        for (var n = 0; n < pairs.length; n++) {
+            console.log(pairs[n].bodyA.label, pairs[n].bodyB.label);
+
+            if (pairs[n].bodyA.label == "body0")
+            direction0 = Math.floor(Math.random()*360);
+            if (pairs[n].bodyA.label == "body1")
+            direction1 = Math.floor(Math.random()*360);
+        }
+    });
+
+    // add all of the bodies to the world
+    Composite.add(engine.world,
+    [ body0, body1 ]);
+
+    Composite.add(engine.world, 
+    [ceiling, wallA, wallB, ground]);
+
+    var mouse = Matter.Mouse.create(render.canvas);
+    var mouseConstraint = 
+    Matter.MouseConstraint.create(engine, {
+        mouse: mouse,
+        constraint: {
+            render: { visible: true }
+        }
+    });
+    render.mouse = mouse;
+
+    // add soft global constraint
+    var constraints = [
+    Matter.Constraint.create({
+        pointA: { x: 5, y: 5 },
+        bodyB: wallA,
+        pointB: { x: 0, y: -((sh/2)-15) },
+        stiffness: 0.5,
+        render: {
+            strokeStyle: '#fff',
+            lineWidth: 1,
+            type: 'line'
+        }
+    }),
+    Matter.Constraint.create({
+        pointA: { x: 5, y: sh-5 },
+        bodyB: wallA,
+        pointB: { x: 0, y: ((sh/2)-15) },
+        stiffness: 0.5,
+        render: {
+            strokeStyle: '#fff',
+            lineWidth: 1,
+            type: 'line'
+        }
+    }),
+    Matter.Constraint.create({
+        pointA: { x: 5, y: 5 },
+        bodyB: ceiling,
+        pointB: { x: -((sw/2)-15), y: 0 },
+        stiffness: 0.5,
+        render: {
+            strokeStyle: '#fff',
+            lineWidth: 1,
+            type: 'line'
+        }
+    }),
+    Matter.Constraint.create({
+        pointA: { x: sw-5, y: 5 },
+        bodyB: ceiling,
+        pointB: { x: ((sw/2)-15), y: 0 },
+        stiffness: 0.5,
+        render: {
+            strokeStyle: '#fff',
+            lineWidth: 1,
+            type: 'line'
+        }
+    }),
+    Matter.Constraint.create({
+        pointA: { x: sw-5, y: 5 },
+        bodyB: wallB,
+        pointB: { x: 0, y: -((sh/2)-15) },
+        stiffness: 0.5,
+        render: {
+            strokeStyle: '#fff',
+            lineWidth: 1,
+            type: 'line'
+        }
+    }),
+    Matter.Constraint.create({
+        pointA: { x: sw-5, y: sh-5 },
+        bodyB: wallB,
+        pointB: { x: 0, y: ((sh/2)-15) },
+        stiffness: 0.5,
+        render: {
+            strokeStyle: '#fff',
+            lineWidth: 1,
+            type: 'line'
+        }
+    }),
+    Matter.Constraint.create({
+        pointA: { x: 5, y: sh-5 },
+        bodyB: ground,
+        pointB: { x: -((sw/2)-15), y: 0 },
+        stiffness: 0.5,
+        render: {
+            strokeStyle: '#fff',
+            lineWidth: 1,
+            type: 'line'
+        }
+    }),
+    Matter.Constraint.create({
+        pointA: { x: sw-5, y: sh-5 },
+        bodyB: ground,
+        pointB: { x: ((sw/2)-15), y: 0 },
+        stiffness: 0.5,
+        render: {
+            strokeStyle: '#fff',
+            lineWidth: 1,
+            type: 'line'
+        }
+    }),
+    mouseConstraint ];
+    Composite.add(engine.world, constraints);
+
+    // run the renderer
+    Render.run(render);
+    
+    // create runner
+    var runner = Runner.create();
+
+    // run the engine
+    Runner.run(runner, engine);
+}
 
 var visibilityChange;
 if (typeof document.hidden !== "undefined") { // Opera 12.10 and Firefox 18 and later support

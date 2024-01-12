@@ -26,7 +26,8 @@ $thirdpart_script = [
     5 => "script/thirdpart/csg-lib.js",
     6 => "script/thirdpart/three-csg.js",
     7 => "script/thirdpart/CanvasRecorder.js",
-    8 => "script/thirdpart/OBJExporter.js"
+    8 => "script/thirdpart/OBJExporter.js",
+    9 => "script/thirdpart/matter.min.js"
 ];
 
 $script = [
