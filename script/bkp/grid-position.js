@@ -154,26 +154,26 @@ $(document).ready(function() {
         Math.pow(co, 2)+
         Math.pow(ca, 2));
 
-        var collidedPosition = false;
+        var collided = false;
         if (hyp < (((sw/gridSize)/2)+((sw/gridSize)/4))) {
             var r = (1/hyp)*(((sw/gridSize)/2)+((sw/gridSize)/4));
-            collidedPosition = true;
+            collided = true;
         }
 
-        if (reachedFreq < 100 && !collidedPosition) {
+        if (reachedFreq < 100 && !collided) {
             position0.x = rp0.x;
             position0.y = rp0.y;
         }
 
-        if (reachedFreq > 100 && !collidedPosition) {
-            position1.x = rp1.x;
-            position1.y = rp1.y;
+        if (reachedFreq > 100 && !collided) {
+            position1.x = rp0.x;
+            position1.y = rp0.y;
         }
 
-        if (collided0 || collidedPosition)
+        if (collided0)
         direction0 = Math.floor(Math.random()*360);
 
-        if (collided1 || collidedPosition)
+        if (collided1)
         direction1 = Math.floor(Math.random()*360);
     };
     mic.onclose = function() { 
@@ -215,20 +215,20 @@ $(document).ready(function() {
     animate();
 });
 
-var gridSize = 10;
-
 var direction0 = Math.floor(Math.random()*360);
 var direction1 = Math.floor(Math.random()*360);
 
 var position0 = {
-    x: (sw/2)-(sw/gridSize),
+    x: (sw/2),
     y: (sh/2)
 };
 
 var position1 = {
-    x: (sw/2)+(sw/gridSize),
+    x: (sw/2),
     y: (sh/2)
 };
+
+var gridSize = 10;
 
 var gridPosition = {
     x: 0,
