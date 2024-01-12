@@ -114,28 +114,11 @@ $(document).ready(function() {
         }
         var rp0 = _rotate2d(c0, p0, direction0);
 
+        if (reachedFreq <= 50)
         Body.setVelocity(body0, {
             x: rp0.x-c0.x,
             y: rp0.y-c0.y
         });
-
-        var collided0 = false;
-        if (rp0.x < ((sw/gridSize)/2)) {
-            collided0 = true;
-            rp0.x = ((sw/gridSize)/2);
-        }
-        if (rp0.y < ((sw/gridSize)/2)) {
-            collided0 = true;
-            rp0.y = ((sw/gridSize)/2);
-        }
-        if (rp0.x > sw-((sw/gridSize)/2)) {
-            collided0 = true;
-            rp0.x = sw-((sw/gridSize)/2);
-        }
-        if (rp0.y > sh-((sw/gridSize)/2)) {
-            collided0 = true;
-            rp0.y = sh-((sw/gridSize)/2);
-        }
 
         var c1 = {
             x: position1.x,
@@ -147,58 +130,59 @@ $(document).ready(function() {
         }
         var rp1 = _rotate2d(c1, p1, direction1);
 
-        Body.setVelocity(body0, {
+        if (reachedFreq > 50 && reachedFreq <= 100)
+        Body.setVelocity(body1, {
             x: rp1.x-c1.x,
             y: rp1.y-c1.y
         });
 
-        var collided1 = false;
-        if (rp1.x < ((sw/gridSize)/4)) {
-            collided1 = true;
-            rp1.x = ((sw/gridSize)/4);
+        var c2 = {
+            x: position2.x,
+            y: position2.y
+        };
+        var p2 = {
+            x: c2.x,
+            y: c2.y-(micAvgValue*(sw/gridSize))
         }
-        if (rp1.y < ((sw/gridSize)/4)) {
-            collided1 = true;
-            rp1.y = ((sw/gridSize)/4);
+        var rp2 = _rotate2d(c2, p2, direction2);
+
+        if (reachedFreq > 100 && reachedFreq <= 150)
+        Body.setVelocity(body2, {
+            x: rp2.x-c2.x,
+            y: rp2.y-c2.y
+        });
+
+        var c3 = {
+            x: position3.x,
+            y: position3.y
+        };
+        var p3 = {
+            x: c3.x,
+            y: c3.y-(micAvgValue*(sw/gridSize))
         }
-        if (rp1.x > sw-((sw/gridSize)/4)) {
-            collided1 = true;
-            rp1.x = sw-((sw/gridSize)/4);
+        var rp3 = _rotate2d(c3, p3, direction3);
+
+        if (reachedFreq > 150 && reachedFreq <= 175)
+        Body.setVelocity(body3, {
+            x: rp3.x-c3.x,
+            y: rp3.y-c3.y
+        });
+
+        var c4 = {
+            x: position1.x,
+            y: position1.y
+        };
+        var p4 = {
+            x: c4.x,
+            y: c4.y-(micAvgValue*(sw/gridSize))
         }
-        if (rp1.y > sh-((sw/gridSize)/4)) {
-            collided1 = true;
-            rp1.y = sh-((sw/gridSize)/4);
-        }
+        var rp4 = _rotate2d(c4, p4, direction4);
 
-        var co = Math.abs(rp0.x-rp1.x);
-        var ca = Math.abs(rp0.y-rp1.y);
-        var hyp = Math.sqrt(
-        Math.pow(co, 2)+
-        Math.pow(ca, 2));
-
-        var collidedPosition = false;
-        if (hyp < (((sw/gridSize)/2)+((sw/gridSize)/4))) {
-            var r = (1/hyp)*(((sw/gridSize)/2)+((sw/gridSize)/4));
-            collidedPosition = true;
-        }
-
-        if (reachedFreq < 100 && !collidedPosition) {
-            position0.x = rp0.x;
-            position0.y = rp0.y;
-        }
-
-        if (reachedFreq > 100 && !collidedPosition) {
-            position1.x = rp1.x;
-            position1.y = rp1.y;
-        }
-
-        if (collided0 || collidedPosition)
-        direction0 = Math.floor(Math.random()*360);
-
-        if (collided1 || collidedPosition)
-        direction1 = Math.floor(Math.random()*360);
-
-
+        if (reachedFreq > 175)
+        Body.setVelocity(body4, {
+            x: rp4.x-c4.x,
+            y: rp4.y-c4.y
+        });
     };
     mic.onclose = function() { 
         console.log("mic closed");
@@ -226,7 +210,7 @@ $(document).ready(function() {
 
     buttonMicView.onclick = function() {
         if (mic.closed) {
-            mic.open(false, 50);
+            mic.open(false, 1);
             buttonMicView.innerText = "mic: on";
         }
         else {
@@ -247,16 +231,25 @@ var gridSize = 10;
 
 var direction0 = Math.floor(Math.random()*360);
 var direction1 = Math.floor(Math.random()*360);
+var direction2 = Math.floor(Math.random()*360);
+var direction3 = Math.floor(Math.random()*360);
+var direction4 = Math.floor(Math.random()*360);
 
-var position0 = {
-    x: (sw/2)-(sw/gridSize),
-    y: (sh/2)
+var c = {
+   x: (sw/2),
+   y: (sh/2)
 };
 
-var position1 = {
-    x: (sw/2)+(sw/gridSize),
-    y: (sh/2)
+var p = {
+   x: c.x,
+   y: c.y-((sw/gridSize)*2)
 };
+
+var position0 = _rotate2d(c, p, 0);
+var position1 = _rotate2d(c, p, (360/5));
+var position2 = _rotate2d(c, p, 2*(360/5));
+var position3 = _rotate2d(c, p, 3*(360/5));
+var position4 = _rotate2d(c, p, 4*(360/5));
 
 var gridPosition = {
     x: 0,
@@ -365,44 +358,68 @@ var engine = Engine.create();
 
 // create two boxes and a ground
 var body0 = 
-Bodies.circle((sw/2)-(sw/gridSize), 
-(sh/2), ((sw/gridSize)/2), {
+Bodies.circle(position0.x, position0.y, 
+    ((sw/gridSize)/2), {
     label: "body0",
     render: {
          fillStyle: '#cacab5',
          strokeStyle: '#cacab5' }});
 
 var body1 = 
-Bodies.circle((sw/2)+(sw/gridSize), 
-(sh/2), ((sw/gridSize)/4), {
+Bodies.circle(position1.x, position1.y, 
+    ((sw/gridSize)/3), {
     label: "body1",
     render: {
          fillStyle: '#cacab5',
          strokeStyle: '#cacab5' }});
 
-var ceiling = Bodies.rectangle(sw/2, 5, sw-20, 10,
-{ //isStatic: true,
+var body2 = 
+Bodies.circle(position2.x, position2.y, 
+    ((sw/gridSize)/4), {
+    label: "body2",
+    render: {
+         fillStyle: '#cacab5',
+         strokeStyle: '#cacab5' }});
+
+var body3 = 
+Bodies.circle(position3.x, position3.y, 
+    ((sw/gridSize)/5), {
+    label: "body3",
+    render: {
+         fillStyle: '#cacab5',
+         strokeStyle: '#cacab5' }});
+
+var body4 = 
+Bodies.circle(position4.x, position4.y, 
+    ((sw/gridSize)/6), {
+    label: "body0",
+    render: {
+         fillStyle: '#cacab5',
+         strokeStyle: '#cacab5' }});
+
+var ceiling = Bodies.rectangle(sw/2, -40, sw, 100,
+{ isStatic: true,
     label: "ceiling",
     render: {
          fillStyle: '#2f2e40',
          strokeStyle: '#2f2e40' }});
 
-var wallA = Bodies.rectangle(5, sh/2, 10, sh-20,
-{ //isStatic: true,
+var wallA = Bodies.rectangle(-40, sh/2, 100, sh,
+{ isStatic: true,
     label: "wallA",
     render: {
          fillStyle: '#2f2e40',
          strokeStyle: '#2f2e40' }});
     
-var wallB = Bodies.rectangle(sw-5, sh/2, 10, sh-20, 
-{ //isStatic: true,
+var wallB = Bodies.rectangle(sw+40, sh/2, 100, sh, 
+{ isStatic: true,
     label: "wallB",
     render: {
          fillStyle: '#2f2e40',
          strokeStyle: '#2f2e40' }});
 
-var ground = Bodies.rectangle(sw/2, sh-5, sw-20, 10,
-{ //isStatic: true,
+var ground = Bodies.rectangle(sw/2, sh+40, sw, 100,
+{ isStatic: true,
     label: "ground",
     render: {
          fillStyle: '#2f2e40',
@@ -424,23 +441,27 @@ function matterJs() {
 
     engine.world.gravity.y = 0;
 
-    Matter.Events.on(engine, "collisionStart", function (event) {
+    Matter.Events.on(engine, "collisionActive", function (event) {
         pairs = [ ...event.pairs ];
-        console.log(event);
+        //console.log(event);
 
         for (var n = 0; n < pairs.length; n++) {
-            console.log(pairs[n].bodyA.label, pairs[n].bodyB.label);
+            //console.log(pairs[n].bodyA.label, pairs[n].bodyB.label);
 
             if (pairs[n].bodyA.label == "body0")
             direction0 = Math.floor(Math.random()*360);
             if (pairs[n].bodyA.label == "body1")
             direction1 = Math.floor(Math.random()*360);
+            if (pairs[n].bodyA.label == "body2")
+            direction2 = Math.floor(Math.random()*360);
+            if (pairs[n].bodyA.label == "body3")
+            direction3 = Math.floor(Math.random()*360);
         }
     });
 
     // add all of the bodies to the world
     Composite.add(engine.world,
-    [ body0, body1 ]);
+    [ body0, body1, body2, body3, body4 ]);
 
     Composite.add(engine.world, 
     [ceiling, wallA, wallB, ground]);
@@ -456,101 +477,12 @@ function matterJs() {
     render.mouse = mouse;
 
     // add soft global constraint
-    var constraints = [
-    Matter.Constraint.create({
-        pointA: { x: 5, y: 5 },
-        bodyB: wallA,
-        pointB: { x: 0, y: -((sh/2)-15) },
-        stiffness: 0.5,
-        render: {
-            strokeStyle: '#fff',
-            lineWidth: 1,
-            type: 'line'
-        }
-    }),
-    Matter.Constraint.create({
-        pointA: { x: 5, y: sh-5 },
-        bodyB: wallA,
-        pointB: { x: 0, y: ((sh/2)-15) },
-        stiffness: 0.5,
-        render: {
-            strokeStyle: '#fff',
-            lineWidth: 1,
-            type: 'line'
-        }
-    }),
-    Matter.Constraint.create({
-        pointA: { x: 5, y: 5 },
-        bodyB: ceiling,
-        pointB: { x: -((sw/2)-15), y: 0 },
-        stiffness: 0.5,
-        render: {
-            strokeStyle: '#fff',
-            lineWidth: 1,
-            type: 'line'
-        }
-    }),
-    Matter.Constraint.create({
-        pointA: { x: sw-5, y: 5 },
-        bodyB: ceiling,
-        pointB: { x: ((sw/2)-15), y: 0 },
-        stiffness: 0.5,
-        render: {
-            strokeStyle: '#fff',
-            lineWidth: 1,
-            type: 'line'
-        }
-    }),
-    Matter.Constraint.create({
-        pointA: { x: sw-5, y: 5 },
-        bodyB: wallB,
-        pointB: { x: 0, y: -((sh/2)-15) },
-        stiffness: 0.5,
-        render: {
-            strokeStyle: '#fff',
-            lineWidth: 1,
-            type: 'line'
-        }
-    }),
-    Matter.Constraint.create({
-        pointA: { x: sw-5, y: sh-5 },
-        bodyB: wallB,
-        pointB: { x: 0, y: ((sh/2)-15) },
-        stiffness: 0.5,
-        render: {
-            strokeStyle: '#fff',
-            lineWidth: 1,
-            type: 'line'
-        }
-    }),
-    Matter.Constraint.create({
-        pointA: { x: 5, y: sh-5 },
-        bodyB: ground,
-        pointB: { x: -((sw/2)-15), y: 0 },
-        stiffness: 0.5,
-        render: {
-            strokeStyle: '#fff',
-            lineWidth: 1,
-            type: 'line'
-        }
-    }),
-    Matter.Constraint.create({
-        pointA: { x: sw-5, y: sh-5 },
-        bodyB: ground,
-        pointB: { x: ((sw/2)-15), y: 0 },
-        stiffness: 0.5,
-        render: {
-            strokeStyle: '#fff',
-            lineWidth: 1,
-            type: 'line'
-        }
-    }),
-    mouseConstraint ];
+    var constraints = [ mouseConstraint ];
     Composite.add(engine.world, constraints);
 
     // run the renderer
     Render.run(render);
-    
+
     // create runner
     var runner = Runner.create();
 
