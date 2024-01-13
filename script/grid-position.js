@@ -124,8 +124,8 @@ $(document).ready(function() {
             }
             var rp = _rotate2d(c, p, bodyArr[n].direction);
 
-            if (reachedFreq > (n*50) && 
-            reachedFreq <= ((n*50)+50))
+            if (reachedFreq > (n*5) && 
+            reachedFreq <= ((n*5)+5))
             Body.setVelocity(bodyArr[n].body, {
                 x: rp.x-c.x,
                 y: rp.y-c.y
@@ -321,21 +321,27 @@ var clipTexture = function(url, size, callback) {
     img.src = url;
 };
 
-var createTexture = function(text, size) {
+var createTexture = function(text0, text1, size) {
     var canvas = document.createElement("canvas");
     canvas.width = size;
     canvas.height = size;
 
     var ctx = canvas.getContext("2d");
+    ctx.beginPath();
+    ctx.arc((size/2), (size/2), (size/2), 0, (Math.PI*2));
+    ctx.clip();
+
     ctx.fillStyle = "#fff";
     ctx.fillRect(0, 0, size, size);
 
     ctx.fillStyle = "#000";
-    ctx.font = size+"px sans serif";
+    ctx.font = (size/4)+"px sans serif";
+    ctx.fontWeight = 900;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
 
-    ctx.fillText(text, (size/2), (size/2));
+    ctx.fillText(text0, (size/2), (size/2));
+    ctx.fillText(text1, (size/2), (size/2)+(size/4));
 
     return canvas.toDataURL();
 };
@@ -367,13 +373,20 @@ var bodyArr = [];
 // create two boxes and a ground
 var addBody = function(x, y) {
     var obj = {
-        direction: 0,
+        direction: Math.floor(Math.random()*360),
+        frequencyLabel: 
+        [ ((bodyArr.length*5)*(24000/512)).toFixed(1),
+        "Hz" ],
         body: Bodies.circle(x, y, ((sw/gridSize)/2), {
             label: "body"+bodyNo,
             render: {
                 fillStyle: "#fff",
                 strokeStyle: "#fff" }})
     };
+
+    obj.body.render.sprite.texture = 
+    createTexture(obj.frequencyLabel[0], obj.frequencyLabel[1],
+    (sw/gridSize));
 
     bodyArr.push(obj);
     Composite.add(engine.world, [ obj.body ]);
