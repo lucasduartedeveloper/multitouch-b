@@ -229,11 +229,11 @@ $(document).ready(function() {
 
 var gridSize = 10;
 
-var direction0 = Math.floor(Math.random()*360);
-var direction1 = Math.floor(Math.random()*360);
-var direction2 = Math.floor(Math.random()*360);
-var direction3 = Math.floor(Math.random()*360);
-var direction4 = Math.floor(Math.random()*360);
+var direction0 = 0; //Math.floor(Math.random()*360);
+var direction1 = 0; //Math.floor(Math.random()*360);
+var direction2 = 0; //Math.floor(Math.random()*360);
+var direction3 = 0; //Math.floor(Math.random()*360);
+var direction4 = 0; //Math.floor(Math.random()*360);
 
 var c = {
    x: (sw/2),
@@ -245,11 +245,16 @@ var p = {
    y: c.y-((sw/gridSize)*2)
 };
 
-var position0 = _rotate2d(c, p, 0);
-var position1 = _rotate2d(c, p, (360/5));
-var position2 = _rotate2d(c, p, 2*(360/5));
-var position3 = _rotate2d(c, p, 3*(360/5));
-var position4 = _rotate2d(c, p, 4*(360/5));
+var position0 = { x: ((sw/2)-(sw/gridSize)*4), y: (sh/2) };
+//_rotate2d(c, p, 0);
+var position1 = { x: ((sw/2)-(sw/gridSize)*2), y: (sh/2) };
+//_rotate2d(c, p, (360/5));
+var position2 = { x: (sw/2), y: (sh/2) };
+//_rotate2d(c, p, 2*(360/5));
+var position3 = { x: ((sw/2)+(sw/gridSize)*2), y: (sh/2) };
+//_rotate2d(c, p, 3*(360/5));
+var position4 = { x: ((sw/2)+(sw/gridSize)*4), y: (sh/2) };
+//_rotate2d(c, p, 4*(360/5));
 
 var gridPosition = {
     x: 0,
@@ -344,6 +349,59 @@ var drawImage = function(alignmentOverlay=true) {
     ctx.drawImage(resolutionCanvas, 0, 0, sw, sw);
 };
 
+var clipTexture = function(url, size, callback) {
+    var img = document.createElement("img");
+    img.onload = function() {
+        var canvas = document.createElement("canvas");
+        canvas.width = size;
+        canvas.height = size;
+
+        var ctx = canvas.getContext("2d");
+        var frame = {
+            width: getSquare(this),
+            height: getSquare(this)
+        };
+        var format = fitImageCover(this, frame);
+
+        ctx.beginPath();
+        ctx.arc((size/2), (size/2), (size/2), 0, (Math.PI*2));
+        ctx.clip();
+
+        ctx.drawImage(this,
+        -format.left, -format.top, frame.width, frame.height,
+        0, 0, size, size);
+
+        callback(canvas.toDataURL());
+    };
+    img.src = url;
+};
+
+var createTexture = function(text, size) {
+    var canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = size;
+
+    var ctx = canvas.getContext("2d");
+
+    ctx.fillStyle = "#fff";
+    ctx.font = size+"px sans serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    ctx.fillText(text, (size/2), (size/2));
+
+    return canvas.toDataURL();
+};
+
+var getSquare = function(item) {
+    var width = item.naturalWidth ? 
+    item.naturalWidth : item.width;
+    var height = item.naturalHeight ? 
+    item.naturalHeight : item.height;
+
+    return width < height ? width : height;
+};
+
 // module aliases
 var Engine = Matter.Engine,
     Render = Matter.Render,
@@ -358,44 +416,44 @@ var engine = Engine.create();
 
 // create two boxes and a ground
 var body0 = 
-Bodies.circle(position0.x, position0.y, 
-    ((sw/gridSize)/2), {
+Bodies.rectangle(position0.x, position0.y, 
+    (sw/gridSize), ((sw/gridSize)*2), {
     label: "body0",
     render: {
-         fillStyle: '#cacab5',
-         strokeStyle: '#cacab5' }});
+        fillStyle: "#fff",
+        strokeStyle: "#fff" }});
 
 var body1 = 
-Bodies.circle(position1.x, position1.y, 
-    ((sw/gridSize)/3), {
+Bodies.rectangle(position1.x, position1.y, 
+    (sw/gridSize), ((sw/gridSize)*2), {
     label: "body1",
     render: {
-         fillStyle: '#cacab5',
-         strokeStyle: '#cacab5' }});
+        fillStyle: "#fff",
+        strokeStyle: "#fff" }});
 
 var body2 = 
-Bodies.circle(position2.x, position2.y, 
-    ((sw/gridSize)/4), {
+Bodies.rectangle(position2.x, position2.y, 
+    (sw/gridSize), ((sw/gridSize)*2), {
     label: "body2",
     render: {
-         fillStyle: '#cacab5',
-         strokeStyle: '#cacab5' }});
+        fillStyle: "#fff",
+        strokeStyle: "#fff" }});
 
 var body3 = 
-Bodies.circle(position3.x, position3.y, 
-    ((sw/gridSize)/5), {
+Bodies.rectangle(position3.x, position3.y, 
+    (sw/gridSize), ((sw/gridSize)*2), {
     label: "body3",
     render: {
-         fillStyle: '#cacab5',
-         strokeStyle: '#cacab5' }});
+        fillStyle: "#fff",
+        strokeStyle: "#fff" }});
 
 var body4 = 
-Bodies.circle(position4.x, position4.y, 
-    ((sw/gridSize)/6), {
+Bodies.rectangle(position4.x, position4.y, 
+    (sw/gridSize), ((sw/gridSize)*2), {
     label: "body0",
     render: {
-         fillStyle: '#cacab5',
-         strokeStyle: '#cacab5' }});
+        fillStyle: "#fff",
+        strokeStyle: "#fff" }});
 
 var ceiling = Bodies.rectangle(sw/2, -40, sw, 100,
 { isStatic: true,
@@ -414,6 +472,24 @@ var wallA = Bodies.rectangle(-40, sh/2, 100, sh,
 var wallB = Bodies.rectangle(sw+40, sh/2, 100, sh, 
 { isStatic: true,
     label: "wallB",
+    render: {
+         fillStyle: '#2f2e40',
+         strokeStyle: '#2f2e40' }});
+
+var wallC = Bodies.rectangle(
+((sw/4)-((sw/gridSize)/2)+5), sh/2, 
+((sw/2)-(sw/gridSize)-10), 20,
+{ isStatic: true,
+    label: "wallC",
+    render: {
+         fillStyle: '#2f2e40',
+         strokeStyle: '#2f2e40' }});
+
+var wallD = Bodies.rectangle(
+(sw-(sw/4)+((sw/gridSize)/2)-5), sh/2, 
+((sw/2)-(sw/gridSize)-10), 20,
+{ isStatic: true,
+    label: "wallD",
     render: {
          fillStyle: '#2f2e40',
          strokeStyle: '#2f2e40' }});
@@ -457,6 +533,20 @@ function matterJs() {
             if (pairs[n].bodyA.label == "body3")
             direction3 = Math.floor(Math.random()*360);
         }
+    });
+
+    Matter.Events.on(engine, "beforeUpdate", function (event) {
+        Body.setAngle(body0, direction0*-(Math.PI/180));
+        Body.setAngle(body1, direction1*-(Math.PI/180));
+        Body.setAngle(body2, direction2*-(Math.PI/180));
+        Body.setAngle(body3, direction3*-(Math.PI/180));
+        Body.setAngle(body4, direction4*-(Math.PI/180));
+
+        Body.setAngularVelocity(body0, 0);
+        Body.setAngularVelocity(body1, 0);
+        Body.setAngularVelocity(body2, 0);
+        Body.setAngularVelocity(body3, 0);
+        Body.setAngularVelocity(body4, 0);
     });
 
     // add all of the bodies to the world
