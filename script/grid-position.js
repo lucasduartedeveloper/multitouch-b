@@ -44,21 +44,6 @@ $(document).ready(function() {
     pictureView.style.zIndex = "15";
     document.body.appendChild(pictureView);
 
-    matterJsView = document.createElement("canvas");
-    matterJsView.style.position = "absolute";
-    matterJsView.style.background = "#fff";
-    matterJsView.width = (sw);
-    matterJsView.height = (sh); 
-    matterJsView.style.left = (0)+"px";
-    matterJsView.style.top = (0)+"px";
-    matterJsView.style.width = (sw)+"px";
-    matterJsView.style.height = (sh)+"px";
-    matterJsView.style.zIndex = "15";
-    document.body.appendChild(matterJsView);
-
-    startX = (sw/2);
-    startY = (sw/2);
-
     ontouch = false;
     pictureView.ontouchstart = function(e) {
         ontouchIteration = 0;
@@ -84,6 +69,30 @@ $(document).ready(function() {
         ontouch = false;
     };
 
+    matterJsView = document.createElement("canvas");
+    matterJsView.style.position = "absolute";
+    matterJsView.style.background = "#fff";
+    matterJsView.width = (sw);
+    matterJsView.height = (sh); 
+    matterJsView.style.left = (0)+"px";
+    matterJsView.style.top = (0)+"px";
+    matterJsView.style.width = (sw)+"px";
+    matterJsView.style.height = (sh)+"px";
+    matterJsView.style.zIndex = "15";
+    document.body.appendChild(matterJsView);
+
+    startX = (sw/2);
+    startY = (sw/2);
+
+    matterJsView.ontouchstart = function(e) {
+        ontouchIteration = 0;
+        ontouch = true;
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+
+        addBody(startX, startY);
+    };
+
     ws.onmessage = function(e) {
         var msg = e.data.split("|");
         if (msg[0] == "PAPER" &&
@@ -104,37 +113,24 @@ $(document).ready(function() {
     mic.onupdate = function(freqArray, reachedFreq, avgValue) {
         micAvgValue = avgValue;
 
-        var c0 = {
-            x: position0.x,
-            y: position0.y
-        };
-        var p0 = {
-            x: c0.x,
-            y: c0.y-(micAvgValue*(sw/gridSize))
+        for (var n = 0; n < bodyArr.length; n++) {
+            var c = {
+                x: bodyArr[n].body.position.x,
+                y: bodyArr[n].body.position.y
+            };
+            var p = {
+                x: c.x,
+                y: c.y-(micAvgValue*(sw/gridSize))
+            }
+            var rp = _rotate2d(c, p, bodyArr[n].direction);
+
+            if (reachedFreq > (n*50) && 
+            reachedFreq <= ((n*50)+50))
+            Body.setVelocity(bodyArr[n].body, {
+                x: rp.x-c.x,
+                y: rp.y-c.y
+            });
         }
-        var rp0 = _rotate2d(c0, p0, direction0);
-
-        if (reachedFreq <= 100)
-        Body.setVelocity(body0, {
-            x: rp0.x-c0.x,
-            y: rp0.y-c0.y
-        });
-
-        var c1 = {
-            x: position1.x,
-            y: position1.y
-        };
-        var p1 = {
-            x: c1.x,
-            y: c1.y-(micAvgValue*(sw/gridSize))
-        }
-        var rp1 = _rotate2d(c1, p1, direction1);
-
-        if (reachedFreq > 100)
-        Body.setVelocity(body1, {
-            x: rp1.x-c1.x,
-            y: rp1.y-c1.y
-        });
     };
     mic.onclose = function() { 
         console.log("mic closed");
@@ -169,6 +165,12 @@ $(document).ready(function() {
             mic.close();
             buttonMicView.innerText = "mic: off";
         }
+    };
+
+    motion = false;
+    gyroUpdated = function(e) {
+        engine.world.gravity.x = -(1/9.8)*e.accX;
+        engine.world.gravity.y = (1/9.8)*e.accY;
     };
 
     resolution = 0;
@@ -359,22 +361,34 @@ var Body = Matter.Body;
 // create an engine
 var engine = Engine.create();
 
-// create two boxes and a ground
-var body0 = 
-Bodies.rectangle(position0.x, position0.y, 
-    (sw/gridSize), (sw/gridSize), {
-    label: "body0",
-    render: {
-        fillStyle: "#fff",
-        strokeStyle: "#fff" }});
+var bodyNo = 0;
+var bodyArr = [];
 
-var body1 = 
-Bodies.rectangle(position1.x, position1.y, 
-    (sw/gridSize), (sw/gridSize), {
-    label: "body1",
-    render: {
-        fillStyle: "#fff",
-        strokeStyle: "#fff" }});
+// create two boxes and a ground
+var addBody = function(x, y) {
+    var obj = {
+        direction: 0,
+        body: Bodies.circle(x, y, ((sw/gridSize)/2), {
+            label: "body"+bodyNo,
+            render: {
+                fillStyle: "#fff",
+                strokeStyle: "#fff" }})
+    };
+
+    bodyArr.push(obj);
+    Composite.add(engine.world, [ obj.body ]);
+
+    bodyNo += 1;
+};
+
+var getBody = function(label) {
+    var search = bodyArr.filter((o) => {
+        return o.body.label == label;
+    });
+
+    //if (search.length > 0)
+    return search[0];
+};
 
 var ceiling = Bodies.rectangle(sw/2, -40, sw, 100,
 { isStatic: true,
@@ -383,60 +397,16 @@ var ceiling = Bodies.rectangle(sw/2, -40, sw, 100,
          fillStyle: '#2f2e40',
          strokeStyle: '#2f2e40' }});
 
-var wallA = Bodies.rectangle(-40, (sh/4)-((sw/gridSize)/2), 
-100, (sh/2)-(sw/gridSize),
+var wallA = Bodies.rectangle(-40, (sh/2), 100, sh,
 { isStatic: true,
     label: "wallA",
     render: {
          fillStyle: '#2f2e40',
          strokeStyle: '#2f2e40' }});
 
-var wallA_lower = Bodies.rectangle(-40, 
-sh-((sh/4)-((sw/gridSize)/2)), 100, (sh/2)-(sw/gridSize), 
-{ isStatic: true,
-    label: "wallA",
-    render: {
-         fillStyle: '#2f2e40',
-         strokeStyle: '#2f2e40' }});
-
-var wallB = Bodies.rectangle(sw+40, (sh/4)-((sw/gridSize)/2), 
-100, (sh/2)-(sw/gridSize), 
+var wallB = Bodies.rectangle(sw+40, (sh/2), 100, sh, 
 { isStatic: true,
     label: "wallB",
-    render: {
-         fillStyle: '#2f2e40',
-         strokeStyle: '#2f2e40' }});
-
-var wallB_lower = Bodies.rectangle(sw+40, 
-sh-((sh/4)-((sw/gridSize)/2)), 100, (sh/2)-(sw/gridSize), 
-{ isStatic: true,
-    label: "wallB_lower",
-    render: {
-         fillStyle: '#2f2e40',
-         strokeStyle: '#2f2e40' }});
-
-var wallC = Bodies.rectangle(
-((sw/4)-((sw/gridSize)/2)+5), sh/2, 
-((sw/2)-(sw/gridSize)-10), 20,
-{ isStatic: true,
-    label: "wallC",
-    render: {
-         fillStyle: '#2f2e40',
-         strokeStyle: '#2f2e40' }});
-
-var wallD = Bodies.rectangle(
-(sw-(sw/4)+((sw/gridSize)/2)-5), sh/2, 
-((sw/2)-(sw/gridSize)-10), 20,
-{ isStatic: true,
-    label: "wallD",
-    render: {
-         fillStyle: '#2f2e40',
-         strokeStyle: '#2f2e40' }});
-
-var stage = Bodies.rectangle(
-(sw/2), (sh/2)+(sw/gridSize)+10, sw-20, 20,
-{ isStatic: true,
-    label: "stage",
     render: {
          fillStyle: '#2f2e40',
          strokeStyle: '#2f2e40' }});
@@ -462,12 +432,7 @@ function matterJs() {
         }
     });
 
-    //engine.world.gravity.y = 0;
-
-    body0.render.sprite.texture = 
-    createTexture("+", (sw/gridSize));
-    body1.render.sprite.texture = 
-    createTexture("-", (sw/gridSize));
+    engine.world.gravity.y = 0;
 
     Matter.Events.on(engine, "collisionActive", function (event) {
         pairs = [ ...event.pairs ];
@@ -476,44 +441,24 @@ function matterJs() {
         for (var n = 0; n < pairs.length; n++) {
             //console.log(pairs[n].bodyA.label, pairs[n].bodyB.label);
 
-            /*
-            if (pairs[n].bodyA.label == "body0")
-            direction0 = 270+Math.floor(Math.random()*90);
-            if (pairs[n].bodyA.label == "body1")
-            direction1 = Math.floor(Math.random()*90);*/
+            if (pairs[n].bodyA.label.includes("body"))
+            getBody(pairs[n].bodyA.label).direction = 
+            Math.floor(Math.random()*360)
+            if (pairs[n].bodyB.label.includes("body"))
+            getBody(pairs[n].bodyB.label).direction = 
+            Math.floor(Math.random()*360)
         }
     });
 
     Matter.Events.on(engine, "beforeUpdate", function (event) {
-        if (body0.position.x < -(sw/gridSize) || 
-        body0.position.x > sw+(sw/gridSize) || 
-        body1.position.x < -(sw/gridSize) || 
-        body1.position.x > sw+(sw/gridSize)){
-            Body.setPosition(body0, {
-                x: position0.x,
-                y: position0.y
-            });
-            Body.setVelocity(body0, {
-                x: 0,
-                y: 0
-            });
-            Body.setPosition(body1, {
-                x: position1.x,
-                y: position1.y
-            });
-            Body.setVelocity(body1, {
-                x: 0,
-                y: 0
-            });
-        }
+        
     });
 
     // add all of the bodies to the world
-    Composite.add(engine.world, [ body0, body1 ]);
+    //Composite.add(engine.world, [ body0, body1 ]);
 
     Composite.add(engine.world, 
-    [ceiling, wallA, wallB, ground, 
-    wallA_lower, wallB_lower, stage]);
+    [ceiling, wallA, wallB, ground]);
 
     var mouse = Matter.Mouse.create(render.canvas);
     var mouseConstraint = 
