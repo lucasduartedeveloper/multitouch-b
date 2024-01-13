@@ -114,7 +114,7 @@ $(document).ready(function() {
         }
         var rp0 = _rotate2d(c0, p0, direction0);
 
-        if (reachedFreq <= 50)
+        if (reachedFreq <= 100)
         Body.setVelocity(body0, {
             x: rp0.x-c0.x,
             y: rp0.y-c0.y
@@ -130,58 +130,10 @@ $(document).ready(function() {
         }
         var rp1 = _rotate2d(c1, p1, direction1);
 
-        if (reachedFreq > 50 && reachedFreq <= 100)
+        if (reachedFreq > 100)
         Body.setVelocity(body1, {
             x: rp1.x-c1.x,
             y: rp1.y-c1.y
-        });
-
-        var c2 = {
-            x: position2.x,
-            y: position2.y
-        };
-        var p2 = {
-            x: c2.x,
-            y: c2.y-(micAvgValue*(sw/gridSize))
-        }
-        var rp2 = _rotate2d(c2, p2, direction2);
-
-        if (reachedFreq > 100 && reachedFreq <= 150)
-        Body.setVelocity(body2, {
-            x: rp2.x-c2.x,
-            y: rp2.y-c2.y
-        });
-
-        var c3 = {
-            x: position3.x,
-            y: position3.y
-        };
-        var p3 = {
-            x: c3.x,
-            y: c3.y-(micAvgValue*(sw/gridSize))
-        }
-        var rp3 = _rotate2d(c3, p3, direction3);
-
-        if (reachedFreq > 150 && reachedFreq <= 175)
-        Body.setVelocity(body3, {
-            x: rp3.x-c3.x,
-            y: rp3.y-c3.y
-        });
-
-        var c4 = {
-            x: position1.x,
-            y: position1.y
-        };
-        var p4 = {
-            x: c4.x,
-            y: c4.y-(micAvgValue*(sw/gridSize))
-        }
-        var rp4 = _rotate2d(c4, p4, direction4);
-
-        if (reachedFreq > 175)
-        Body.setVelocity(body4, {
-            x: rp4.x-c4.x,
-            y: rp4.y-c4.y
         });
     };
     mic.onclose = function() { 
@@ -229,11 +181,8 @@ $(document).ready(function() {
 
 var gridSize = 10;
 
-var direction0 = 0; //Math.floor(Math.random()*360);
-var direction1 = 0; //Math.floor(Math.random()*360);
-var direction2 = 0; //Math.floor(Math.random()*360);
-var direction3 = 0; //Math.floor(Math.random()*360);
-var direction4 = 0; //Math.floor(Math.random()*360);
+var direction0 = 270; //Math.floor(Math.random()*360);
+var direction1 = 90; //Math.floor(Math.random()*360);
 
 var c = {
    x: (sw/2),
@@ -245,16 +194,10 @@ var p = {
    y: c.y-((sw/gridSize)*2)
 };
 
-var position0 = { x: ((sw/2)-(sw/gridSize)*4), y: (sh/2) };
+var position0 = { x: (sw/2)-(sw/gridSize), y: (sh/2) };
 //_rotate2d(c, p, 0);
-var position1 = { x: ((sw/2)-(sw/gridSize)*2), y: (sh/2) };
-//_rotate2d(c, p, (360/5));
-var position2 = { x: (sw/2), y: (sh/2) };
-//_rotate2d(c, p, 2*(360/5));
-var position3 = { x: ((sw/2)+(sw/gridSize)*2), y: (sh/2) };
-//_rotate2d(c, p, 3*(360/5));
-var position4 = { x: ((sw/2)+(sw/gridSize)*4), y: (sh/2) };
-//_rotate2d(c, p, 4*(360/5));
+var position1 = { x: (sw/2)+(sw/gridSize), y: (sh/2) };
+//_rotate2d(c, p, 0);
 
 var gridPosition = {
     x: 0,
@@ -382,8 +325,10 @@ var createTexture = function(text, size) {
     canvas.height = size;
 
     var ctx = canvas.getContext("2d");
-
     ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, size, size);
+
+    ctx.fillStyle = "#000";
     ctx.font = size+"px sans serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
@@ -417,7 +362,7 @@ var engine = Engine.create();
 // create two boxes and a ground
 var body0 = 
 Bodies.rectangle(position0.x, position0.y, 
-    (sw/gridSize), ((sw/gridSize)*2), {
+    (sw/gridSize), (sw/gridSize), {
     label: "body0",
     render: {
         fillStyle: "#fff",
@@ -425,32 +370,8 @@ Bodies.rectangle(position0.x, position0.y,
 
 var body1 = 
 Bodies.rectangle(position1.x, position1.y, 
-    (sw/gridSize), ((sw/gridSize)*2), {
+    (sw/gridSize), (sw/gridSize), {
     label: "body1",
-    render: {
-        fillStyle: "#fff",
-        strokeStyle: "#fff" }});
-
-var body2 = 
-Bodies.rectangle(position2.x, position2.y, 
-    (sw/gridSize), ((sw/gridSize)*2), {
-    label: "body2",
-    render: {
-        fillStyle: "#fff",
-        strokeStyle: "#fff" }});
-
-var body3 = 
-Bodies.rectangle(position3.x, position3.y, 
-    (sw/gridSize), ((sw/gridSize)*2), {
-    label: "body3",
-    render: {
-        fillStyle: "#fff",
-        strokeStyle: "#fff" }});
-
-var body4 = 
-Bodies.rectangle(position4.x, position4.y, 
-    (sw/gridSize), ((sw/gridSize)*2), {
-    label: "body0",
     render: {
         fillStyle: "#fff",
         strokeStyle: "#fff" }});
@@ -462,16 +383,34 @@ var ceiling = Bodies.rectangle(sw/2, -40, sw, 100,
          fillStyle: '#2f2e40',
          strokeStyle: '#2f2e40' }});
 
-var wallA = Bodies.rectangle(-40, sh/2, 100, sh,
+var wallA = Bodies.rectangle(-40, (sh/4)-((sw/gridSize)/2), 
+100, (sh/2)-(sw/gridSize),
 { isStatic: true,
     label: "wallA",
     render: {
          fillStyle: '#2f2e40',
          strokeStyle: '#2f2e40' }});
-    
-var wallB = Bodies.rectangle(sw+40, sh/2, 100, sh, 
+
+var wallA_lower = Bodies.rectangle(-40, 
+sh-((sh/4)-((sw/gridSize)/2)), 100, (sh/2)-(sw/gridSize), 
+{ isStatic: true,
+    label: "wallA",
+    render: {
+         fillStyle: '#2f2e40',
+         strokeStyle: '#2f2e40' }});
+
+var wallB = Bodies.rectangle(sw+40, (sh/4)-((sw/gridSize)/2), 
+100, (sh/2)-(sw/gridSize), 
 { isStatic: true,
     label: "wallB",
+    render: {
+         fillStyle: '#2f2e40',
+         strokeStyle: '#2f2e40' }});
+
+var wallB_lower = Bodies.rectangle(sw+40, 
+sh-((sh/4)-((sw/gridSize)/2)), 100, (sh/2)-(sw/gridSize), 
+{ isStatic: true,
+    label: "wallB_lower",
     render: {
          fillStyle: '#2f2e40',
          strokeStyle: '#2f2e40' }});
@@ -490,6 +429,14 @@ var wallD = Bodies.rectangle(
 ((sw/2)-(sw/gridSize)-10), 20,
 { isStatic: true,
     label: "wallD",
+    render: {
+         fillStyle: '#2f2e40',
+         strokeStyle: '#2f2e40' }});
+
+var stage = Bodies.rectangle(
+(sw/2), (sh/2)+(sw/gridSize)+10, sw-20, 20,
+{ isStatic: true,
+    label: "stage",
     render: {
          fillStyle: '#2f2e40',
          strokeStyle: '#2f2e40' }});
@@ -515,7 +462,12 @@ function matterJs() {
         }
     });
 
-    engine.world.gravity.y = 0;
+    //engine.world.gravity.y = 0;
+
+    body0.render.sprite.texture = 
+    createTexture("+", (sw/gridSize));
+    body1.render.sprite.texture = 
+    createTexture("-", (sw/gridSize));
 
     Matter.Events.on(engine, "collisionActive", function (event) {
         pairs = [ ...event.pairs ];
@@ -524,37 +476,44 @@ function matterJs() {
         for (var n = 0; n < pairs.length; n++) {
             //console.log(pairs[n].bodyA.label, pairs[n].bodyB.label);
 
+            /*
             if (pairs[n].bodyA.label == "body0")
-            direction0 = Math.floor(Math.random()*360);
+            direction0 = 270+Math.floor(Math.random()*90);
             if (pairs[n].bodyA.label == "body1")
-            direction1 = Math.floor(Math.random()*360);
-            if (pairs[n].bodyA.label == "body2")
-            direction2 = Math.floor(Math.random()*360);
-            if (pairs[n].bodyA.label == "body3")
-            direction3 = Math.floor(Math.random()*360);
+            direction1 = Math.floor(Math.random()*90);*/
         }
     });
 
     Matter.Events.on(engine, "beforeUpdate", function (event) {
-        Body.setAngle(body0, direction0*-(Math.PI/180));
-        Body.setAngle(body1, direction1*-(Math.PI/180));
-        Body.setAngle(body2, direction2*-(Math.PI/180));
-        Body.setAngle(body3, direction3*-(Math.PI/180));
-        Body.setAngle(body4, direction4*-(Math.PI/180));
-
-        Body.setAngularVelocity(body0, 0);
-        Body.setAngularVelocity(body1, 0);
-        Body.setAngularVelocity(body2, 0);
-        Body.setAngularVelocity(body3, 0);
-        Body.setAngularVelocity(body4, 0);
+        if (body0.position.x < -(sw/gridSize) || 
+        body0.position.x > sw+(sw/gridSize) || 
+        body1.position.x < -(sw/gridSize) || 
+        body1.position.x > sw+(sw/gridSize)){
+            Body.setPosition(body0, {
+                x: position0.x,
+                y: position0.y
+            });
+            Body.setVelocity(body0, {
+                x: 0,
+                y: 0
+            });
+            Body.setPosition(body1, {
+                x: position1.x,
+                y: position1.y
+            });
+            Body.setVelocity(body1, {
+                x: 0,
+                y: 0
+            });
+        }
     });
 
     // add all of the bodies to the world
-    Composite.add(engine.world,
-    [ body0, body1, body2, body3, body4 ]);
+    Composite.add(engine.world, [ body0, body1 ]);
 
     Composite.add(engine.world, 
-    [ceiling, wallA, wallB, ground]);
+    [ceiling, wallA, wallB, ground, 
+    wallA_lower, wallB_lower, stage]);
 
     var mouse = Matter.Mouse.create(render.canvas);
     var mouseConstraint = 
