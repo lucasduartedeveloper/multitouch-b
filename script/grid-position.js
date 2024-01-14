@@ -393,7 +393,7 @@ var addBody = function(x, y) {
 
     obj.body.render.sprite.texture = 
     createTexture(obj.frequencyLabel[0], obj.frequencyLabel[1],
-    size);
+    Math.floor(size));
 
     bodyArr.push(obj);
     Composite.add(engine.world, [ obj.body ]);
@@ -434,7 +434,7 @@ var combineBody = function(bodyA, bodyB) {
 
     obj.body.render.sprite.texture = 
     createTexture(obj.frequencyLabel[0], obj.frequencyLabel[1],
-    size);
+    Math.floor(size));
 
     bodyArr.push(obj);
     Composite.add(engine.world, [ obj.body ]);
