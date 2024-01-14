@@ -167,6 +167,29 @@ $(document).ready(function() {
         }
     };
 
+    autoFocusEnabled = false;
+    buttonAutoFocusView = document.createElement("button");
+    buttonAutoFocusView.style.position = "absolute";
+    buttonAutoFocusView.style.color = "#000";
+    buttonAutoFocusView.innerText = !autoFocusEnabled ? 
+    "focus: off" : "focus: auto";
+    buttonAutoFocusView.style.fontFamily = "Khand";
+    buttonAutoFocusView.style.fontSize = "15px";
+    buttonAutoFocusView.style.left = (120)+"px";
+    buttonAutoFocusView.style.top = (sh-35)+"px";
+    buttonAutoFocusView.style.width = (100)+"px";
+    buttonAutoFocusView.style.height = (25)+"px";
+    buttonAutoFocusView.style.border = "1px solid white";
+    buttonAutoFocusView.style.borderRadius = "25px";
+    buttonAutoFocusView.style.zIndex = "15";
+    document.body.appendChild(buttonAutoFocusView);
+
+    buttonAutoFocusView.onclick = function() {
+        autoFocusEnabled = !autoFocusEnabled;
+        buttonAutoFocusView.innerText = !autoFocusEnabled ? 
+        "focus: off" : "focus: auto";
+    };
+
     motion = false;
     gyroUpdated = function(e) {
         engine.world.gravity.x = -(1/9.8)*e.accX;
@@ -799,7 +822,7 @@ function matterJs() {
             };
             var hyp = pairArr[0].hyp;
 
-            if (hyp < (sw/2)) {
+            if (autoFocusEnabled && hyp < (sw/2)) {
                 engine.timing.timeScale = 
                 (1/(sw/2))*(hyp-((sw/gridSize)/1.05));
 
@@ -810,6 +833,8 @@ function matterJs() {
                 render.bounds.max.y = (c.y+((hyp*2)*r));
             }
             else {
+                engine.timing.timeScale = 1;
+
                 render.bounds.min.x = 0;
                 render.bounds.max.x = sw;
 
@@ -818,6 +843,8 @@ function matterJs() {
             }
         }
         else {
+            engine.timing.timeScale = 1;
+
             render.bounds.min.x = 0;
             render.bounds.max.x = sw;
 
