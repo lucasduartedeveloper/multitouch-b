@@ -32,8 +32,17 @@ class SfxPool {
        }
        this.playing.push(sfx0);
 
+       for (var n = 0; n < this.stored.length; n++) {
+           if ((new Date().getTime() - this.stored[n].timestamp) > 
+           5000) {
+               this.stored[n].expired = true;
+           }
+       }
+       stored = stored.filter((o) => { return !o.expired });
+
        sfx0.url = url;
        sfx0.timestamp = new Date().getTime();
+       sfx0.expired = false;
        sfx0.pool = this;
        sfx0.play();
        //navigator.vibrate(200);
@@ -45,6 +54,7 @@ class SfxPool {
 }
 var sfxPool = new SfxPool();
 
+var language = "en-US";
 var beforeAudio = false;
 var afterAudio = false;
 
@@ -56,7 +66,7 @@ function say(text, afterAudio) {
     //if (text == lastText) return;
     lastText = text;
     if (!speaking) {
-         speaking = true;
+         //speaking = true;
          var msg = new SpeechSynthesisUtterance();
          if (!voicesLoaded) msg.lang = language;
          else {

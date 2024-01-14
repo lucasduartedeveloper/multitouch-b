@@ -4,7 +4,7 @@ var warningBeep = new Audio("audio/warning_beep.wav");
 var sw = window.innerWidth;
 var sh = window.innerHeight;
 
-var audioBot = false;
+var audioBot = true;
 var playerId = new Date().getTime();
 
 var canvasBackgroundColor = "rgba(255,255,255,1)";
@@ -72,8 +72,8 @@ $(document).ready(function() {
     matterJsView = document.createElement("canvas");
     matterJsView.style.position = "absolute";
     matterJsView.style.background = "#fff";
-    matterJsView.width = (sw);
-    matterJsView.height = (sh); 
+    matterJsView.width = sw;
+    matterJsView.height = sh; 
     matterJsView.style.left = (0)+"px";
     matterJsView.style.top = (0)+"px";
     matterJsView.style.width = (sw)+"px";
@@ -321,29 +321,102 @@ var clipTexture = function(url, size, callback) {
     img.src = url;
 };
 
-var createTexture = function(text0, text1, size) {
+var createTexture = function(polygonNo, size, color) {
     var canvas = document.createElement("canvas");
     canvas.width = size;
     canvas.height = size;
 
+    var polygon = 
+    getPolygon(polygonNo, { x: (size/2), y: (size/2) }, (size/2));
+
     var ctx = canvas.getContext("2d");
+
+    ctx.fillStyle = "#555";
     ctx.beginPath();
-    ctx.arc((size/2), (size/2), (size/2), 0, (Math.PI*2));
-    ctx.clip();
+    ctx.moveTo(polygon[0].x, polygon[0].y);
+    for (var n = 1; n < polygon.length; n++) {
+        ctx.lineTo(polygon[n].x, polygon[n].y);
+    }
+    ctx.fill();
 
     ctx.fillStyle = "#fff";
-    ctx.fillRect(0, 0, size, size);
+    ctx.beginPath();
+    ctx.arc((size/2), (size/2), (size/4.5), 0, (Math.PI*2));
+    ctx.fill();
 
     ctx.fillStyle = "#000";
-    ctx.font = (size/4)+"px sans serif";
-    ctx.fontWeight = 900;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
+    ctx.beginPath();
+    ctx.arc((size/2), (size/2), (size/8), 0, (Math.PI*2));
+    ctx.fill();
 
-    ctx.fillText(text0, (size/2), (size/2));
-    ctx.fillText(text1, (size/2), (size/2)+(size/4));
+    ctx.fillStyle = color;
+    ctx.fillRect(((size/2)-(size/20)), ((size/2)-(size/7.5)), 
+    (size/10), (size/3.75));
+
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc((size/2), (size/2), (size/10), 0, (Math.PI*2));
+    ctx.fill();
 
     return canvas.toDataURL();
+};
+
+var getPolygon = function(n, pos, size) {
+    var polygon = [];
+
+    if (n == 0) {
+    var polygon = [];
+    var c = { 
+        x: pos.x,
+        y: pos.y
+    };
+    var p = {
+        x: c.x,
+        y: c.y-(size/2)
+    };
+    for (var n = 0; n < 8; n++) {
+        var rp = _rotate2d(c, p, n*(360/8));
+        polygon.push({
+            x: rp.x,
+            y: rp.y
+        });
+    }
+    }
+    else if (n == 1) {
+    var polygon = [];
+    var c = { 
+        x: pos.x,
+        y: pos.y
+    };
+    var p = {
+        x: c.x,
+        y: c.y-(size/2)
+    };
+    polygon.push({
+        x: c.x,
+        y: c.y-(size/1.75)
+    });
+    for (var n = 3; n < 48; n++) {
+        var rp = _rotate2d(c, p, n*(180/50));
+        polygon.push({
+            x: rp.x,
+            y: rp.y
+        });
+    }
+    polygon.push({
+        x: c.x,
+        y: c.y+(size/1.75)
+    });
+    for (var n = 3; n < 48; n++) {
+        var rp = _rotate2d(c, p, 180+(n*(180/50)));
+        polygon.push({
+            x: rp.x,
+            y: rp.y
+        });
+    }
+    }
+
+    return polygon;
 };
 
 var getSquare = function(item) {
@@ -370,35 +443,69 @@ var engine = Engine.create();
 var bodyNo = 0;
 var bodyArr = [];
 
+var colors = [ "#77f", "#f77",  "#3f3", "#f80", "#ff5" ];
+var colorName = [ "blue", "red", "green", "orange", "yellow" ];
+
+var victoryRequirementsMet = false;
+var bodyNo = 0;
+
 // create two boxes and a ground
 var addBody = function(x, y) {
+    var baseArea = Math.PI*Math.pow(((sw/gridSize)/2), 2);
+
+    var polygonArr = [ 1, 0, 0 ];
+
     var size = (sw/gridSize);
     var area = Math.PI*Math.pow((size/2), 2);
     var min = (bodyArr.length*5);
     var max = ((bodyArr.length+1)*5);
 
+    var polygon = 
+    getPolygon(1, { x: x, y: y }, size);
+
+    var audio = new Audio("audio/spinning-sfx.wav");
+    audio.loop = true;
+
     var obj = {
+        no: getNextColor(),
+        visible: true,
         direction: Math.floor(Math.random()*360),
         size: size,
         area: area,
         min: min,
         max: max,
-        frequencyLabel: [ min.toFixed(1), "Hz" ],
-        body: Bodies.circle(x, y, (size/2), {
+        frequencyLabel: [ ((1/baseArea)*area).toFixed(1), "Hz" ],
+        body: Bodies.fromVertices(x, y, polygon, {
             label: "body"+bodyNo,
             render: {
                 fillStyle: "#fff",
-                strokeStyle: "#fff" }})
+                strokeStyle: "#fff" }}),
+        audio: audio
     };
 
     obj.body.render.sprite.texture = 
-    createTexture(obj.frequencyLabel[0], obj.frequencyLabel[1],
-    Math.floor(size));
+    createTexture(1, size*2, colors[obj.no]);
 
     bodyArr.push(obj);
-    Composite.add(engine.world, [ obj.body ]);
+    obj.audio.play();
 
+    Composite.add(engine.world, [ obj.body ]);
     bodyNo += 1;
+
+    if (bodyArr.length > 1)
+    victoryRequirementsMet = true;
+};
+
+var getNextColor = function() {
+    if (bodyArr.length == 0) return 0;
+
+    var search = [];
+    for (var n = 0; n < 5; n++) {
+        search = bodyArr.filter((o) => { return o.no == n; });
+        if (search.length == 0)
+        return n;
+    }
+    return null;
 };
 
 var combineBody = function(bodyA, bodyB) {
@@ -410,6 +517,8 @@ var combineBody = function(bodyA, bodyB) {
     var y = bodyA.body.position.y +
     ((bodyB.body.position.y - bodyA.body.position.y)/2);
 
+    var baseArea = Math.PI*Math.pow(((sw/gridSize)/2), 2);
+
     var area = (bodyA.area+bodyB.area);
     var size = Math.sqrt(area/Math.PI)*2;
 
@@ -419,12 +528,13 @@ var combineBody = function(bodyA, bodyB) {
     bodyA.max : bodyB.max;
 
     var obj = {
+        visible: true,
         direction: Math.floor(Math.random()*360),
         size: size,
         area: area,
         min: min,
         max: max,
-        frequencyLabel: [ min.toFixed(1), "Hz" ],
+        frequencyLabel: [ ((1/baseArea)*area).toFixed(1), "Hz" ],
         body: Bodies.circle(x, y, (size/2), {
             label: (bodyA.body.label+"_"+bodyB.body.label),
             render: {
@@ -449,37 +559,141 @@ var getBody = function(label) {
     return search[0];
 };
 
-var ceiling = Bodies.rectangle(sw/2, -40, sw, 100,
+var ceiling = Bodies.rectangle(
+sw/4-((sw/gridSize)/2), -140, 
+(sw/2)-(sw/gridSize), 300,
 { isStatic: true,
     label: "ceiling",
     render: {
          fillStyle: '#2f2e40',
          strokeStyle: '#2f2e40' }});
 
-var wallA = Bodies.rectangle(-40, (sh/2), 100, sh,
+var ceilingB = Bodies.rectangle(
+sw-(sw/4-((sw/gridSize)/2)), -140, 
+(sw/2)-(sw/gridSize), 300,
+{ isStatic: true,
+    label: "ceiling",
+    render: {
+         fillStyle: '#2f2e40',
+         strokeStyle: '#2f2e40' }});
+
+var wallA = Bodies.rectangle(
+-140, (sh/4)-((sw/gridSize)/2), 300, ((sh/2)-(sw/gridSize)),
 { isStatic: true,
     label: "wallA",
     render: {
          fillStyle: '#2f2e40',
          strokeStyle: '#2f2e40' }});
 
-var wallB = Bodies.rectangle(sw+40, (sh/2), 100, sh, 
+var wallA_lower = Bodies.rectangle(
+-140, sh-((sh/4)-((sw/gridSize)/2)), 300, ((sh/2)-(sw/gridSize)),
+{ isStatic: true,
+    label: "wallA",
+    render: {
+         fillStyle: '#2f2e40',
+         strokeStyle: '#2f2e40' }});
+
+var wallB = Bodies.rectangle(
+sw+140, (sh/4)-((sw/gridSize)/2), 300, ((sh/2)-(sw/gridSize)),
 { isStatic: true,
     label: "wallB",
     render: {
          fillStyle: '#2f2e40',
          strokeStyle: '#2f2e40' }});
 
-var ground = Bodies.rectangle(sw/2, sh+40, sw, 100,
+var wallB_lower = Bodies.rectangle(
+sw+140, sh-((sh/4)-((sw/gridSize)/2)), 300, ((sh/2)-(sw/gridSize)),
+{ isStatic: true,
+    label: "wallA",
+    render: {
+         fillStyle: '#2f2e40',
+         strokeStyle: '#2f2e40' }});
+
+var ground = Bodies.rectangle(
+sw/4-((sw/gridSize)/2), sh+140, 
+(sw/2)-(sw/gridSize), 300,
 { isStatic: true,
     label: "ground",
     render: {
          fillStyle: '#2f2e40',
          strokeStyle: '#2f2e40' }});
 
+var groundB = Bodies.rectangle(
+sw-(sw/4-((sw/gridSize)/2)), sh+140, 
+(sw/2)-(sw/gridSize), 300,
+{ isStatic: true,
+    label: "ground",
+    render: {
+         fillStyle: '#2f2e40',
+         strokeStyle: '#2f2e40' }});
+
+var exitA = Bodies.rectangle(
+-40, (sh/2), 100, ((sw/gridSize)*2),
+{ isStatic: true,
+    label: "exitA",
+    render: {
+         fillStyle: '#2f2e40',
+         strokeStyle: '#2f2e40' }});
+
+var exitB = Bodies.rectangle(
+(sw/2), -40, ((sw/gridSize)*2), 100, 
+{ isStatic: true,
+    label: "exitB",
+    render: {
+         fillStyle: '#2f2e40',
+         strokeStyle: '#2f2e40' }});
+
+var exitC = Bodies.rectangle(
+(sw+40), (sh/2), 100, ((sw/gridSize)*2),
+{ isStatic: true,
+    label: "exitC",
+    render: {
+         fillStyle: '#2f2e40',
+         strokeStyle: '#2f2e40' }});
+
+var exitD = Bodies.rectangle(
+(sw/2), sh+40, ((sw/gridSize)*2), 100, 
+{ isStatic: true,
+    label: "exitD",
+    render: {
+         fillStyle: '#2f2e40',
+         strokeStyle: '#2f2e40' }});
+
+var cornerA = Bodies.rectangle(
+-150, (sh+150), 300, 300,
+{ isStatic: true,
+    label: "cornerA",
+    render: {
+         fillStyle: '#2f2e40',
+         strokeStyle: '#2f2e40' }});
+
+var cornerB = Bodies.rectangle(
+-150, -150, 300, 300,
+{ isStatic: true,
+    label: "cornerB",
+    render: {
+         fillStyle: '#2f2e40',
+         strokeStyle: '#2f2e40' }});
+
+var cornerC = Bodies.rectangle(
+(sw+150), -150, 300, 300,
+{ isStatic: true,
+    label: "cornerC",
+    render: {
+         fillStyle: '#2f2e40',
+         strokeStyle: '#2f2e40' }});
+
+var cornerD = Bodies.rectangle(
+(sw+150), (sh+150), 300, 300, 
+{ isStatic: true,
+    label: "cornerD",
+    render: {
+         fillStyle: '#2f2e40',
+         strokeStyle: '#2f2e40' }});
+
 function matterJs() {
     // create a renderer
-    var render = Render.create({
+    render = Render.create({
         engine: engine,
         canvas: matterJsView,
         options: {
@@ -491,6 +705,9 @@ function matterJs() {
         }
     });
 
+    //engine.timing.timeScale = 0.01;
+    render.options.hasBounds = true;
+
     engine.world.gravity.y = 0;
 
     Matter.Events.on(engine, "collisionStart", function (event) {
@@ -498,19 +715,19 @@ function matterJs() {
         //console.log(event);
 
         for (var n = 0; n < pairs.length; n++) {
-            //console.log(pairs[n].bodyA.label, pairs[n].bodyB.label);
+            console.log(pairs[n].bodyA.label, pairs[n].bodyB.label);
 
-            /*
             if (pairs[n].bodyA.label.includes("body"))
             sfxPool.play("audio/collision-sfx.wav");
             if (pairs[n].bodyB.label.includes("body"))
-            sfxPool.play("audio/collision-sfx.wav");*/
+            sfxPool.play("audio/collision-sfx.wav");
 
+            /*
             if (pairs[n].bodyA.label.includes("body") && 
             pairs[n].bodyB.label.includes("body"))
             combineBody(
             getBody(pairs[n].bodyA.label),
-            getBody(pairs[n].bodyB.label));
+            getBody(pairs[n].bodyB.label));*/
         }
     });
 
@@ -533,14 +750,151 @@ function matterJs() {
     });
 
     Matter.Events.on(engine, "beforeUpdate", function (event) {
-        
+        var pairArr = [];
+
+        if (bodyArr.length > 1) {
+            for (var n = 0; n < (bodyArr.length-1); n++) {
+            for (var k = 1; k < bodyArr.length; k++) {
+                if (n == k) continue;
+                var r = (sh/sw);
+
+                var c = {
+                    x: bodyArr[n].body.position.x+
+                    ((bodyArr[k].body.position.x-
+                    bodyArr[n].body.position.x)/2),
+                    y: bodyArr[n].body.position.y+
+                    ((bodyArr[k].body.position.y-
+                    bodyArr[n].body.position.y)/2),
+                };
+
+                var co = Math.abs(
+                bodyArr[k].body.position.x- bodyArr[n].body.position.x);
+                var ca = Math.abs(
+                bodyArr[k].body.position.y- bodyArr[n].body.position.y);
+
+                var hyp = Math.sqrt(
+                Math.pow(co, 2)+
+                Math.pow(ca, 2));
+
+                var obj = {
+                    no0: n,
+                    no1: k,
+                    hyp: hyp
+                };
+                pairArr.push(obj);
+            }
+            }
+
+            pairArr = pairArr.sort((a, b) => {
+                return a.hyp < b.hyp ? -1 : 1;
+            });
+
+            var c = {
+                x: bodyArr[pairArr[0].no0].body.position.x+
+                ((bodyArr[pairArr[0].no1].body.position.x-
+                bodyArr[pairArr[0].no0].body.position.x)/2),
+                y: bodyArr[pairArr[0].no0].body.position.y+
+                ((bodyArr[pairArr[0].no1].body.position.y-
+                bodyArr[pairArr[0].no0].body.position.y)/2),
+            };
+            var hyp = pairArr[0].hyp;
+
+            if (hyp < (sw/2)) {
+                engine.timing.timeScale = 
+                (1/(sw/2))*(hyp-((sw/gridSize)/1.05));
+
+                render.bounds.min.x = (c.x-(hyp*2));
+                render.bounds.max.x = (c.x+(hyp*2));
+
+                render.bounds.min.y = (c.y-((hyp*2)*r));
+                render.bounds.max.y = (c.y+((hyp*2)*r));
+            }
+            else {
+                render.bounds.min.x = 0;
+                render.bounds.max.x = sw;
+
+                render.bounds.min.y = 0;
+                render.bounds.max.y = sh;
+            }
+        }
+        else {
+            render.bounds.min.x = 0;
+            render.bounds.max.x = sw;
+
+            render.bounds.min.y = 0;
+            render.bounds.max.y = sh;
+        }
+
+        for (var n = 0; n < bodyArr.length; n++) {
+            if (bodyArr[n].body.position.x < -(150-((sw/gridSize)/2)) || 
+            bodyArr[n].body.position.y < -(150-((sw/gridSize)/2)) || 
+            bodyArr[n].body.position.x > 
+            sw+(150+((sw/gridSize)/2)) || 
+            bodyArr[n].body.position.y > 
+            sh+(150+((sw/gridSize)/2)))
+            bodyArr[n].visible = false;
+
+            Body.setAngularVelocity(bodyArr[n].body, -5);
+
+            var c = {
+                x: (sw/2),
+                y: (sh/2)
+            };
+            var p = {
+                x: bodyArr[n].body.position.x,
+                y: bodyArr[n].body.position.y
+            };
+            var v = {
+                x: (p.x-c.x),
+                y: (p.y-c.y)
+            };
+
+            var co = Math.abs(v.x);
+            var ca = Math.abs(v.y);
+            var hyp = Math.sqrt(
+            Math.pow(co, 2)+
+            Math.pow(ca, 2));
+
+            var r = (1/(sw/2))*hyp;
+            var rc = Math.curve(r, 0.25);
+            //console.log(rc);
+
+            var vn = Math.normalize(v, rc);
+            //console.log(vn);
+
+            Body.setVelocity(bodyArr[n].body, 
+            {
+                x: bodyArr[n].body.velocity.x-vn.x,
+                y: bodyArr[n].body.velocity.y-vn.y
+            });
+        }
+
+        if (bodyArr.length > 1)
+        for (var n = 0; n < bodyArr.length; n++) {
+            if (!bodyArr[n].visible) {
+                console.log("removed "+bodyArr[n].body.label);
+                say(colorName[bodyArr[n].no]+" eliminated");
+                bodyArr[n].audio.pause();
+                Composite.remove(engine.world, [ bodyArr[n].body ]);
+            }
+        }
+
+        if (victoryRequirementsMet && bodyArr.length == 1) {
+            say(colorName[bodyArr[0].no]+" wins");
+            victoryRequirementsMet = false;
+        }
+
+        bodyArr = bodyArr.filter((o) => { return o.visible; });
     });
 
     // add all of the bodies to the world
     //Composite.add(engine.world, [ body0, body1 ]);
 
     Composite.add(engine.world, 
-    [ceiling, wallA, wallB, ground]);
+    [ceiling, wallA, wallB, ground, 
+    ceilingB, wallA_lower, wallB_lower, groundB,
+    //exitA, exitB, exitC, exitD,
+    cornerA, cornerB, cornerC, cornerD]);
 
     var mouse = Matter.Mouse.create(render.canvas);
     var mouseConstraint = 
@@ -565,6 +919,19 @@ function matterJs() {
     // run the engine
     Runner.run(runner, engine);
 }
+
+Math.curve = function(value, scale) {
+    var c = {
+        x: 0,
+        y: 0
+    };
+    var p = {
+        x: -1,
+        y: 0
+    };
+    var rp = _rotate2d(c, p, (value*90));
+    return rp.y*scale;
+};
 
 var visibilityChange;
 if (typeof document.hidden !== "undefined") { // Opera 12.10 and Firefox 18 and later support
