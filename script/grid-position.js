@@ -372,12 +372,19 @@ var bodyArr = [];
 
 // create two boxes and a ground
 var addBody = function(x, y) {
+    var size = (sw/gridSize);
+    var area = Math.PI*Math.pow((size/2), 2);
+    var min = (bodyArr.length*5);
+    var max = ((bodyArr.length+1)*5);
+
     var obj = {
         direction: Math.floor(Math.random()*360),
-        frequencyLabel: 
-        [ ((bodyArr.length*5)*(24000/512)).toFixed(1),
-        "Hz" ],
-        body: Bodies.circle(x, y, ((sw/gridSize)/2), {
+        size: size,
+        area: area,
+        min: min,
+        max: max,
+        frequencyLabel: [ min.toFixed(1), "Hz" ],
+        body: Bodies.circle(x, y, (size/2), {
             label: "body"+bodyNo,
             render: {
                 fillStyle: "#fff",
@@ -386,12 +393,51 @@ var addBody = function(x, y) {
 
     obj.body.render.sprite.texture = 
     createTexture(obj.frequencyLabel[0], obj.frequencyLabel[1],
-    (sw/gridSize));
+    size);
 
     bodyArr.push(obj);
     Composite.add(engine.world, [ obj.body ]);
 
     bodyNo += 1;
+};
+
+var combineBody = function(bodyA, bodyB) {
+    Composite.remove(engine.world, 
+    [ bodyA.body, bodyB.body ]);
+
+    var x = bodyA.body.position.x +
+    ((bodyB.body.position.x - bodyA.body.position.x)/2);
+    var y = bodyA.body.position.y +
+    ((bodyB.body.position.y - bodyA.body.position.y)/2);
+
+    var area = (bodyA.area+bodyB.area);
+    var size = Math.sqrt(area/Math.PI)*2;
+
+    var min = bodyA.min < bodyB.min ? 
+    bodyA.min : bodyB.min;
+    var max = bodyA.max > bodyB.max ? 
+    bodyA.max : bodyB.max;
+
+    var obj = {
+        direction: Math.floor(Math.random()*360),
+        size: size,
+        area: area,
+        min: min,
+        max: max,
+        frequencyLabel: [ min.toFixed(1), "Hz" ],
+        body: Bodies.circle(x, y, (size/2), {
+            label: (bodyA.body.label+"_"+bodyB.body.label),
+            render: {
+                fillStyle: "#fff",
+                strokeStyle: "#fff" }})
+    };
+
+    obj.body.render.sprite.texture = 
+    createTexture(obj.frequencyLabel[0], obj.frequencyLabel[1],
+    size);
+
+    bodyArr.push(obj);
+    Composite.add(engine.world, [ obj.body ]);
 };
 
 var getBody = function(label) {
@@ -447,6 +493,27 @@ function matterJs() {
 
     engine.world.gravity.y = 0;
 
+    Matter.Events.on(engine, "collisionStart", function (event) {
+        pairs = [ ...event.pairs ];
+        //console.log(event);
+
+        for (var n = 0; n < pairs.length; n++) {
+            //console.log(pairs[n].bodyA.label, pairs[n].bodyB.label);
+
+            /*
+            if (pairs[n].bodyA.label.includes("body"))
+            sfxPool.play("audio/collision-sfx.wav");
+            if (pairs[n].bodyB.label.includes("body"))
+            sfxPool.play("audio/collision-sfx.wav");*/
+
+            if (pairs[n].bodyA.label.includes("body") && 
+            pairs[n].bodyB.label.includes("body"))
+            combineBody(
+            getBody(pairs[n].bodyA.label),
+            getBody(pairs[n].bodyB.label));
+        }
+    });
+
     Matter.Events.on(engine, "collisionActive", function (event) {
         pairs = [ ...event.pairs ];
         //console.log(event);
@@ -454,12 +521,14 @@ function matterJs() {
         for (var n = 0; n < pairs.length; n++) {
             //console.log(pairs[n].bodyA.label, pairs[n].bodyB.label);
 
-            if (pairs[n].bodyA.label.includes("body"))
-            getBody(pairs[n].bodyA.label).direction = 
-            Math.floor(Math.random()*360)
-            if (pairs[n].bodyB.label.includes("body"))
-            getBody(pairs[n].bodyB.label).direction = 
-            Math.floor(Math.random()*360)
+            if (pairs[n].bodyA.label.includes("body")) {
+                getBody(pairs[n].bodyA.label).direction = 
+                Math.floor(Math.random()*360);
+            }
+            if (pairs[n].bodyB.label.includes("body")) {
+                getBody(pairs[n].bodyB.label).direction = 
+                Math.floor(Math.random()*360);
+            }
         }
     });
 

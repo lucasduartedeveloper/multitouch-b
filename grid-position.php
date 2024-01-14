@@ -37,7 +37,8 @@ $script = [
     3 => "script/gyro-helper.js",
     4 => "script/camera-helper.js",
     5 => "script/geo-location.js",
-    6 => "script/grid-position.js"
+    6 => "script/audio-helper.js",
+    7 => "script/grid-position.js"
 ];
 
 $module = [];
