@@ -212,6 +212,29 @@ $(document).ready(function() {
         "focus: off" : "focus: auto";
     };
 
+    buttonBonusView = document.createElement("button");
+    buttonBonusView.style.position = "absolute";
+    buttonBonusView.style.color = "#000";
+    buttonBonusView.innerText = "add bonus";
+    buttonBonusView.style.fontFamily = "Khand";
+    buttonBonusView.style.fontSize = "15px";
+    buttonBonusView.style.left = (230)+"px";
+    buttonBonusView.style.top = (sh-35)+"px";
+    buttonBonusView.style.width = (100)+"px";
+    buttonBonusView.style.height = (25)+"px";
+    buttonBonusView.style.border = "1px solid white";
+    buttonBonusView.style.borderRadius = "25px";
+    buttonBonusView.style.zIndex = "15";
+    document.body.appendChild(buttonBonusView);
+
+    buttonBonusView.onclick = function() {
+        var x = 10+(sw/gridSize)+
+        Math.floor(Math.random()*(sw-(sw/gridSize)-20));
+        var y = 10+(sw/gridSize)+
+        Math.floor(Math.random()*(sh-(sw/gridSize)-20));
+        addBonus(x, y);
+    };
+
     createProfileView();
 
     motion = false;
@@ -653,6 +676,20 @@ var addBody = function(x, y, offset) {
     victoryRequirementsMet = true;
 };
 
+var addBonus = function(x, y) {
+    var body = 
+    Bodies.rectangle(x, y, ((sw/gridSize)/2), ((sw/gridSize)/2), {
+        label: "attack-bonus",
+        isSensor: true,
+        render: {
+            fillStyle: "rgba(0, 0, 0, 0)",
+            strokeStyle: "#fff",
+            lineWidth: 1
+        }});
+
+    Composite.add(engine.world, [ body ]);
+};
+
 var getNextColor = function() {
     if (bodyArr.length == 0) return 0;
 
@@ -693,7 +730,9 @@ sw-(sw/4-((sw/gridSize)/2)), -140,
          strokeStyle: '#2f2e40' }});
 
 var wallA = Bodies.rectangle(
--140, (sh/4)-((sw/gridSize)/2), 300, ((sh/2)-(sw/gridSize)),
+-140, (sh/4)-((sw/gridSize)/2)-(sw/gridSize), 300, 
+((sh/2)-(sw/gridSize)-((sw/gridSize)*2)),
+//-140, (sh/4)-((sw/gridSize)/2), 300, ((sh/2)-(sw/gridSize)),
 { isStatic: true,
     label: "wallA",
     render: {
@@ -701,7 +740,8 @@ var wallA = Bodies.rectangle(
          strokeStyle: '#2f2e40' }});
 
 var wallA_lower = Bodies.rectangle(
--140, sh-((sh/4)-((sw/gridSize)/2)), 300, ((sh/2)-(sw/gridSize)),
+-140, sh-((sh/4)-((sw/gridSize)/2)+(sw/gridSize)), 300, ((sh/2)-(sw/gridSize)+((sw/gridSize)*2)),
+//-140, sh-((sh/4)-((sw/gridSize)/2)), 300, ((sh/2)-(sw/gridSize)),
 { isStatic: true,
     label: "wallA",
     render: {
@@ -837,12 +877,38 @@ function matterJs() {
             if (pairs[n].bodyB.label.includes("body"))
             sfxPool.play("audio/collision-sfx.wav");
 
-            /*
-            if (pairs[n].bodyA.label.includes("body") && 
-            pairs[n].bodyB.label.includes("body"))
-            combineBody(
-            getBody(pairs[n].bodyA.label),
-            getBody(pairs[n].bodyB.label));*/
+            if (pairs[n].bodyA.label.includes("attack-bonus") || 
+                pairs[n].bodyB.label.includes("attack-bonus")) {
+
+                var attackBonus = 
+                pairs[n].bodyA.label.includes("attack-bonus") ? 
+                pairs[n].bodyA : pairs[n].bodyB;
+
+                var bodyA = 
+                pairs[n].bodyA.label.includes("body") ? 
+                pairs[n].bodyA : pairs[n].bodyB;
+
+                var bodyB;
+                if (bodyArr.length > 1) {
+                    bodyB = bodyArr[0].body.label != bodyA.label ? 
+                    bodyArr[0].body : bodyArr[1].body;
+
+                    var v = {
+                        x: (bodyB.position.x - bodyA.position.x),
+                        y: (bodyB.position.y - bodyA.position.y),
+                    };
+                    var vn = Math.normalize(v, 1);
+
+                    console.log(vn);
+
+                    Body.setVelocity(bodyA, {
+                        x: vn.x*(sw/gridSize),
+                        y: vn.y*(sw/gridSize)
+                    });
+
+                    Composite.remove(engine.world, [ attackBonus ]);
+                }
+            }
         }
     });
 
