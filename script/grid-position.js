@@ -83,14 +83,33 @@ $(document).ready(function() {
 
     startX = (sw/2);
     startY = (sw/2);
+    moveX = (sw/2);
+    moveY = (sw/2);
+
+    swipeLength = 0;
 
     matterJsView.ontouchstart = function(e) {
         ontouchIteration = 0;
         ontouch = true;
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
+    };
 
-        addBody(startX, startY);
+    matterJsView.ontouchmove = function(e) {
+        moveX = e.touches[0].clientX;
+        moveY = e.touches[0].clientY;
+
+        var co = Math.abs(moveX-startX);
+        var ca = Math.abs(moveY-startY);
+        var hyp = Math.sqrt(
+        Math.pow(co, 2)+
+        Math.pow(ca, 2));
+
+        swipeLength = (1/sw)*hyp;
+    };
+
+    matterJsView.ontouchend = function(e) {
+        addBody(startX, startY, swipeLength);
     };
 
     ws.onmessage = function(e) {
@@ -189,6 +208,8 @@ $(document).ready(function() {
         buttonAutoFocusView.innerText = !autoFocusEnabled ? 
         "focus: off" : "focus: auto";
     };
+
+    createProfileView();
 
     motion = false;
     gyroUpdated = function(e) {
@@ -438,6 +459,47 @@ var getPolygon = function(n, pos, size) {
         });
     }
     }
+    else if (n == 2) {
+    var polygon = [];
+    var c = { 
+        x: pos.x,
+        y: pos.y
+    };
+    var p = {
+        x: c.x,
+        y: c.y-(size/2)
+    };
+    polygon.push({
+        x: c.x,
+        y: c.y-(size/1.75)
+    });
+    polygon.push({
+        x: c.x-(size/4),
+        y: c.y-(size/1.75)
+    });
+    for (var n = 3; n < 48; n++) {
+        var rp = _rotate2d(c, p, n*(180/50));
+        polygon.push({
+            x: rp.x,
+            y: rp.y
+        });
+    }
+    polygon.push({
+        x: c.x,
+        y: c.y+(size/1.75)
+    });
+    polygon.push({
+        x: c.x+(size/4),
+        y: c.y+(size/1.75)
+    });
+    for (var n = 3; n < 48; n++) {
+        var rp = _rotate2d(c, p, 180+(n*(180/50)));
+        polygon.push({
+            x: rp.x,
+            y: rp.y
+        });
+    }
+    }
 
     return polygon;
 };
@@ -473,7 +535,7 @@ var victoryRequirementsMet = false;
 var bodyNo = 0;
 
 // create two boxes and a ground
-var addBody = function(x, y) {
+var addBody = function(x, y, offset) {
     var baseArea = Math.PI*Math.pow(((sw/gridSize)/2), 2);
 
     var polygonArr = [ 1, 0, 0 ];
@@ -491,6 +553,7 @@ var addBody = function(x, y) {
 
     var obj = {
         no: getNextColor(),
+        speed: (offset*5),
         visible: true,
         direction: Math.floor(Math.random()*360),
         size: size,
@@ -529,48 +592,6 @@ var getNextColor = function() {
         return n;
     }
     return null;
-};
-
-var combineBody = function(bodyA, bodyB) {
-    Composite.remove(engine.world, 
-    [ bodyA.body, bodyB.body ]);
-
-    var x = bodyA.body.position.x +
-    ((bodyB.body.position.x - bodyA.body.position.x)/2);
-    var y = bodyA.body.position.y +
-    ((bodyB.body.position.y - bodyA.body.position.y)/2);
-
-    var baseArea = Math.PI*Math.pow(((sw/gridSize)/2), 2);
-
-    var area = (bodyA.area+bodyB.area);
-    var size = Math.sqrt(area/Math.PI)*2;
-
-    var min = bodyA.min < bodyB.min ? 
-    bodyA.min : bodyB.min;
-    var max = bodyA.max > bodyB.max ? 
-    bodyA.max : bodyB.max;
-
-    var obj = {
-        visible: true,
-        direction: Math.floor(Math.random()*360),
-        size: size,
-        area: area,
-        min: min,
-        max: max,
-        frequencyLabel: [ ((1/baseArea)*area).toFixed(1), "Hz" ],
-        body: Bodies.circle(x, y, (size/2), {
-            label: (bodyA.body.label+"_"+bodyB.body.label),
-            render: {
-                fillStyle: "#fff",
-                strokeStyle: "#fff" }})
-    };
-
-    obj.body.render.sprite.texture = 
-    createTexture(obj.frequencyLabel[0], obj.frequencyLabel[1],
-    Math.floor(size));
-
-    bodyArr.push(obj);
-    Composite.add(engine.world, [ obj.body ]);
 };
 
 var getBody = function(label) {
@@ -861,7 +882,9 @@ function matterJs() {
             sh+(150+((sw/gridSize)/2)))
             bodyArr[n].visible = false;
 
-            Body.setAngularVelocity(bodyArr[n].body, -5);
+            Body.setAngularVelocity(
+            bodyArr[n].body, 
+            -bodyArr[n].speed);
 
             var c = {
                 x: (sw/2),
@@ -883,7 +906,8 @@ function matterJs() {
             Math.pow(ca, 2));
 
             var r = (1/(sw/2))*hyp;
-            var rc = Math.curve(r, 0.25);
+            var rc = Math.curve(r, 1)
+            *((1/5)*-bodyArr[n].body.angularVelocity);
             //console.log(rc);
 
             var vn = Math.normalize(v, rc);
@@ -909,6 +933,52 @@ function matterJs() {
         if (victoryRequirementsMet && bodyArr.length == 1) {
             say(colorName[bodyArr[0].no]+" wins");
             victoryRequirementsMet = false;
+
+            if (currentChampionship.active) {
+            if (currentChampionship.state == "semifinal_1st") {
+                var search = 
+                currentChampionship.semifinal_1st.toSorted((o) => {
+                    return o.no == bodyArr[0].no ? -1 : 1;
+                });
+                search[1].active = false;
+
+                currentChampionship.state = "semifinal_2nd";
+                currentChampionship.final = [
+                    { ...search[0] }
+                ];
+
+                championshipPositionView.src = 
+                drawChampionshipPosition();
+                championshipView.style.display = "initial";
+            }
+            else if (currentChampionship.state == "semifinal_2nd") {
+                var search = 
+                currentChampionship.semifinal_2nd.toSorted((o) => {
+                    return o.no == bodyArr[0].no ? -1 : 1;
+                });
+                search[1].active = false;
+
+                currentChampionship.state = "final";
+                currentChampionship.final.push({ ...search[0] });
+
+                championshipPositionView.src = 
+                drawChampionshipPosition();
+                championshipView.style.display = "initial";
+            }
+            else if (currentChampionship.state == "final") {
+                var search = 
+                currentChampionship.final.toSorted((o) => {
+                    return o.no == bodyArr[0].no ? -1 : 1;
+                });
+                search[1].active = false;
+
+                currentChampionship.state = "over";;
+
+                championshipPositionView.src = 
+                drawChampionshipPosition();
+                championshipView.style.display = "initial";
+            }
+            }
         }
 
         bodyArr = bodyArr.filter((o) => { return o.visible; });

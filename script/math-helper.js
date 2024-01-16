@@ -33,7 +33,7 @@ Math.clip = function(value, max) {
 
 Math.normalize = function(v, max=1) {
     var openning = ((Math.abs(v.x)+Math.abs(v.y))/2)*2;
-    openning = Math.clip(openning, max=1);
+    openning = Math.clip(openning, max);
     var a = _angle2d(v.x, v.y);
     var c = { x: 0, y: 0 };
     var p = { x: 0, y: -openning };
