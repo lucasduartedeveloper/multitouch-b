@@ -109,6 +109,9 @@ $(document).ready(function() {
     };
 
     matterJsView.ontouchend = function(e) {
+        if (currentChampionship.state != "ready")
+        launchItem(profileToObj(), startX, startY, swipeLength);
+        else
         addBody(startX, startY, swipeLength);
     };
 
@@ -494,6 +497,74 @@ var getPolygon = function(n, pos, size) {
     });
     for (var n = 3; n < 48; n++) {
         var rp = _rotate2d(c, p, 180+(n*(180/50)));
+        polygon.push({
+            x: rp.x,
+            y: rp.y
+        });
+    }
+    }
+    else if (n == 3) {
+    var polygon = [];
+    var c = { 
+        x: pos.x,
+        y: pos.y
+    };
+    var p = {
+        x: c.x,
+        y: c.y-(size/2)
+    };
+    var p0 = {
+        x: c.x,
+        y: c.y-(size/1.75)
+    };
+    polygon.push({
+        x: c.x,
+        y: c.y-(size/1.75)
+    });
+    for (var n = 3; n < 48; n++) {
+        var rp = _rotate2d(c, p, n*(120/50));
+        polygon.push({
+            x: rp.x,
+            y: rp.y
+        });
+    }
+    var rp = _rotate2d(c, p0, 120);
+    polygon.push({
+        x: rp.x,
+        y: rp.y
+    });
+    for (var n = 3; n < 48; n++) {
+        var rp = _rotate2d(c, p, 120+(n*(120/50)));
+        polygon.push({
+            x: rp.x,
+            y: rp.y
+        });
+    }
+    var rp = _rotate2d(c, p0, 240);
+    polygon.push({
+        x: rp.x,
+        y: rp.y
+    });
+    for (var n = 3; n < 48; n++) {
+        var rp = _rotate2d(c, p, 240+(n*(120/50)));
+        polygon.push({
+            x: rp.x,
+            y: rp.y
+        });
+    }
+    }
+    else if (n == 4) {
+    var polygon = [];
+    var c = { 
+        x: pos.x,
+        y: pos.y
+    };
+    var p = {
+        x: c.x-(size/2),
+        y: c.y-(size/2)
+    };
+    for (var n = 0; n < 4; n++) {
+        var rp = _rotate2d(c, p, n*(360/4));
         polygon.push({
             x: rp.x,
             y: rp.y
@@ -913,6 +984,9 @@ function matterJs() {
             var vn = Math.normalize(v, rc);
             //console.log(vn);
 
+            vn.x = vn.x * (1.5-bodyArr[n].body.mass);
+            vn.y = vn.y * (1.5-bodyArr[n].body.mass);
+
             Body.setVelocity(bodyArr[n].body, 
             {
                 x: bodyArr[n].body.velocity.x-vn.x,
@@ -950,6 +1024,8 @@ function matterJs() {
                 championshipPositionView.src = 
                 drawChampionshipPosition();
                 championshipView.style.display = "initial";
+
+                currentChampionship.stateOpen = false;
             }
             else if (currentChampionship.state == "semifinal_2nd") {
                 var search = 
@@ -964,6 +1040,8 @@ function matterJs() {
                 championshipPositionView.src = 
                 drawChampionshipPosition();
                 championshipView.style.display = "initial";
+
+                currentChampionship.stateOpen = false;
             }
             else if (currentChampionship.state == "final") {
                 var search = 
@@ -977,11 +1055,115 @@ function matterJs() {
                 championshipPositionView.src = 
                 drawChampionshipPosition();
                 championshipView.style.display = "initial";
+
+                currentChampionship.stateOpen = false;
             }
             }
         }
 
         bodyArr = bodyArr.filter((o) => { return o.visible; });
+    });
+
+    Matter.Events.on(engine, "afterUpdate", function (event) {
+        var pairArr = [];
+
+        if (bodyArr.length > 1) {
+            for (var n = 0; n < (bodyArr.length-1); n++) {
+            for (var k = 1; k < bodyArr.length; k++) {
+                if (n == k) continue;
+                var r = (sh/sw);
+
+                var c = {
+                    x: bodyArr[n].body.position.x+
+                    ((bodyArr[k].body.position.x-
+                    bodyArr[n].body.position.x)/2),
+                    y: bodyArr[n].body.position.y+
+                    ((bodyArr[k].body.position.y-
+                    bodyArr[n].body.position.y)/2),
+                };
+
+                var co = Math.abs(
+                bodyArr[k].body.position.x- bodyArr[n].body.position.x);
+                var ca = Math.abs(
+                bodyArr[k].body.position.y- bodyArr[n].body.position.y);
+
+                var hyp = Math.sqrt(
+                Math.pow(co, 2)+
+                Math.pow(ca, 2));
+
+                var obj = {
+                    no0: n,
+                    no1: k,
+                    hyp: hyp
+                };
+                pairArr.push(obj);
+            }
+            }
+
+            pairArr = pairArr.sort((a, b) => {
+                return a.hyp < b.hyp ? -1 : 1;
+            });
+        }
+        else return;
+
+        //console.log(pairArr);
+
+        var ctx = matterJsView.getContext("2d");
+
+        var c = {
+            x: bodyArr[pairArr[0].no0].body.position.x+
+            ((bodyArr[pairArr[0].no1].body.position.x-
+            bodyArr[pairArr[0].no0].body.position.x)/2),
+            y: bodyArr[pairArr[0].no0].body.position.y+
+            ((bodyArr[pairArr[0].no1].body.position.y-
+            bodyArr[pairArr[0].no0].body.position.y)/2),
+        };
+        var dir = 
+        bodyArr[pairArr[0].no0].body.position.x < 
+        bodyArr[pairArr[0].no1].body.position.x ? 
+        1 : -1;
+        var hyp = pairArr[0].hyp;
+        var p = {
+            x: c.x-(hyp*dir),
+            y: bodyArr[pairArr[0].no0].body.position.y
+        };
+
+        var r = 
+        Math.abs((bodyArr[pairArr[0].no1].body.position.x - 
+        bodyArr[pairArr[0].no0].body.position.x)) / hyp;
+
+        var co = 
+        bodyArr[pairArr[0].no0].body.position.x - c.x;
+        var ca = 
+        bodyArr[pairArr[0].no0].body.position.y - c.y;
+        var a0 = _angle2d(co, ca)*(180/Math.PI);
+
+        var co = 
+        bodyArr[pairArr[0].no1].body.position.x - c.x;
+        var ca = 
+        bodyArr[pairArr[0].no1].body.position.y - c.y;
+
+        var a1 = _angle2d(co, ca)*(180/Math.PI);
+
+        ctx.fillStyle = "#fff";
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, 0.5, 0, (Math.PI*2));
+        //ctx.fill();
+
+        var diff = a1-a0;
+
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = "#fff";
+        ctx.beginPath();
+        p.x = c.x+((p.x-c.x)*r);
+        ctx.moveTo(p.x, p.y);
+        for (var n = 0; n < 50; n++) {
+            var rp = _rotate2d(c, p, n*(diff/50));
+            rp.x = c.x+((rp.x-c.x)*r);
+
+            ctx.lineTo(rp.x, rp.y);
+        }
+        //ctx.stroke();
     });
 
     // add all of the bodies to the world

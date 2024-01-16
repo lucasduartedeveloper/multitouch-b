@@ -11,7 +11,7 @@ var profileToObj = function() {
         mid: profile.selectedMid,
         clip: profile.selectedClip,
     };
-    return clip;
+    return obj;
 };
 
 var createProfileView = function() {
@@ -32,6 +32,7 @@ var createProfileView = function() {
     document.body.appendChild(profileButtonView);
 
     profileButtonView.onclick = function() {
+        if (currentChampionship.state != "ready") return;
         profileView.style.display = "initial";
     };
 
@@ -52,6 +53,7 @@ var createProfileView = function() {
     document.body.appendChild(championshipButtonView);
 
     championshipButtonView.onclick = function() {
+        if (currentChampionship.stateOpen) return;
         championshipView.style.display = "initial";
     };
 
@@ -86,7 +88,8 @@ var createProfileView = function() {
     championshipNoView = document.createElement("span");
     championshipNoView.style.position = "absolute";
     championshipNoView.style.color = "#000";
-    championshipNoView.innerText = "Championship #1";
+    championshipNoView.innerText = 
+    "Championship #"+championshipNo;
     championshipNoView.style.fontFamily = "Khand";
     championshipNoView.style.fontSize = "15px";
     championshipNoView.style.fontWeight = 900;
@@ -114,6 +117,23 @@ var createProfileView = function() {
     //championshipView.style.borderRadius = "25px";
     championshipTimeView.style.zIndex = "15";
     championshipView.appendChild(championshipTimeView);
+
+    championshipPrizeView = document.createElement("span");
+    championshipPrizeView.style.position = "absolute";
+    championshipPrizeView.style.color = "#000";
+    championshipPrizeView.innerText = "$ "+
+    (100+(championshipNo*25)).toFixed(2).replace(".",",");
+    championshipPrizeView.style.fontFamily = "Khand";
+    championshipPrizeView.style.fontSize = "15px";
+    championshipPrizeView.style.fontWeight = 900;
+    championshipPrizeView.style.left = (10)+"px";
+    championshipPrizeView.style.top = (70)+"px";
+    championshipPrizeView.style.width = (100)+"px";
+    championshipPrizeView.style.height = (20)+"px";
+    championshipPrizeView.style.border = "1px solid white";
+    //championshipView.style.borderRadius = "25px";
+    championshipPrizeView.style.zIndex = "15";
+    championshipView.appendChild(championshipPrizeView);
 
     championshipStartView = document.createElement("span");
     championshipStartView.style.position = "absolute";
@@ -153,6 +173,7 @@ var createProfileView = function() {
 
     var stateInterval = 0;
     var startState = function() {
+        currentChampionship.stateOpen = false;
         championshipLabelView.innerText = "";
 
         for (var n = 0; n < bodyArr.length; n++) {
@@ -177,12 +198,15 @@ var createProfileView = function() {
 
             if (stateTimer > 0) {
                 stateTimer -= 1;
-                say(stateTimer);
-                championshipLabelView.innerText = 
-                stateTimer;
+                if (stateTimer > 0) {
+                    say(stateTimer);
+                    championshipLabelView.innerText = 
+                    stateTimer;
+                }
             }
 
             if (stateTimer == 0) {
+                currentChampionship.stateOpen = true;
                 say("LAUNCH");
                 championshipLabelView.innerText = "LAUNCH";
             }
@@ -237,6 +261,29 @@ var createProfileView = function() {
     };
 
     championshipStartView.onclick = function() {
+        if (currentChampionship.state == "over") {
+            var search_final = 
+            currentChampionship.final.filter((o) => {
+                var participant = 
+                currentChampionship.participants[o.no];
+                return (o.active && !participant.cpu);
+            });
+            if (search_final.length > 0) {
+                profile.balance += (100+(championshipNo*25));
+                balanceView.innerText = 
+                "$ "+profile.balance.toFixed(2).replace(".", ",");
+            };
+            createChampionship();
+
+            championshipNoView.innerText = 
+            "Championship #"+championshipNo;
+            championshipPrizeView.innerText = "$ "+
+            (100+(championshipNo*25)).toFixed(2).replace(".",",");
+            championshipPositionView.src = 
+            drawChampionshipPosition();
+            return;
+        }
+
         championshipView.style.display = "none";
         startState();
     };
@@ -255,6 +302,25 @@ var createProfileView = function() {
     //profileView.style.borderRadius = "25px";
     profileView.style.zIndex = "15";
     document.body.appendChild(profileView);
+
+    profileCloseView = document.createElement("span");
+    profileCloseView.style.position = "absolute";
+    profileCloseView.style.color = "#000";
+    profileCloseView.innerText = "close";
+    profileCloseView.style.fontFamily = "Khand";
+    profileCloseView.style.fontSize = "15px";
+    profileCloseView.style.left = (10)+"px";
+    profileCloseView.style.top = (10)+"px";
+    profileCloseView.style.width = (50)+"px";
+    profileCloseView.style.height = (20)+"px";
+    profileCloseView.style.border = "1px solid white";
+    //profileView.style.borderRadius = "25px";
+    profileCloseView.style.zIndex = "15";
+    profileView.appendChild(profileCloseView);
+
+    profileCloseView.onclick = function() {
+        profileView.style.display = "none";
+    };
 
     balanceView = document.createElement("span");
     balanceView.style.position = "absolute";
@@ -284,7 +350,7 @@ var createProfileView = function() {
     item0View.style.height = (80)+"px";
     item0View.style.border = "1px solid #000";
     //shopView.style.borderRadius = "25px";
-    item0View.src = drawTop(0);
+    item0View.src = drawTop(profile.selectedTop);
     item0View.style.zIndex = "15";
     profileView.appendChild(item0View);
 
@@ -299,7 +365,7 @@ var createProfileView = function() {
     item1View.style.height = (80)+"px";
     item1View.style.border = "1px solid #000";
     //shopView.style.borderRadius = "25px";
-    item1View.src = drawMid(1);
+    item1View.src = drawMid(profile.selectedMid);
     item1View.style.zIndex = "15";
     profileView.appendChild(item1View);
 
@@ -314,7 +380,7 @@ var createProfileView = function() {
     item2View.style.height = (80)+"px";
     item2View.style.border = "1px solid #000";
     //shopView.style.borderRadius = "25px";
-    item2View.src = drawClip(0);
+    item2View.src = drawClip(profile.selectedClip);
     item2View.style.zIndex = "15";
     profileView.appendChild(item2View);
 
@@ -329,8 +395,11 @@ var createProfileView = function() {
     shop0View.style.height = (80)+"px";
     shop0View.style.border = "1px solid #000";
     //shopView.style.borderRadius = "25px";
+    shop0View.style.overflowX = "auto";
     shop0View.style.zIndex = "15";
     profileView.appendChild(shop0View);
+
+    loadShop0();
 
     shop1View = document.createElement("div");
     shop1View.style.position = "absolute";
@@ -343,8 +412,11 @@ var createProfileView = function() {
     shop1View.style.height = (80)+"px";
     shop1View.style.border = "1px solid #000";
     //shopView.style.borderRadius = "25px";
+    shop1View.style.overflowX = "auto";
     shop1View.style.zIndex = "15";
     profileView.appendChild(shop1View);
+
+    loadShop1();
 
     shop2View = document.createElement("div");
     shop2View.style.position = "absolute";
@@ -366,9 +438,9 @@ var drawTop = function(no, dataURL=true) {
     canvas.width = 80;
     canvas.height = 80;
 
-    var ctx = canvas.getContext("2d");
-
     var size = 80;
+
+    var ctx = canvas.getContext("2d");
 
     ctx.beginPath();
     ctx.rect(0, 0, 80, 80);
@@ -379,6 +451,80 @@ var drawTop = function(no, dataURL=true) {
     ctx.beginPath();
     ctx.arc((size/2), (size/2), (size/4.5), 0, (Math.PI*2));
     ctx.fill();
+    ctx.clip();
+
+    ctx.save();
+    ctx.translate((size/2), (size/2));
+    ctx.rotate(-(Math.PI/4));
+    ctx.translate(-(size/2), -(size/2));
+
+    ctx.lineWidth = (size/10);
+    ctx.strokeStyle = "#555";
+    if (no == 1) {
+        for (var n = 0; n < 10; n+=2) {
+            ctx.beginPath();
+            ctx.moveTo(n*(size/10), 0);
+            ctx.lineTo(n*(size/10), size);
+            ctx.stroke();
+        }
+    }
+    if (no == 2) {
+        ctx.fillStyle = "#555";
+        ctx.beginPath();
+        ctx.moveTo((size/2), (size/2));
+        ctx.arc((size/2), (size/2), (size/4.5), 0, ((Math.PI*2)/4));
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo((size/2), (size/2));
+        ctx.arc((size/2), (size/2), (size/4.5), 
+        ((Math.PI*2)/4)*2, (((Math.PI*2)/4)*2)+((Math.PI*2)/4));
+        ctx.fill();
+    };
+    if (no == 3) {
+        ctx.translate((size/2), (size/2));
+        ctx.rotate((Math.PI/4));
+        ctx.translate(-(size/2), -(size/2));
+
+        var c = {
+            x: (size/2),
+            y: (size/2)
+        };
+        var p = {
+            x: c.x,
+            y: c.y-(size/4.5)
+        };
+
+        ctx.fillStyle = "#555";
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        for (var n = 0; n < 3; n++) {
+            var rp = _rotate2d(c, p, n*(360/3));
+            ctx.lineTo(rp.x, rp.y);
+        }
+        ctx.fill();
+    };
+    if (no == 4) {
+        var c = {
+            x: (size/2),
+            y: (size/2)
+        };
+        var p = {
+            x: c.x,
+            y: c.y-(size/4.5)
+        };
+
+        ctx.fillStyle = "#555";
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        for (var n = 0; n < 4; n++) {
+            var rp = _rotate2d(c, p, n*(360/4));
+            ctx.lineTo(rp.x, rp.y);
+        }
+        ctx.fill();
+    };
+
+    ctx.restore();
 
     return !dataURL ? canvas : canvas.toDataURL();
 };
@@ -416,10 +562,11 @@ var drawClip = function(no, dataURL=true) {
     canvas.width = 80;
     canvas.height = 80;
 
+    var size = 80;
+
     var ctx = canvas.getContext("2d");
 
     var color = colors[no];
-    var size = 80;
 
     ctx.fillStyle = color;
     ctx.fillRect(((size/2)-(size/20)), ((size/2)-(size/7.5)), 
@@ -431,6 +578,56 @@ var drawClip = function(no, dataURL=true) {
     ctx.fill();
 
     return !dataURL ? canvas : canvas.toDataURL();
+};
+
+var loadShop0 = function() {
+    for (var n = 0; n < 5; n++) {
+        var shopItemView = document.createElement("img");
+        shopItemView.style.position = "absolute";
+        shopItemView.style.background = "#000";
+        shopItemView.style.fontFamily = "Khand";
+        shopItemView.style.fontSize = "15px";
+        shopItemView.style.left = (n*80)+"px";
+        shopItemView.style.top = (0)+"px";
+        shopItemView.style.width = (80)+"px";
+        shopItemView.style.height = (80)+"px";
+        shopItemView.style.border = "1px solid #fff";
+        //shopView.style.borderRadius = "25px";
+        shopItemView.no = n;
+        shopItemView.src = drawTop(n);
+        shopItemView.style.zIndex = "15";
+        shop0View.appendChild(shopItemView);
+
+        shopItemView.onclick = function() {
+            profile.selectedTop = this.no;
+            item0View.src = drawTop(profile.selectedTop);
+        };
+    }
+};
+
+var loadShop1 = function() {
+    for (var n = 0; n < 5; n++) {
+        var shopItemView = document.createElement("img");
+        shopItemView.style.position = "absolute";
+        shopItemView.style.background = "#000";
+        shopItemView.style.fontFamily = "Khand";
+        shopItemView.style.fontSize = "15px";
+        shopItemView.style.left = (n*80)+"px";
+        shopItemView.style.top = (0)+"px";
+        shopItemView.style.width = (80)+"px";
+        shopItemView.style.height = (80)+"px";
+        shopItemView.style.border = "1px solid #fff";
+        //shopView.style.borderRadius = "25px";
+        shopItemView.no = n;
+        shopItemView.src = drawMid(n);
+        shopItemView.style.zIndex = "15";
+        shop1View.appendChild(shopItemView);
+
+        shopItemView.onclick = function() {
+            profile.selectedMid = this.no;
+            item1View.src = drawMid(profile.selectedMid);
+        };
+    }
 };
 
 var drawChampionshipPosition = function() {
@@ -891,14 +1088,14 @@ var drawChampionshipPosition = function() {
     return canvas.toDataURL();
 };
 
-var drawItem = function(obj, dataURL=true) {
+var drawItem = function(obj, toDataURL=true, toSprite=false) {
     var canvas = document.createElement("canvas");
-    canvas.width = 80;
-    canvas.height = 80;
+    canvas.width = toSprite ? (sw/gridSize)*2 : 80;
+    canvas.height = toSprite ? (sw/gridSize)*2 : 80;
+
+    var size = toSprite ? (sw/gridSize)*2 : 80;
 
     var ctx = canvas.getContext("2d");
-
-    var size = 80;
 
     ctx.drawImage(drawMid(obj.mid, false), 
     0, 0, size, size);
@@ -907,9 +1104,10 @@ var drawItem = function(obj, dataURL=true) {
     ctx.drawImage(drawClip(obj.clip, false), 
     0, 0, size, size);
 
-    return !dataURL ? canvas : canvas.toDataURL();
+    return !toDataURL ? canvas : canvas.toDataURL();
 };
 
+var championshipNo = 1;
 var championshipState = [
     "ready", 
     "semifinal_1st", 
@@ -920,11 +1118,12 @@ var championshipStateNo = 0;
 
 var currentChampionship = {
     active: false,
+    stateOpen: false,
     participants: [
        { top: 0, mid: 0, clip: 0, cpu: false },
        { top: 0, mid: 0, clip: 1, cpu: true },
        { top: 0, mid: 2, clip: 2, cpu: true },
-       { top: 0, mid: 0, clip: 3, cpu: true }
+       { top: 0, mid: 3, clip: 3, cpu: true }
     ],
     state: "ready",
     time: 0,
@@ -939,7 +1138,82 @@ var currentChampionship = {
    final: []
 };
 
+var skipChampionship = function() {
+   if (currentChampionship.state == "semifinal_1st") {
+       currentChampionship.state = "over";
+       var rnd = Math.floor(Math.random()*2);
+       currentChampionship.semifinal_2nd[rnd].active = false;
+
+      var search_1st = 
+      currentChampionship.semifinal_1st.filter((o) => {
+          return o.active;
+      });
+
+      var search_2nd = 
+      currentChampionship.semifinal_2nd.filter((o) => {
+          return o.active;
+      });
+
+      currentChampionship.final = [
+          search_1st[0], 
+          search_2nd[0]
+      ];
+
+       var rnd = Math.floor(Math.random()*2);
+       currentChampionship.final[rnd].active = false;
+   }
+};
+
+var createChampionship = function() {
+    championshipNo += 1;
+
+    var obj = {
+        active: false,
+        stateOpen: false,
+        participants: [
+            { top: 0, mid: 0, clip: 0, cpu: false },
+            { top: 0, mid: 0, clip: 1, cpu: true },
+            { top: 0, mid: 2, clip: 2, cpu: true },
+            { top: 0, mid: 3, clip: 3, cpu: true }
+        ],
+        state: "ready",
+        time: 0,
+        semifinal_1st: [
+            { no: 0, active: true },
+            { no: 1, active: true }
+        ],
+        semifinal_2nd: [
+            { no: 2, active: true },
+            { no: 3, active: true }
+        ],
+       final: []
+   };
+   currentChampionship = obj;
+};
+
+var getMidMass = function(no) {
+    var polygon = 
+    getPolygon(no, { x: 0.5, y: 0.5 }, 1);
+
+    var total = 0;
+
+    for (var n = 0; n < polygon.length; n++) {
+      var addX = polygon[n].x;
+      var addY = polygon[n == polygon.length - 1 ? 0 : n + 1].y;
+      var subX = polygon[n == polygon.length - 1 ? 0 : n + 1].x;
+      var subY = polygon[n].y;
+
+      total += (addX * addY * 0.5);
+      total -= (subX * subY * 0.5);
+    }
+
+    return Math.abs(total);
+};
+
 var launchItem = function(item, x, y, offset) {
+    if (!currentChampionship.stateOpen || 
+    bodyArr.length > 1) return;
+
     var baseArea = Math.PI*Math.pow(((sw/gridSize)/2), 2);
 
     var polygonArr = [ 1, 0, 0 ];
@@ -967,13 +1241,15 @@ var launchItem = function(item, x, y, offset) {
         frequencyLabel: [ ((1/baseArea)*area).toFixed(1), "Hz" ],
         body: Bodies.fromVertices(x, y, polygon, {
             label: "body"+bodyNo,
+            mass: getMidMass(item.mid),
             render: {
                 fillStyle: "#fff",
-                strokeStyle: "#fff" }}),
+                strokeStyle: "#fff"
+            }}),
         audio: audio
     };
 
-    obj.body.render.sprite.texture = drawItem(item);
+    obj.body.render.sprite.texture = drawItem(item, true, true);
 
     bodyArr.push(obj);
     obj.audio.play();
