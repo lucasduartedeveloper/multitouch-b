@@ -143,6 +143,27 @@ window.speechSynthesis.onvoiceschanged = function() {
     if (voicesLoadedCallback) voicesLoadedCallback();
 };
 
+var createOscillator = function() {
+    // create web audio api context
+    var audioCtx = 
+    new(window.AudioContext || window. webkitAudioContext)();
+
+    // create Oscillator node
+    var oscillator = audioCtx.createOscillator();
+
+    var volume = audioCtx.createGain();
+    volume.connect(audioCtx.destination);
+    volume.gain.value = 0.1;
+
+    oscillator.type = "square"; //"sine";
+    oscillator.frequency.value = 0; // value in hertz
+    oscillator.connect(volume);
+    oscillator.volume = volume;
+    //oscillator.connect(audioCtx.destination);
+
+    return oscillator;
+}
+
 /*
     var msg = new SpeechSynthesisUtterance();
     msg.lang = "en-US";

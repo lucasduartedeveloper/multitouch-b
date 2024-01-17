@@ -109,6 +109,8 @@ $(document).ready(function() {
     };
 
     matterJsView.ontouchend = function(e) {
+        if (squareEnabled) return;
+
         if (currentChampionship.state != "ready")
         launchItem(profileToObj(), startX, startY, swipeLength);
         else
@@ -135,24 +137,13 @@ $(document).ready(function() {
     mic.onupdate = function(freqArray, reachedFreq, avgValue) {
         micAvgValue = avgValue;
 
-        for (var n = 0; n < bodyArr.length; n++) {
-            var c = {
-                x: bodyArr[n].body.position.x,
-                y: bodyArr[n].body.position.y
-            };
-            var p = {
-                x: c.x,
-                y: c.y-(micAvgValue*(sw/gridSize))
-            }
-            var rp = _rotate2d(c, p, bodyArr[n].direction);
+        resumedWave = resumeWave(freqArray);
 
-            if (reachedFreq > (n*5) && 
-            reachedFreq <= ((n*5)+5))
-            Body.setVelocity(bodyArr[n].body, {
-                x: rp.x-c.x,
-                y: rp.y-c.y
-            });
-        }
+        /*var frequency = (reachedFreq/2)*(24000/512);
+        oscillator0.frequency.value = frequency;*/
+
+        var frequency =reachedFreq > 50 ? 50: 50;
+        oscillator0.frequency.value = frequency;
     };
     mic.onclose = function() { 
         console.log("mic closed");
@@ -187,6 +178,116 @@ $(document).ready(function() {
             mic.close();
             buttonMicView.innerText = "mic: off";
         }
+    };
+
+    var squareEnabled = false;
+    buttonSquareView = document.createElement("button");
+    buttonSquareView.style.position = "absolute";
+    buttonSquareView.style.color = "#000";
+    buttonSquareView.innerText = 
+    squareEnabled ? "hide square" : "show square";
+    buttonSquareView.style.fontFamily = "Khand";
+    buttonSquareView.style.fontSize = "15px";
+    buttonSquareView.style.left = (sw-110)+"px";
+    buttonSquareView.style.top = (10)+"px";
+    buttonSquareView.style.width = (100)+"px";
+    buttonSquareView.style.height = (25)+"px";
+    buttonSquareView.style.border = "1px solid white";
+    buttonSquareView.style.borderRadius = "25px";
+    buttonSquareView.style.zIndex = "15";
+    document.body.appendChild(buttonSquareView);
+
+    oscillator0 = createOscillator();
+    oscillator1 = createOscillator();
+
+    buttonSquareView.onclick = function() {
+        squareEnabled = !squareEnabled;
+        buttonSquareView.innerText = 
+        squareEnabled ? "hide square" : "show square";
+        squareView.style.display = 
+        squareEnabled ? "initial" : "none";
+
+        if (squareEnabled) {
+            oscillator0.start();
+            oscillator1.start();
+        }
+        else {
+            oscillator0.stop();
+            oscillator1.stop();
+        }
+    };
+
+    squareView = document.createElement("canvas");
+    squareView.style.position = "absolute";
+    squareView.style.display = 
+    squareEnabled ? "initial" : "none";
+    squareView.style.background = "#fff";
+    squareView.style.fontFamily = "Khand";
+    squareView.style.fontSize = "15px";
+    squareView.style.left = ((sw/2)-((sw/2)-25))+"px";
+    squareView.style.top = ((sh/2)-((sw/2)-25))+"px";
+    squareView.style.width = (sw-50)+"px";
+    squareView.style.height = (sw-50)+"px";
+    squareView.style.border = "1px solid white";
+    //squareView.style.borderRadius = "25px";
+    squareView.style.zIndex = "15";
+    document.body.appendChild(squareView);
+
+    var oscillatorX0 = 0;
+    var oscillatorY0 = 0;
+    var oscillatorX1 = 0;
+    var oscillatorY1 = 0;
+
+    squareView.ontouchstart = function(e) {
+        var x0 = e.touches[0].clientX-25;
+        var y0 = e.touches[0].clientY-((sh-sw-50)/2);
+
+        oscillatorX0 = (1/(sw-50))*(x0-(sw/2)-25);
+        oscillatorY0 = -(1/(sw-50))*(y0-(sw/2)-25);
+
+        var frequency = 50+(oscillatorY0*20);
+        oscillator0.frequency.value = frequency;
+
+        if (e.touches.length < 2) return;
+        var x1 = e.touches[1].clientX-25;
+        var y1 = e.touches[1].clientY-((sh-sw-50)/2);
+
+        oscillatorX1 = (1/(sw-50))*(x1-(sw/2)-25);
+        oscillatorY1 = -(1/(sw-50))*(y1-(sw/2)-25);
+
+        var frequency = 100+(oscillatorY1*20);
+        oscillator1.frequency.value = frequency;
+    };
+
+    squareView.ontouchmove = function(e) {
+        var x0 = e.touches[0].clientX-25;
+        var y0 = e.touches[0].clientY-((sh-sw-50)/2);
+
+        oscillatorX0 = (1/(sw-50))*(x0-(sw/2)-25);
+        oscillatorY0 = -(1/(sw-50))*(y0-(sw/2)-25);
+
+        var frequency = 50+(oscillatorY0*20);
+        oscillator0.frequency.value = frequency;
+
+        if (e.touches.length < 2) return;
+        var x1 = e.touches[1].clientX-25;
+        var y1 = e.touches[1].clientY-((sh-sw-50)/2);
+
+        oscillatorX1 = (1/(sw-50))*(x1-(sw/2)-25);
+        oscillatorY1 = -(1/(sw-50))*(y1-(sw/2)-25);
+
+        var frequency = 100+(oscillatorY1*20);
+        oscillator1.frequency.value = frequency;
+    };
+
+    squareView.ontouchend = function(e) {
+        console.log(e);
+
+        if (e.changedTouches[0].identifier == 0)
+        oscillator0.frequency.value = 0;
+
+        if (e.changedTouches[0].identifier == 1)
+        oscillator1.frequency.value = 0;
     };
 
     autoFocusEnabled = false;
@@ -237,19 +338,74 @@ $(document).ready(function() {
 
     createProfileView();
 
-    motion = false;
-    gyroUpdated = function(e) {
-        engine.world.gravity.x = -(1/9.8)*e.accX;
-        engine.world.gravity.y = (1/9.8)*e.accY;
-    };
-
     resolution = 0;
 
-    //animate();
     drawImage();
+    animate();
 
     matterJs();
 });
+
+var drawAB = function(freqArray) {
+    var canvas = squareView;
+    var ctx = canvas.getContext("2d");
+
+    var offset = 0;
+    var polygon = [];
+
+    // create waveform A
+    if (freqArray) 
+    offset = (canvas.width/freqArray.length)/2;
+    if (freqArray) 
+    for (var n = 0; n < freqArray.length; n++) {
+        var obj = {
+            x: offset+(n*(canvas.width/freqArray.length)),
+            y0: (canvas.height/2)+
+            (-freqArray[n]*25),
+            y1: (canvas.height/2)+
+            (freqArray[n]*25)
+        };
+        polygon.push(obj);
+    }
+
+    // draw waveform A
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    ctx.strokeStyle = "#000";
+    ctx.lineWidth = 1;
+
+    if (freqArray) {
+        ctx.lineWidth = (canvas.width/freqArray.length)-2;
+        for (var n = 0; n < polygon.length; n++) {
+            ctx.beginPath();
+            ctx.moveTo(polygon[n].x, polygon[n].y0-1);
+            ctx.lineTo(polygon[n].x, polygon[n].y1+1);
+            ctx.stroke();
+        }
+    }
+};
+
+var resumeWave = function(freqArray) {
+    var blocks = 50;
+    var blockSize = Math.floor(freqArray.length / blocks);
+
+    var resumedArray = [];
+    var sum = 0;
+    for (var n = 0; n < blocks; n++) {
+        sum = 0;
+        for (var k = 0; k < blockSize; k++) {
+            var m = (n * blockSize) + k;
+             if ((m+1) <= freqArray.length) {
+                 sum += freqArray[m];
+             }
+        }
+
+        resumedArray.push(sum/blockSize);
+    }
+    //console.log(blockSize);
+    //console.log(resumedArray);
+
+    return resumedArray;
+};
 
 var gridSize = 10;
 
@@ -300,7 +456,8 @@ var animate = function() {
         if ((new Date().getTime() - updateTime) > 1000) {
             updateTime = new Date().getTime();
         }
-        drawImage();
+        drawAB(resumedWave);
+        //drawImage();
     }
     renderTime = new Date().getTime();
     requestAnimationFrame(animate);
@@ -642,6 +799,10 @@ var addBody = function(x, y, offset) {
     var polygon = 
     getPolygon(1, { x: x, y: y }, size);
 
+    var oscillator = createOscillator();
+    var frequency = 50+(offset*20);
+    oscillator.frequency.value = frequency;
+
     var audio = new Audio("audio/spinning-sfx.wav");
     audio.loop = true;
 
@@ -660,6 +821,8 @@ var addBody = function(x, y, offset) {
             render: {
                 fillStyle: "#fff",
                 strokeStyle: "#fff" }}),
+        frequency: frequency,
+        oscillator: oscillator,
         audio: audio
     };
 
@@ -667,7 +830,8 @@ var addBody = function(x, y, offset) {
     createTexture(1, size*2, colors[obj.no]);
 
     bodyArr.push(obj);
-    obj.audio.play();
+    obj.oscillator.start();
+    //obj.audio.play();
 
     Composite.add(engine.world, [ obj.body ]);
     bodyNo += 1;
@@ -1058,6 +1222,9 @@ function matterJs() {
                 x: bodyArr[n].body.velocity.x-vn.x,
                 y: bodyArr[n].body.velocity.y-vn.y
             });
+
+            bodyArr[n].oscillator.frequency.value = 
+            (engine.timing.timeScale * bodyArr[n].frequency);
         }
 
         if (bodyArr.length > 1)
@@ -1065,7 +1232,8 @@ function matterJs() {
             if (!bodyArr[n].visible) {
                 console.log("removed "+bodyArr[n].body.label);
                 say(colorName[bodyArr[n].no]+" eliminated");
-                bodyArr[n].audio.pause();
+                bodyArr[n].oscillator.stop();
+                //bodyArr[n].audio.pause();
                 Composite.remove(engine.world, [ bodyArr[n].body ]);
             }
         }

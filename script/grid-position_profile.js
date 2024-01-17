@@ -177,7 +177,8 @@ var createProfileView = function() {
         championshipLabelView.innerText = "";
 
         for (var n = 0; n < bodyArr.length; n++) {
-            bodyArr[n].audio.pause();
+            bodyArr[n].oscillator.stop();
+            //bodyArr[n].audio.pause();
             Composite.remove(engine.world, [ bodyArr[n].body ]);
         }
         bodyArr = [];
@@ -1226,6 +1227,10 @@ var launchItem = function(item, x, y, offset) {
     var polygon = 
     getPolygon(item.mid, { x: x, y: y }, size);
 
+    var oscillator = createOscillator();
+    var frequency = 50+(offset*20);
+    oscillator.frequency.value = frequency;
+
     var audio = new Audio("audio/spinning-sfx.wav");
     audio.loop = true;
 
@@ -1246,13 +1251,16 @@ var launchItem = function(item, x, y, offset) {
                 fillStyle: "#fff",
                 strokeStyle: "#fff"
             }}),
+        frequency: frequency,
+        oscillator: oscillator,
         audio: audio
     };
 
     obj.body.render.sprite.texture = drawItem(item, true, true);
 
     bodyArr.push(obj);
-    obj.audio.play();
+    obj.oscillator.start();
+    //obj.audio.play();
 
     Composite.add(engine.world, [ obj.body ]);
     bodyNo += 1;
