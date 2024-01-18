@@ -1250,10 +1250,20 @@ function matterJs() {
                 });
                 search[1].active = false;
 
-                currentChampionship.state = "semifinal_2nd";
-                currentChampionship.final = [
-                    { ...search[0] }
-                ];
+                if (currentChampionship.participants[search[0].no].cpu)
+                skipChampionship();
+                else  {
+                    currentChampionship.state = "semifinal_2nd";
+                    currentChampionship.final = [
+                        { ...search[0] }
+                    ];
+                }
+
+                if (currentChampionship.state == "over") {
+                championshipStartView.innerText = "Receive $0,00";
+                }
+                else 
+                championshipStartView.innerText = "Start";
 
                 championshipPositionView.src = 
                 drawChampionshipPosition();
@@ -1284,7 +1294,15 @@ function matterJs() {
                 });
                 search[1].active = false;
 
-                currentChampionship.state = "over";;
+                currentChampionship.state = "over";
+
+                if (!currentChampionship
+                .participants[search[0].no].cpu)
+                championshipStartView.innerText = 
+                "Receive $"+(100+(championshipNo*25))
+                .toFixed(2).replace(".", ",");
+                else 
+                championshipStartView.innerText = "Receive $0,00";
 
                 championshipPositionView.src = 
                 drawChampionshipPosition();

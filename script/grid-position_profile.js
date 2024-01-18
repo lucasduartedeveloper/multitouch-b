@@ -70,6 +70,27 @@ var createProfileView = function() {
     championshipView.style.zIndex = "15";
     document.body.appendChild(championshipView);
 
+    championshipCloseView = document.createElement("span");
+    championshipCloseView.style.position = "absolute";
+    championshipCloseView.style.color = "#000";
+    championshipCloseView.innerText = "close";
+    championshipCloseView.style.textAlign = "right";
+    championshipCloseView.style.fontFamily = "Khand";
+    championshipCloseView.style.fontSize = "15px";
+    championshipCloseView.style.lineHeight = "15px";
+    championshipCloseView.style.left = (sw-80)+"px";
+    championshipCloseView.style.top = (10)+"px";
+    championshipCloseView.style.width = (50)+"px";
+    championshipCloseView.style.height = (20)+"px";
+    championshipCloseView.style.border = "1px solid white";
+    //profileView.style.borderRadius = "25px";
+    championshipCloseView.style.zIndex = "25";
+    championshipView.appendChild(championshipCloseView);
+
+    championshipCloseView.onclick = function() {
+        championshipView.style.display = "none";
+    };
+
     championshipPositionView = 
     document.createElement("img");
     championshipPositionView.style.position = "absolute";
@@ -274,6 +295,7 @@ var createProfileView = function() {
                 balanceView.innerText = 
                 "$ "+profile.balance.toFixed(2).replace(".", ",");
             };
+            championshipStartView.innerText = "Start";
             createChampionship();
 
             championshipNoView.innerText = 
@@ -308,8 +330,10 @@ var createProfileView = function() {
     profileCloseView.style.position = "absolute";
     profileCloseView.style.color = "#000";
     profileCloseView.innerText = "close";
+    profileCloseView.style.textAlign = "left";
     profileCloseView.style.fontFamily = "Khand";
     profileCloseView.style.fontSize = "15px";
+    profileCloseView.style.lineHeight = "15px";
     profileCloseView.style.left = (10)+"px";
     profileCloseView.style.top = (10)+"px";
     profileCloseView.style.width = (50)+"px";
@@ -330,6 +354,7 @@ var createProfileView = function() {
     balanceView.innerText = 
     "$ "+profile.balance.toFixed(2).replace(".", ",");
     balanceView.style.fontSize = "15px";
+    balanceView.style.lineHeight = "15px";
     balanceView.style.textAlign = "right";
     balanceView.style.left = (sw-80)+"px";
     balanceView.style.top = (10)+"px";
@@ -606,6 +631,11 @@ var loadShop0 = function() {
     }
 };
 
+var shopItemPrice = [
+    [ ],
+    [ 5, 15, 25, 35, 45, 100 ]
+];
+
 var loadShop1 = function() {
     for (var n = 0; n < 5; n++) {
         var shopItemView = document.createElement("img");
@@ -624,9 +654,53 @@ var loadShop1 = function() {
         shopItemView.style.zIndex = "15";
         shop1View.appendChild(shopItemView);
 
+        shopItemPriceView = document.createElement("span");
+        shopItemPriceView.style.position = "absolute";
+        shopItemPriceView.style.color = "#fff";
+        shopItemPriceView.style.fontFamily = "Khand";
+        shopItemPriceView.innerText = 
+        shopItemPrice[1][n] == 0 ? 
+        "owned" : 
+        "$ "+shopItemPrice[1][n].toFixed(2).replace(".", ",");
+        shopItemPriceView.style.fontSize = "10px";
+        shopItemPriceView.style.lineHeight = "15px";
+        shopItemPriceView.style.textAlign = "right";
+        shopItemPriceView.style.left = ((n*80)-5)+"px";
+        shopItemPriceView.style.top = (60)+"px";
+        shopItemPriceView.style.width = (80)+"px";
+        shopItemPriceView.style.height = (20)+"px";
+        //balanceView.style.border = "1px solid white";
+        //profileView.style.borderRadius = "25px";
+        shopItemPriceView.style.zIndex = "15";
+        shop1View.appendChild(shopItemPriceView);
+
+        shopItemView.priceView = shopItemPriceView;
+
         shopItemView.onclick = function() {
-            profile.selectedMid = this.no;
-            item1View.src = drawMid(profile.selectedMid);
+            if ((shopItemPrice[1][this.no]) == 0) {
+                profile.selectedMid = this.no;
+                item1View.src = drawMid(profile.selectedMid);
+            }
+            else {
+                if (profile.balance < shopItemPrice[1][this.no])
+                swal("Insuficient funds.");
+                else {
+                    swal({ text: "Purchase for $"+
+                    (shopItemPrice[1][this.no]).toFixed(2).replace(".", ",")+
+                    "?", buttons: [ "No", "Yes"] })
+                    .then((value) => {
+                        //console.log(value);
+                        if (value) {
+                            profile.balance -= shopItemPrice[1][this.no];
+                            profile.selectedMid = this.no;
+                            item1View.src = drawMid(profile.selectedMid);
+
+                            shopItemPrice[1][this.no] = 0;
+                            this.priceView.innerText = "owned";
+                        }
+                    });
+                }
+            }
         };
     }
 };
@@ -1156,8 +1230,8 @@ var skipChampionship = function() {
       });
 
       currentChampionship.final = [
-          search_1st[0], 
-          search_2nd[0]
+          { ...search_1st[0] }, 
+          { ...search_2nd[0] }
       ];
 
        var rnd = Math.floor(Math.random()*2);
