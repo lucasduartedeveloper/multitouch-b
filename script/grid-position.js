@@ -108,8 +108,22 @@ $(document).ready(function() {
         swipeLength = (1/sw)*hyp;
     };
 
+    multiplayerMode = false;
     matterJsView.ontouchend = function(e) {
         if (squareEnabled) return;
+
+        if (multiplayerMode) {
+            var obj = {
+                x: startX, 
+                y: startY, 
+                offset: swipeLength,
+                sw: sw,
+                sh: sh,
+                profileObj: profileToObj()
+            };
+            sendProfileObj(obj);
+            return;
+        }
 
         if (currentChampionship.state != "ready")
         launchItem(profileToObj(), startX, startY, swipeLength);
@@ -125,8 +139,12 @@ $(document).ready(function() {
             var obj = JSON.parse(msg[3]);
             var scaleX = sw / obj.sw;
             var scaleY = sh / obj.sh;
-            position.x = obj.x*scaleX;
-            position.y = obj.y*scaleY;
+
+            var x = obj.x*scaleX;
+            var y = obj.y*scaleY;
+            var offset = obj.offset*((scaleX+scaleY)/2);
+
+            launchItem(obj.profileObj, x, y, offset);
         }
     };
 
@@ -1148,6 +1166,11 @@ function matterJs() {
                 engine.timing.timeScale = 
                 (1/(sw/2))*(hyp-((sw/gridSize)/1.05));
 
+                bodyArr[pairArr[0].no0].oscillator.volume.gain.value = 
+                1-engine.timing.timeScale;
+                bodyArr[pairArr[0].no1].oscillator.volume.gain.value = 
+                1-engine.timing.timeScale;
+
                 render.bounds.min.x = (c.x-(hyp*2));
                 render.bounds.max.x = (c.x+(hyp*2));
 
@@ -1155,6 +1178,11 @@ function matterJs() {
                 render.bounds.max.y = (c.y+((hyp*2)*r));
             }
             else {
+                bodyArr[pairArr[0].no0].oscillator.volume.gain.value = 
+                0.1;
+                bodyArr[pairArr[0].no1].oscillator.volume.gain.value = 
+                0.1;
+
                 engine.timing.timeScale = 1;
 
                 render.bounds.min.x = 0;
@@ -1165,6 +1193,10 @@ function matterJs() {
             }
         }
         else {
+            for (var n = 0; n < bodyArr.length; n++) {
+                bodyArr[n].oscillator.volume.gain.value = 0.1;
+            }
+
             engine.timing.timeScale = 1;
 
             render.bounds.min.x = 0;
@@ -1227,14 +1259,61 @@ function matterJs() {
             (engine.timing.timeScale * bodyArr[n].frequency);
         }
 
-        if (bodyArr.length > 1)
+        //if (bodyArr.length > 1)
         for (var n = 0; n < bodyArr.length; n++) {
             if (!bodyArr[n].visible) {
                 console.log("removed "+bodyArr[n].body.label);
                 say(colorName[bodyArr[n].no]+" eliminated");
                 bodyArr[n].oscillator.stop();
                 //bodyArr[n].audio.pause();
+
+                if (bodyArr.length == 1 && 
+                currentChampionship.state == "semifinal_2nd") {
+                    var k = 
+                    currentChampionship.semifinal_1st.findIndex((o) => {
+                        return o.no == bodyArr[0].no;
+                    });
+                    currentChampionship.semifinal_1st[k].active = false;
+
+                    currentChampionship.final[0].no = -1;
+                    currentChampionship.final[0].active = false;
+                    championshipPositionView.src = 
+                    drawChampionshipPosition();
+                }
+                else if (bodyArr.length == 1 && 
+                currentChampionship.state == "final") {
+                    var k = 
+                    currentChampionship.semifinal_2nd
+                    .findIndex((o) => {
+                        return o.no == bodyArr[0].no;
+                    });
+                    currentChampionship.semifinal_2nd[k].active = false;
+
+                    currentChampionship.final[1].no = -1;
+                    currentChampionship.final[1].active = false;
+
+                    if (currentChampionship.final[0].no == -1) {
+                        currentChampionship.state = "cancelled";
+                        championshipStartView.innerText = 
+                        "Receive $0,00";
+                    }
+                    else if (!currentChampionship.final[0].cpu) {
+                        currentChampionship.state = "over";
+                        championshipStartView.innerText = 
+                        "Receive $"+(100+(championshipNo*25))
+                        .toFixed(2).replace(".", ",");
+                    }
+                    else {
+                        currentChampionship.state = "over";
+                        championshipStartView.innerText = 
+                        "Receive $0,00";
+                    }
+                }
+
                 Composite.remove(engine.world, [ bodyArr[n].body ]);
+
+                championshipPositionView.src = 
+                drawChampionshipPosition();
             }
         }
 

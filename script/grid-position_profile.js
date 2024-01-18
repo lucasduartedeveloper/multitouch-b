@@ -692,6 +692,9 @@ var loadShop1 = function() {
                         //console.log(value);
                         if (value) {
                             profile.balance -= shopItemPrice[1][this.no];
+                            balanceView.innerText = 
+                            "$ "+profile.balance.toFixed(2).replace(".", ",");
+
                             profile.selectedMid = this.no;
                             item1View.src = drawMid(profile.selectedMid);
 
@@ -907,7 +910,8 @@ var drawChampionshipPosition = function() {
     (((canvas.height/5)*2)+((canvas.height/5)/2)),
     ((canvas.height/5)/2), ((canvas.height/5)/2));
 
-    if (currentChampionship.final.length > 0) {
+    if (currentChampionship.final.length > 0 && 
+    currentChampionship.final[0].no != -1) {
     ctx.fillStyle = "#000";
     ctx.fillRect(
     (((canvas.width/5)*1.5)-((canvas.height/5)/4)), 
@@ -915,7 +919,8 @@ var drawChampionshipPosition = function() {
     ((canvas.height/5)/2), ((canvas.height/5)/2));
     }
 
-    if (currentChampionship.final.length > 0)
+    if (currentChampionship.final.length > 0 && 
+    currentChampionship.final[0].no != -1)
     ctx.drawImage(
     drawItem(
     currentChampionship.participants[
@@ -957,7 +962,8 @@ var drawChampionshipPosition = function() {
     (((canvas.height/5)*2)+((canvas.height/5)/2)),
     ((canvas.height/5)/2), ((canvas.height/5)/2));
 
-    if (currentChampionship.final.length > 1) {
+    if (currentChampionship.final.length > 1 && 
+    currentChampionship.final[1].no != -1) {
     ctx.fillStyle = "#000";
     ctx.fillRect(
     (((canvas.width/5)*3.5)-((canvas.height/5)/4)), 
@@ -965,7 +971,8 @@ var drawChampionshipPosition = function() {
     ((canvas.height/5)/2), ((canvas.height/5)/2));
     }
 
-    if (currentChampionship.final.length > 1)
+    if (currentChampionship.final.length > 1 && 
+    currentChampionship.final[1].no != -1)
     ctx.drawImage(
     drawItem(
     currentChampionship.participants[
@@ -1242,14 +1249,35 @@ var skipChampionship = function() {
 var createChampionship = function() {
     championshipNo += 1;
 
+    var minTop = 0;
+    var maxTop = championshipNo < 2 ? 2 : 4;
+
+    var topArr = [
+       Math.floor(Math.random()*(maxTop+1)),
+       Math.floor(Math.random()*(maxTop+1)),
+       Math.floor(Math.random()*(maxTop+1))
+    ];
+
+    var minMid = 0;
+    var maxMid = championshipNo < 2 ? 2 : 4;
+
+    var midArr = [
+       Math.floor(Math.random()*(maxMid+1)),
+       Math.floor(Math.random()*(maxMid+1)),
+       Math.floor(Math.random()*(maxMid+1))
+    ];
+
+    clipArr = [ 1, 2, 3, 4 ];
+    clipArr.sort((a, b) => {  return 0.5 - Math.random(); });
+
     var obj = {
         active: false,
         stateOpen: false,
         participants: [
             { top: 0, mid: 0, clip: 0, cpu: false },
-            { top: 0, mid: 0, clip: 1, cpu: true },
-            { top: 0, mid: 2, clip: 2, cpu: true },
-            { top: 0, mid: 3, clip: 3, cpu: true }
+            { top: topArr[0], mid: midArr[0], clip: clipArr[0], cpu: true },
+            { top: topArr[1], mid: midArr[1], clip: clipArr[1], cpu: true },
+            { top: topArr[2], mid: midArr[2], clip: clipArr[2], cpu: true }
         ],
         state: "ready",
         time: 0,
