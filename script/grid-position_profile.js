@@ -269,6 +269,8 @@ var createProfileView = function() {
     };
 
     championshipStartView.onclick = function() {
+        closeExits();
+
         if (currentChampionship.state == "over") {
             var search_final = 
             currentChampionship.final.filter((o) => {
@@ -851,9 +853,7 @@ var shopItemPrice = [
 ];
 
 var loadShop1 = function() {
-    
-
-    for (var n = 0; n < 5; n++) {
+    for (var n = 0; n < 6; n++) {
         var shopItemView = document.createElement("img");
         shopItemView.style.position = "absolute";
         shopItemView.style.background = "#000";

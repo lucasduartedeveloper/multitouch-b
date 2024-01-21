@@ -359,12 +359,12 @@ $(document).ready(function() {
     accView = document.createElement("span");
     accView.style.position = "absolute";
     accView.style.color = "#5f5";
-    accView.innerText = "acc Z: 0.00";
+    accView.innerText = "acc Z: 0.00 / time scale: 1.00";
     accView.style.fontFamily = "Khand";
     accView.style.fontSize = "15px";
     accView.style.left = (10)+"px";
     accView.style.top = (sh-70)+"px";
-    accView.style.width = (100)+"px";
+    accView.style.width = (175)+"px";
     accView.style.height = (25)+"px";
     accView.style.border = "1px solid white";
     //accView.style.borderRadius = "25px";
@@ -373,7 +373,9 @@ $(document).ready(function() {
 
     motion = true;
     gyroUpdated = function(e) {
-        accView.innerText = "acc Z: "+e.accZ.toFixed(2);
+        accView.innerText = 
+       "acc Z: "+e.accZ.toFixed(2)+
+       " / time scale: "+engine.timing.timeScale.toFixed(2);
     };
 
     uiEnabled = true;
@@ -823,6 +825,55 @@ var getPolygon = function(n, pos, size) {
         });
     }
     }
+    else if (n == 5) {
+    var polygon = [];
+    var c = { 
+        x: pos.x,
+        y: pos.y
+    };
+    var p = {
+        x: c.x,
+        y: c.y-(size/2)
+    };
+    polygon.push({
+        x: c.x+(size/10),
+        y: c.y-(size/1.75)
+    });
+    polygon.push({
+        x: c.x,
+        y: c.y-(size/1.5)
+    });
+    polygon.push({
+        x: c.x-(size/10),
+        y: c.y-(size/1.75)
+    });
+    for (var n = 3; n < 48; n++) {
+        var rp = _rotate2d(c, p, n*(180/50));
+        polygon.push({
+            x: rp.x,
+            y: rp.y
+        });
+    }
+    polygon.push({
+        x: c.x-(size/10),
+        y: c.y+(size/1.75)
+    });
+    polygon.push({
+        x: c.x,
+        y: c.y+(size/1.5)
+    });
+    polygon.push({
+        x: c.x+(size/10),
+        y: c.y+(size/1.75)
+    });
+    for (var n = 3; n < 48; n++) {
+        var rp = _rotate2d(c, p, 180+(n*(180/50)));
+        polygon.push({
+            x: rp.x,
+            y: rp.y
+        });
+    }
+    }
 
     return polygon;
 };
@@ -1251,7 +1302,7 @@ function matterJs() {
                 var offsetX = (p.x - leverA.position.x);
                 var offsetY = (p.y - leverA.position.y);
 
-                openExit(offsetX, offsetY, false);
+                updateExits(offsetX, offsetY, false);
             }
 
             if (pairs[n].bodyA.label.includes("leverB") || 
@@ -1272,7 +1323,7 @@ function matterJs() {
 
                 engine.timing.timeScale = 0;
 
-                openExit(offsetX, offsetY, true);
+                updateExits(offsetX, offsetY, true);
             }
 
             if (pairs[n].bodyA.label.includes("body"))
@@ -1452,7 +1503,7 @@ function matterJs() {
                 bodyArr[pairArr[0].no0].body.position.x)/2),
                 y: bodyArr[pairArr[0].no0].body.position.y+
                 ((bodyArr[pairArr[0].no1].body.position.y-
-                bodyArr[pairArr[0].no0].body.position.y)/2),
+                bodyArr[pairArr[0].no0].body.position.y)/2)
             };
             var hyp = pairArr[0].hyp;
 
@@ -1486,18 +1537,27 @@ function matterJs() {
                 render.bounds.max.y = sh;
             }
         }
-        else {
-            for (var n = 0; n < bodyArr.length; n++) {
-                bodyArr[n].oscillator.volume.gain.value = 0.1;
-            }
+        else if (bodyArr.length == 1) {
+            var timeScale = 1;
+            if (hasMotionSensor)
+            timeScale = 1-((0.75/9.8)*
+            (gyro.accZ < 0 ? -gyro.accZ : gyro.accZ));
 
-            //engine.timing.timeScale = 1;
+            engine.timing.timeScale = timeScale;
 
-            render.bounds.min.x = 0;
-            render.bounds.max.x = sw;
+            var c = {
+                x: bodyArr[0].body.position.x,
+                y: bodyArr[0].body.position.y
+            };
 
-            render.bounds.min.y = 0;
-            render.bounds.max.y = sh;
+            var renderScale = 
+            timeScale < 1 ? 1+(1-timeScale) : timeScale;
+
+            render.bounds.min.x = c.x-((2-renderScale)*(sw/2));
+            render.bounds.max.x = c.x+((2-renderScale)*(sw/2));
+
+            render.bounds.min.y = c.y-((2-renderScale)*(sh/2));
+            render.bounds.max.y = c.y+((2-renderScale)*(sh/2));
         }
 
         for (var n = 0; n < bodyArr.length; n++) {
@@ -1827,47 +1887,103 @@ function matterJs() {
     Runner.run(runner, engine);
 }
 
-var openExit = function(offsetX, offsetY, reverse) {
+var leverA_exit = -1;
+var leverB_exit = -1;
+
+var updateExits = function(offsetX, offsetY, reverse) {
     console.log(offsetX, offsetY);
 
     if (Math.abs(offsetX) > Math.abs(offsetY)) 
         if (!reverse && offsetX < 0) {
-            if (!reverse)
+            if (!reverse) {
             leverA.render.sprite.texture = 
             createDirectionTexture(2);
-            else 
+            leverA_exit = 2;
+            closeExits(leverB_exit);
+            openExit(2);
+            }
+            else {
             leverB.render.sprite.texture = 
             createDirectionTexture(0);
+            leverB_exit = 0;
+            closeExits(leverA_exit);
+            openExit(0);
+            }
         }
         else {
-            if (!reverse)
+            if (!reverse) {
             leverA.render.sprite.texture = 
             createDirectionTexture(0);
-            else 
+            leverA_exit = 0;
+            closeExits(leverB_exit);
+            openExit(0);
+            }
+            else {
             leverB.render.sprite.texture = 
             createDirectionTexture(2);
+            leverB_exit = 2;
+            closeExits(leverA_exit);
+            openExit(2);
+            }
         }
      else
         if (!reverse && offsetY < 0) {
-            if (!reverse)
+            if (!reverse) {
             leverA.render.sprite.texture = 
             createDirectionTexture(3);
-            else 
+            leverA_exit = 3;
+            closeExits(leverB_exit);
+            openExit(3);
+            }
+            else {
             leverB.render.sprite.texture = 
             createDirectionTexture(3);
+            leverB_exit = 3;
+            closeExits(leverA_exit);
+            openExit(3);
+            }
         }
         else {
-            if (!reverse)
+            if (!reverse) {
             leverA.render.sprite.texture = 
             createDirectionTexture(1);
-            else 
+            leverA_exit = 1;
+            closeExits(leverB_exit);
+            openExit(1);
+            }
+            else {
             leverB.render.sprite.texture = 
             createDirectionTexture(1);
+            leverB_exit = 1;
+            closeExits(leverA_exit);
+            openExit(1);
+            }
         }
+}
 
-    if (Math.abs(offsetX) > Math.abs(offsetY)) 
-        if (!reverse && offsetX < 0) {
-            console.log("from left");
+var openExit = function(no) {
+    switch (no) {
+        case 0:
+             Body.setPosition(wallA, { 
+                 x: wallA.position.x,
+                 y: (sh/4)-(sw/gridSize)
+            });
+            Body.setPosition(wallA_lower, { 
+                 x: wallA_lower.position.x,
+                 y: sh-(sh/4)+(sw/gridSize)
+            });
+            break;
+        case 1:
+             Body.setPosition(ceiling, { 
+                x: (sw/4)-(sw/gridSize),
+                y: ceiling.position.y
+            });
+            Body.setPosition(ceilingB, { 
+                x: sw-(sw/4)+(sw/gridSize),
+                y: ceilingB.position.y
+            });
+            break;
+        case 2:
             Body.setPosition(wallB, { 
                 x: wallB.position.x,
                 y: (sh/4)-(sw/gridSize)
@@ -1876,41 +1992,8 @@ var openExit = function(offsetX, offsetY, reverse) {
                 x: wallB_lower.position.x,
                 y: sh-(sh/4)+(sw/gridSize)
             });
-            setTimeout(function() {
-                Body.setPosition(wallB, { 
-                     x: wallB.position.x,
-                     y: (sh/4)
-                });
-                Body.setPosition(wallB_lower, { 
-                     x: wallB_lower.position.x,
-                     y: sh-(sh/4)
-                });
-            }, 2000);
-        }
-        else {
-            console.log("from right");
-            Body.setPosition(wallA, { 
-                 x: wallA.position.x,
-                 y: (sh/4)-(sw/gridSize)
-            });
-            Body.setPosition(wallA_lower, { 
-                 x: wallA_lower.position.x,
-                 y: sh-(sh/4)+(sw/gridSize)
-            });
-            setTimeout(function() {
-                Body.setPosition(wallA, { 
-                      x: wallA.position.x,
-                      y: (sh/4)
-                });
-                Body.setPosition(wallA_lower, { 
-                      x: wallA_lower.position.x,
-                      y: sh-(sh/4)
-                });
-            }, 2000);
-        }
-    else
-        if (!reverse && offsetY < 0) {
-            console.log("from top");
+            break;
+        case 3:
             Body.setPosition(ground, { 
                 x: (sw/4)-(sw/gridSize),
                 y: ground.position.y
@@ -1919,39 +2002,52 @@ var openExit = function(offsetX, offsetY, reverse) {
                 x: sw-(sw/4)+(sw/gridSize),
                 y: groundB.position.y
             });
-            setTimeout(function() {
-                Body.setPosition(ground, { 
-                    x: (sw/4),
-                    y: ground.position.y
-                });
-                Body.setPosition(groundB, { 
-                    x: sw-(sw/4),
-                    y: groundB.position.y
-                });
-            }, 2000);
-        }
-        else {
-            console.log("from bottom");
-            Body.setPosition(ceiling, { 
-                x: (sw/4)-(sw/gridSize),
-                y: ceiling.position.y
-            });
-            Body.setPosition(ceilingB, { 
-                x: sw-(sw/4)+(sw/gridSize),
-                y: ceilingB.position.y
-            });
-            setTimeout(function() {
-                Body.setPosition(ceiling, { 
-                    x: (sw/4),
-                    y: ceiling.position.y
-                });
-                Body.setPosition(ceilingB, { 
-                    x: sw-(sw/4),
-                    y: ceilingB.position.y
-                });
-            }, 2000);
-        }
-}
+            break;
+    }
+};
+
+var closeExits = function(no=-1) {
+    if (no != 0) {
+        Body.setPosition(wallA, { 
+            x: wallA.position.x,
+            y: (sh/4)
+        });
+        Body.setPosition(wallA_lower, { 
+            x: wallA_lower.position.x,
+            y: sh-(sh/4)
+        });
+    }
+    if (no != 1) {
+        Body.setPosition(ceiling, { 
+            x: (sw/4),
+            y: ceiling.position.y
+        });
+        Body.setPosition(ceilingB, { 
+            x: sw-(sw/4),
+            y: ceilingB.position.y
+        });
+    }
+    if (no != 2) {
+        Body.setPosition(wallB, { 
+            x: wallB.position.x,
+            y: (sh/4)
+        });
+        Body.setPosition(wallB_lower, { 
+            x: wallB_lower.position.x,
+            y: sh-(sh/4)
+        });
+    }
+    if (no != 3) {
+        Body.setPosition(ground, { 
+            x: (sw/4),
+            y: ground.position.y
+        });
+        Body.setPosition(groundB, { 
+            x: sw-(sw/4),
+            y: groundB.position.y
+        });
+    }
+};
 
 Math.curve = function(value, scale) {
     var c = {
