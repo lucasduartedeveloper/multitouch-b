@@ -356,6 +356,66 @@ $(document).ready(function() {
         addBonus(x, y);
     };
 
+    accView = document.createElement("span");
+    accView.style.position = "absolute";
+    accView.style.color = "#5f5";
+    accView.innerText = "acc Z: 0.00";
+    accView.style.fontFamily = "Khand";
+    accView.style.fontSize = "15px";
+    accView.style.left = (10)+"px";
+    accView.style.top = (sh-70)+"px";
+    accView.style.width = (100)+"px";
+    accView.style.height = (25)+"px";
+    accView.style.border = "1px solid white";
+    //accView.style.borderRadius = "25px";
+    accView.style.zIndex = "15";
+    document.body.appendChild(accView);
+
+    motion = true;
+    gyroUpdated = function(e) {
+        accView.innerText = "acc Z: "+e.accZ.toFixed(2);
+    };
+
+    uiEnabled = true;
+    uiView = document.createElement("span");
+    uiView.style.position = "absolute";
+    uiView.style.fontFamily = "Khand";
+    uiView.style.fontSize = "15px";
+    uiView.style.left = ((sw/4)-((sw/gridSize)/2))+"px";
+    uiView.style.top = ((sh/4)-((sw/gridSize)/2))+"px";
+    uiView.style.width = (sw/gridSize)+"px";
+    uiView.style.height = (sw/gridSize)+"px";
+    uiView.style.border = "1px solid white";
+    //accView.style.borderRadius = "25px";
+    uiView.style.zIndex = "15";
+    document.body.appendChild(uiView);
+
+    uiView.onclick = function() {
+        uiEnabled = !uiEnabled;
+        if (uiEnabled) {
+            eruda.init();
+            uiView.style.border = "1px solid white";
+            buttonMicView.style.display = "initial";
+            buttonAutoFocusView.style.display = "initial";
+            buttonBonusView.style.display = "initial";
+            buttonSquareView.style.display = "initial";
+            profileButtonView.style.display = "initial";
+            championshipButtonView.style.display = "initial";
+            accView.style.display = "initial";
+        }
+        else {
+            eruda.destroy();
+            uiView.style.border = "initial";
+            buttonMicView.style.display = "none";
+            buttonAutoFocusView.style.display = "none";
+            buttonBonusView.style.display = "none";
+            buttonSquareView.style.display = "none";
+            profileButtonView.style.display = "none";
+            championshipButtonView.style.display = "none";
+            accView.style.display = "none";
+        }
+    };
+
     createProfileView();
 
     resolution = 0;
@@ -1089,8 +1149,7 @@ var cornerD = Bodies.rectangle(
          strokeStyle: '#2f2e40' }});
 
 var leverA = Bodies.rectangle(
-(sw/4)-((sw/gridSize)/2), (sh/4)-((sw/gridSize)/2), 
-(sw/gridSize), (sw/gridSize),
+(sw/4), (sh/4), (sw/gridSize), (sw/gridSize),
 { isStatic: true,
     label: "leverA",
     render: {
@@ -1098,8 +1157,7 @@ var leverA = Bodies.rectangle(
          strokeStyle: '#2f2e40' }});
 
 var leverB = Bodies.rectangle(
-sw-(sw/4)+((sw/gridSize)/2), sh-(sh/4)+((sw/gridSize)/2), 
-(sw/gridSize), (sw/gridSize),
+sw-(sw/4), sh-(sh/4), (sw/gridSize), (sw/gridSize),
 { isStatic: true,
     label: "leverB",
     render: {
@@ -1113,6 +1171,43 @@ var collisionFx = Bodies.circle(
     render: {
          fillStyle: "#ffffff",
          strokeStyle: "#ffffff" }});
+
+var createDirectionTexture = function(direction) {
+    var canvas = document.createElement("canvas");
+    canvas.width = (sw/gridSize);
+    canvas.height = (sw/gridSize);
+
+    var size = (sw/gridSize);
+
+    var ctx = canvas.getContext("2d");
+
+    ctx.fillStyle = backgroundColor;
+    ctx.fillRect(0, 0, size, size);
+
+    ctx.strokeStyle = "#fff";
+    ctx.lineJoin = "round";
+    ctx.lineWidth = size/10;
+
+    ctx.save();
+    ctx.translate((size/2), (size/2));
+    ctx.rotate((direction-1)*(Math.PI/2));
+    ctx.translate(-(size/2), -(size/2));
+
+    ctx.beginPath();
+    ctx.moveTo((size/2)-(size/5), (size/2.5));
+    ctx.lineTo((size/2)-(size/5), (size/2.5));
+
+    ctx.lineTo((size/2), (size/5));
+    ctx.lineTo((size/2), size-(size/5));
+    ctx.lineTo((size/2), (size/5));
+
+    ctx.lineTo((size/2)+(size/5), (size/2.5));
+    ctx.stroke();
+
+    ctx.restore();
+
+    return canvas.toDataURL();
+};
 
 function matterJs() {
     // create a renderer
@@ -1135,7 +1230,7 @@ function matterJs() {
 
     Matter.Events.on(engine, "collisionStart", function (event) {
         pairs = [ ...event.pairs ];
-        console.log(event);
+        //console.log(event);
 
         for (var n = 0; n < pairs.length; n++) {
             console.log(pairs[n].bodyA.label, pairs[n].bodyB.label);
@@ -1166,17 +1261,18 @@ function matterJs() {
                 pairs[n].bodyA : pairs[n].bodyB;
 
                 var p = {
-                     x: leverA.position.x + 
-                     ((body.position.x-leverA.position.x)/2),
-                     y: leverA.position.y + 
-                     ((body.position.y-leverA.position.y)/2)
+                     x: leverB.position.x + 
+                     ((body.position.x-leverB.position.x)/2),
+                     y: leverB.position.y + 
+                     ((body.position.y-leverB.position.y)/2)
                 };
 
-                var offsetX = (p.x - leverA.position.x);
-                var offsetY = (p.y - leverA.position.y);
+                var offsetX = (p.x - leverB.position.x);
+                var offsetY = (p.y - leverB.position.y);
+
+                engine.timing.timeScale = 0;
 
                 openExit(offsetX, offsetY, true);
-
             }
 
             if (pairs[n].bodyA.label.includes("body"))
@@ -1395,7 +1491,7 @@ function matterJs() {
                 bodyArr[n].oscillator.volume.gain.value = 0.1;
             }
 
-            engine.timing.timeScale = 1;
+            //engine.timing.timeScale = 1;
 
             render.bounds.min.x = 0;
             render.bounds.max.x = sw;
@@ -1733,6 +1829,41 @@ function matterJs() {
 
 var openExit = function(offsetX, offsetY, reverse) {
     console.log(offsetX, offsetY);
+
+    if (Math.abs(offsetX) > Math.abs(offsetY)) 
+        if (!reverse && offsetX < 0) {
+            if (!reverse)
+            leverA.render.sprite.texture = 
+            createDirectionTexture(2);
+            else 
+            leverB.render.sprite.texture = 
+            createDirectionTexture(0);
+        }
+        else {
+            if (!reverse)
+            leverA.render.sprite.texture = 
+            createDirectionTexture(0);
+            else 
+            leverB.render.sprite.texture = 
+            createDirectionTexture(2);
+        }
+     else
+        if (!reverse && offsetY < 0) {
+            if (!reverse)
+            leverA.render.sprite.texture = 
+            createDirectionTexture(3);
+            else 
+            leverB.render.sprite.texture = 
+            createDirectionTexture(3);
+        }
+        else {
+            if (!reverse)
+            leverA.render.sprite.texture = 
+            createDirectionTexture(1);
+            else 
+            leverB.render.sprite.texture = 
+            createDirectionTexture(1);
+        }
 
     if (Math.abs(offsetX) > Math.abs(offsetY)) 
         if (!reverse && offsetX < 0) {
