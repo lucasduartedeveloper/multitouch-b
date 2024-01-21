@@ -2,7 +2,8 @@ var profile = {
     balance: 0,
     selectedTop: 0,
     selectedMid: 1,
-    selectedClip: 0
+    selectedClip: 0,
+    selectedDispatcher: 1
 };
 
 var profileToObj = function() {
@@ -237,46 +238,31 @@ var createProfileView = function() {
             if (currentChampionship.state == "semifinal_1st") {
                 for (var n = 0; 
                 n < currentChampionship.semifinal_1st.length; n++) {
-                var participant = 
-                currentChampionship.participants[
-                currentChampionship.semifinal_1st[n].no];
-                if (!participant.cpu) continue;
-                var rnd = 0.5+(Math.random()*0.5);
-                var x = 10+(sw/gridSize)+
-                Math.floor(Math.random()*(sw-(sw/gridSize)-20));
-                var y = 10+(sw/gridSize)+
-                Math.floor(Math.random()*(sh-(sw/gridSize)-20));
-                launchItem(participant, x, y, rnd);
+                    var participant = 
+                    currentChampionship.participants[
+                    currentChampionship.semifinal_1st[n].no];
+                    if (!participant.cpu) continue;
+                    launchCPU(participant);
                 }
             }
             else if (currentChampionship.state == "semifinal_2nd") {
                 for (var n = 0; 
                 n < currentChampionship.semifinal_2nd.length; n++) {
-                var participant = 
-                currentChampionship.participants[
-                currentChampionship.semifinal_2nd[n].no];
-                if (!participant.cpu) continue;
-                var rnd = 0.5+(Math.random()*0.5);
-                var x = 10+(sw/gridSize)+
-                Math.floor(Math.random()*(sw-(sw/gridSize)-20));
-                var y = 10+(sw/gridSize)+
-                Math.floor(Math.random()*(sh-(sw/gridSize)-20));
-                launchItem(participant, x, y, rnd);
+                    var participant = 
+                    currentChampionship.participants[
+                    currentChampionship.semifinal_2nd[n].no];
+                    if (!participant.cpu) continue;
+                    launchCPU(participant);
                 }
             }
             else if (currentChampionship.state == "final") {
                 for (var n = 0; 
                 n < currentChampionship.final.length; n++) {
-                var participant = 
-                currentChampionship.participants[
-                currentChampionship.final[n].no];
-                if (!participant.cpu) continue;
-                var rnd = 0.5+(Math.random()*0.5);
-                var x = 10+(sw/gridSize)+
-                Math.floor(Math.random()*(sw-(sw/gridSize)-20));
-                var y = 10+(sw/gridSize)+
-                Math.floor(Math.random()*(sh-(sw/gridSize)-20));
-                launchItem(participant, x, y, rnd);
+                    var participant = 
+                    currentChampionship.participants[
+                    currentChampionship.final[n].no];
+                    if (!participant.cpu) continue;
+                    launchCPU(participant);
                 }
             }
         }, 1000);
@@ -368,6 +354,7 @@ var createProfileView = function() {
     item0View = document.createElement("img");
     item0View.style.position = "absolute";
     item0View.style.background = "#000";
+    item0View.style.objectFit = "cover";
     item0View.style.fontFamily = "Khand";
     item0View.style.fontSize = "15px";
     item0View.style.left = (10)+"px";
@@ -383,6 +370,7 @@ var createProfileView = function() {
     item1View = document.createElement("img");
     item1View.style.position = "absolute";
     item1View.style.background = "#000";
+    item1View.style.objectFit = "cover";
     item1View.style.fontFamily = "Khand";
     item1View.style.fontSize = "15px";
     item1View.style.left = (10)+"px";
@@ -398,6 +386,7 @@ var createProfileView = function() {
     item2View = document.createElement("img");
     item2View.style.position = "absolute";
     item2View.style.background = "#000";
+    item2View.style.objectFit = "cover";
     item2View.style.fontFamily = "Khand";
     item2View.style.fontSize = "15px";
     item2View.style.left = (10)+"px";
@@ -409,6 +398,22 @@ var createProfileView = function() {
     item2View.src = drawClip(profile.selectedClip);
     item2View.style.zIndex = "15";
     profileView.appendChild(item2View);
+
+    item3View = document.createElement("img");
+    item3View.style.position = "absolute";
+    item3View.style.background = "#000";
+    item3View.style.objectFit = "cover";
+    item3View.style.fontFamily = "Khand";
+    item3View.style.fontSize = "15px";
+    item3View.style.left = (10)+"px";
+    item3View.style.top = (300)+"px";
+    item3View.style.width = (80)+"px";
+    item3View.style.height = (80)+"px";
+    item3View.style.border = "1px solid #000";
+    //shopView.style.borderRadius = "25px";
+    item3View.src = drawDispatcher(profile.selectedDispatcher);
+    item3View.style.zIndex = "15";
+    //profileView.appendChild(item3View);
 
     shop0View = document.createElement("div");
     shop0View.style.position = "absolute";
@@ -457,19 +462,144 @@ var createProfileView = function() {
     //shopView.style.borderRadius = "25px";
     shop2View.style.zIndex = "15";
     profileView.appendChild(shop2View);
+
+    shop3View = document.createElement("div");
+    shop3View.style.position = "absolute";
+    shop3View.style.background = "#fff";
+    shop3View.style.fontFamily = "Khand";
+    shop3View.style.fontSize = "15px";    
+    shop3View.style.left = (100)+"px";
+    shop3View.style.top = (300)+"px";
+    shop3View.style.width = (sw-130)+"px";
+    shop3View.style.height = (80)+"px";
+    shop3View.style.border = "1px solid #000";
+    shop3View.style.overflowX = "auto";
+    //shopView.style.borderRadius = "25px";
+    shop3View.style.zIndex = "15";
+    //profileView.appendChild(shop3View);
+
+    //loadShop3();
+
+    cpuLaunchCount = 0;
+
+    cpuLaunchSettings0 = {
+        active: false,
+        startX: (sw/2),
+        startY: (sh/2),
+        moveX: (sw/2),
+        moveY: (sh/2),
+        clip: 0,
+        dispatcher: 0
+    };
+
+    cpuLaunchSettings1 = {
+        active: false,
+        startX: (sw/2),
+        startY: (sh/2),
+        moveX: (sw/2),
+        moveY: (sh/2),
+        clip: 0,
+        dispatcher: 0
+    };
+
+    loadImages();
+};
+
+var loadProfile = function() {
+    
+};
+
+var img_list = [
+    "img/grid-position/clip-image/tile000.png",
+    "img/grid-position/clip-image/tile001.png",
+    "img/grid-position/clip-image/tile002.png",
+    "img/grid-position/clip-image/tile003.png",
+    "img/grid-position/clip-image/tile005.png",
+];
+
+var imagesLoaded = false;
+var loadImages = function(callback) {
+    var count = 0;
+    for (var n = 0; n < img_list.length; n++) {
+        var img = document.createElement("img");
+        img.n = n;
+        img.onload = function() {
+            count += 1;
+            console.log("loading ("+count+"/"+img_list.length+")");
+            img_list[this.n] = this;
+            if (count == img_list.length) {
+                imagesLoaded = true;
+                callback();
+            }
+        };
+        var rnd = Math.random();
+        img.src = img_list[n].includes("img") ? 
+        img_list[n]+"?f="+rnd : 
+        img_list[n];
+    }
+};
+
+var launchCPU = function(obj) {
+    var settings = cpuLaunchCount == 0 ? 
+    cpuLaunchSettings0 : cpuLaunchSettings1;
+
+    var c = {
+        x: (sw/2),
+        y: (sh/2)
+    };
+    var p0 = {
+        x: c.x,
+        y: c.y-Math.floor(Math.random()*(sw/3))
+        +Math.floor(Math.random()*(sw/3))
+    };
+    var p1 = {
+        x: c.x,
+        y: p.y-Math.floor(Math.random()*(sw/3))+
+        Math.floor(Math.random()*(sw/3))
+    };
+    var a0 = Math.floor(Math.random()*360);
+    var a1 = a0+(-7.5+Math.floor(Math.random()*15));
+    var rp0 = _rotate2d(c, p0, a0);
+    var rp1 = _rotate2d(c, p1, a1);
+
+    settings.startX = rp0.x;
+    settings.startY = rp0.y;
+
+    settings.moveX = rp1.x;
+    settings.moveY = rp1.y;
+
+    settings.clip = obj.clip;
+    settings.dispatcher = 
+    profile.selectedDispatcher;
+
+    cpuLaunchCount += 1;
+    settings.active = true;
+
+    var rnd = 0.5+(Math.random()*0.5);
+
+    setTimeout(function() {
+        cpuLaunchCount -= 1;
+        settings.active = false;
+        launchItem(obj, 
+            settings.startX, 
+            settings.startY, 
+            settings.moveX, 
+            settings.moveY, 
+            rnd);
+    }, 1500);
 };
 
 var drawTop = function(no, dataURL=true) {
     var canvas = document.createElement("canvas");
-    canvas.width = 80;
-    canvas.height = 80;
+    canvas.width = 160;
+    canvas.height = 160;
 
-    var size = 80;
+    var size = 160;
 
     var ctx = canvas.getContext("2d");
 
     ctx.beginPath();
-    ctx.rect(0, 0, 80, 80);
+    ctx.rect(0, 0, size, size);
     ctx.arc((size/2), (size/2), (size/8), 0, (Math.PI*2), true);
     ctx.clip();
 
@@ -557,10 +687,10 @@ var drawTop = function(no, dataURL=true) {
 
 var drawMid = function(no, dataURL=true) {
     var canvas = document.createElement("canvas");
-    canvas.width = 80;
-    canvas.height = 80;
+    canvas.width = 160;
+    canvas.height = 160;
 
-    var size = 80;
+    var size = 160;
 
     var ctx = canvas.getContext("2d");
 
@@ -568,7 +698,7 @@ var drawMid = function(no, dataURL=true) {
     getPolygon(no, { x: (size/2), y: (size/2) }, (size/2));
 
     ctx.beginPath();
-    ctx.rect(0, 0, 80, 80);
+    ctx.rect(0, 0, size, size);
     ctx.arc((size/2), (size/2), (size/8), 0, (Math.PI*2), true);
     ctx.clip();
 
@@ -585,10 +715,10 @@ var drawMid = function(no, dataURL=true) {
 
 var drawClip = function(no, dataURL=true) {
     var canvas = document.createElement("canvas");
-    canvas.width = 80;
-    canvas.height = 80;
+    canvas.width = 160;
+    canvas.height = 160;
 
-    var size = 80;
+    var size = 160;
 
     var ctx = canvas.getContext("2d");
 
@@ -603,6 +733,89 @@ var drawClip = function(no, dataURL=true) {
     ctx.arc((size/2), (size/2), (size/10), 0, (Math.PI*2));
     ctx.fill();
 
+    ctx.fillStyle = "#000";
+    ctx.beginPath();
+    ctx.arc((size/2), (size/2), (size/11), 0, (Math.PI*2));
+
+    /*
+    ctx.fill();
+    ctx.clip();
+
+    if (imagesLoaded)
+    ctx.drawImage(img_list[no], 
+    (size/2)-(size/11), (size/2)-(size/11),
+    (size/11)*2, (size/11)*2);*/
+
+    return !dataURL ? canvas : canvas.toDataURL();
+};
+
+var getDispatcherPath = function(n, pos, size) {
+    var polygon = [];
+
+    if (n == 0) {
+        polygon.push({ x: pos.x, y: pos.y });
+    }
+    else if (n == 1) {
+        polygon.push({ x: pos.x+(size/4), y: pos.y });
+        polygon.push({ x: pos.x-(size/4), y: pos.y });
+    }
+    else if (n == 2) {
+        polygon.push({ x: pos.x+(size/4), y: pos.y });
+        polygon.push({ x: pos.x-(size/4), y: pos.y });
+        polygon.push({ x: pos.x-(size/4), y: pos.y+(size/4) });
+    }
+    else if (n == 3) {
+        polygon.push({ x: pos.x+(size/4), y: pos.y });
+        polygon.push({ x: pos.x-(size/4), y: pos.y });
+        polygon.push({ x: pos.x-(size/4), y: pos.y+(size/4) });
+        polygon.push({ x: pos.x, y: pos.y+(size/4) });
+    }
+    else if (n == 4) {
+        polygon.push({ x: pos.x+(size/4), y: pos.y });
+        polygon.push({ x: pos.x-(size/4), y: pos.y });
+        polygon.push({ x: pos.x-(size/4), y: pos.y+(size/4) });
+        polygon.push({ x: pos.x-(size/4)-(size/8), 
+        y: pos.y+(size/8) });
+    }
+
+    return polygon;
+};
+
+var drawDispatcher = function(no, dataURL=true, a) {
+    var canvas = document.createElement("canvas");
+    canvas.width = 80;
+    canvas.height = 80;
+
+    var size = 80;
+
+    var ctx = canvas.getContext("2d");
+
+    var polygon = 
+    getDispatcherPath(no, { x: (size/2), y: (size/2) }, size);
+    //console.log(polygon);
+
+    ctx.save();
+    ctx.translate((size/2), (size/2));
+    ctx.rotate(a);
+    ctx.translate(-(size/2), -(size/2));
+
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#fff";
+    ctx.beginPath();
+    ctx.moveTo(polygon[0].x, polygon[0].y);
+    for (var n = 1; n < polygon.length; n++) {
+        ctx.lineTo(polygon[n].x, polygon[n].y);
+    }
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(polygon[polygon.length-1].x, 
+    polygon[polygon.length-1].y, 
+    (size/20), 0, (Math.PI*2));
+    ctx.stroke();
+
+    ctx.restore();
+
     return !dataURL ? canvas : canvas.toDataURL();
 };
 
@@ -611,6 +824,7 @@ var loadShop0 = function() {
         var shopItemView = document.createElement("img");
         shopItemView.style.position = "absolute";
         shopItemView.style.background = "#000";
+        shopItemView.style.objectFit = "cover";
         shopItemView.style.fontFamily = "Khand";
         shopItemView.style.fontSize = "15px";
         shopItemView.style.left = (n*80)+"px";
@@ -637,10 +851,13 @@ var shopItemPrice = [
 ];
 
 var loadShop1 = function() {
+    
+
     for (var n = 0; n < 5; n++) {
         var shopItemView = document.createElement("img");
         shopItemView.style.position = "absolute";
         shopItemView.style.background = "#000";
+        shopItemView.style.objectFit = "cover";
         shopItemView.style.fontFamily = "Khand";
         shopItemView.style.fontSize = "15px";
         shopItemView.style.left = (n*80)+"px";
@@ -704,6 +921,33 @@ var loadShop1 = function() {
                     });
                 }
             }
+        };
+    }
+};
+
+var loadShop3 = function() {
+    for (var n = 0; n < 5; n++) {
+        var shopItemView = document.createElement("img");
+        shopItemView.style.position = "absolute";
+        shopItemView.style.background = "#000";
+        shopItemView.style.objectFit = "cover";
+        shopItemView.style.fontFamily = "Khand";
+        shopItemView.style.fontSize = "15px";
+        shopItemView.style.left = (n*80)+"px";
+        shopItemView.style.top = (0)+"px";
+        shopItemView.style.width = (80)+"px";
+        shopItemView.style.height = (80)+"px";
+        shopItemView.style.border = "1px solid #fff";
+        //shopView.style.borderRadius = "25px";
+        shopItemView.no = n;
+        shopItemView.src = drawDispatcher(n);
+        shopItemView.style.zIndex = "15";
+        shop3View.appendChild(shopItemView);
+
+        shopItemView.onclick = function() {
+            profile.selectedDispatcher = this.no;
+            item3View.src = 
+            drawDispatcher(profile.selectedDispatcher);
         };
     }
 };
@@ -1172,10 +1416,10 @@ var drawChampionshipPosition = function() {
 
 var drawItem = function(obj, toDataURL=true, toSprite=false) {
     var canvas = document.createElement("canvas");
-    canvas.width = toSprite ? (sw/gridSize)*2 : 80;
-    canvas.height = toSprite ? (sw/gridSize)*2 : 80;
+    canvas.width = toSprite ? (sw/gridSize)*4 : 80;
+    canvas.height = toSprite ? (sw/gridSize)*4 : 80;
 
-    var size = toSprite ? (sw/gridSize)*2 : 80;
+    var size = toSprite ? (sw/gridSize)*4 : 80;
 
     var ctx = canvas.getContext("2d");
 
@@ -1313,7 +1557,7 @@ var getMidMass = function(no) {
     return Math.abs(total);
 };
 
-var launchItem = function(item, x, y, offset) {
+var launchItem = function(item, x, y, mx, my, offset) {
     if (!currentChampionship.stateOpen || 
     bodyArr.length > 1) return;
 
@@ -1326,8 +1570,24 @@ var launchItem = function(item, x, y, offset) {
     var min = (bodyArr.length*5);
     var max = ((bodyArr.length+1)*5);
 
+    var co = moveX-startX;
+    var ca = moveY-startY;
+    var a = _angle2d(co, ca)-(Math.PI);
+
+    var dispatcher = 
+    getDispatcherPath(
+    profile.selectedDispatcher, { x: x, y: y }, (size*2));
+    /*console.log(
+        x, y, 
+        dispatcher[dispatcher.length-1].x, 
+        dispatcher[dispatcher.length-1].y
+    );*/
+
     var polygon = 
-    getPolygon(item.mid, { x: x, y: y }, size);
+    getPolygon(item.mid, { 
+        x: dispatcher[dispatcher.length-1].x, 
+        y: dispatcher[dispatcher.length-1].y
+    }, size);
 
     var oscillator = createOscillator();
     var frequency = 50+(offset*20);
@@ -1346,7 +1606,9 @@ var launchItem = function(item, x, y, offset) {
         min: min,
         max: max,
         frequencyLabel: [ ((1/baseArea)*area).toFixed(1), "Hz" ],
-        body: Bodies.fromVertices(x, y, polygon, {
+        body: Bodies.fromVertices(
+            dispatcher[dispatcher.length-1].x, 
+            dispatcher[dispatcher.length-1].y, polygon, {
             label: "body"+bodyNo,
             mass: getMidMass(item.mid),
             render: {
@@ -1358,9 +1620,23 @@ var launchItem = function(item, x, y, offset) {
         audio: audio
     };
 
-    obj.body.render.sprite.texture = drawItem(item, true, true);
+    var v = {
+        x: x-mx,
+        y: y-my
+    }
+    var vn = Math.normalize(v, offset);
 
-    bodyArr.push(obj);
+    /*
+    Body.setVelocity(obj.body, { 
+        x: vn.x*(sw/gridSize),
+        y: vn.y*(sw/gridSize)
+    });*/
+
+    obj.body.render.sprite.texture = drawItem(item, true, true);
+    obj.body.render.sprite.xScale = 0.5;
+    obj.body.render.sprite.yScale = 0.5;
+
+    bodyArr.push(obj); 
     obj.oscillator.start();
     //obj.audio.play();
 

@@ -110,6 +110,7 @@ $(document).ready(function() {
 
     multiplayerMode = false;
     matterJsView.ontouchend = function(e) {
+        ontouch = false;
         if (squareEnabled) return;
 
         if (multiplayerMode) {
@@ -126,9 +127,10 @@ $(document).ready(function() {
         }
 
         if (currentChampionship.state != "ready")
-        launchItem(profileToObj(), startX, startY, swipeLength);
+        launchItem(profileToObj(), 
+        startX, startY, moveX, moveY, swipeLength);
         else
-        addBody(startX, startY, swipeLength);
+        addBody(startX, startY, moveX, moveY, swipeLength);
     };
 
     ws.onmessage = function(e) {
@@ -487,10 +489,10 @@ var offsetNo = 0;
 
 var offsetAngle = -(Math.PI/180);
 
-var drawImage = function(alignmentOverlay=true) {
+var drawImage = function(angle=0) {
     var ctx = pictureView.getContext("2d");
     ctx.imageSmoothingEnabled = false;
-    ctx.clearRect(0, 0, sw, sw);
+    ctx.clearRect(0, 0, sw, sh);
 
     var resolutionCanvas = document.createElement("canvas");
     resolutionCanvas.width = 
@@ -501,7 +503,10 @@ var drawImage = function(alignmentOverlay=true) {
     var resolutionCtx = resolutionCanvas.getContext("2d");
     resolutionCtx.imageSmoothingEnabled = false;
 
-    resolutionCtx.restore();
+    ctx.save();
+    ctx.translate((sw/2), (sh/2));
+    ctx.rotate(angle);
+    ctx.translate(-(sw/2), -(sh/2));
 
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, sw, sh);
@@ -523,18 +528,7 @@ var drawImage = function(alignmentOverlay=true) {
         ctx.stroke();
     }
 
-    /*
-    ctx.fillStyle = "#fff";
-    ctx.beginPath();
-    ctx.arc(position0.x, position0.y, ((sw/gridSize)/2), 
-    0, (Math.PI*2));
-    ctx.fill();
-
-    ctx.fillStyle = "#fff";
-    ctx.beginPath();
-    ctx.arc(position1.x, position1.y, ((sw/gridSize)/4), 
-    0, (Math.PI*2));
-    ctx.fill();*/
+    ctx.restore();
 
     ctx.drawImage(resolutionCanvas, 0, 0, sw, sw);
 };
@@ -798,13 +792,21 @@ var bodyNo = 0;
 var bodyArr = [];
 
 var colors = [ "#77f", "#f77",  "#3f3", "#f80", "#ff5" ];
+
+/*var colorName = [ 
+    "Dragoon", 
+    "Dranzer", 
+    "Draciel", 
+    "Driger", 
+    "Galeon" 
+];*/
 var colorName = [ "blue", "red", "green", "orange", "yellow" ];
 
 var victoryRequirementsMet = false;
 var bodyNo = 0;
 
 // create two boxes and a ground
-var addBody = function(x, y, offset) {
+var addBody = function(x, y, mx, my, offset) {
     var baseArea = Math.PI*Math.pow(((sw/gridSize)/2), 2);
 
     var polygonArr = [ 1, 0, 0 ];
@@ -814,8 +816,21 @@ var addBody = function(x, y, offset) {
     var min = (bodyArr.length*5);
     var max = ((bodyArr.length+1)*5);
 
+    var dispatcher = 
+    getDispatcherPath(
+    profile.selectedDispatcher, { x: x, y: y }, (size*2));
+    /*
+    console.log(
+        x, y, 
+        dispatcher[dispatcher.length-1].x, 
+        dispatcher[dispatcher.length-1].y
+    );*/
+
     var polygon = 
-    getPolygon(1, { x: x, y: y }, size);
+    getPolygon(1, { 
+        x: dispatcher[dispatcher.length-1].x, 
+        y: dispatcher[dispatcher.length-1].y
+    }, size);
 
     var oscillator = createOscillator();
     var frequency = 50+(offset*20);
@@ -834,7 +849,9 @@ var addBody = function(x, y, offset) {
         min: min,
         max: max,
         frequencyLabel: [ ((1/baseArea)*area).toFixed(1), "Hz" ],
-        body: Bodies.fromVertices(x, y, polygon, {
+        body: Bodies.fromVertices(
+            dispatcher[dispatcher.length-1].x, 
+            dispatcher[dispatcher.length-1].y, polygon, {
             label: "body"+bodyNo,
             render: {
                 fillStyle: "#fff",
@@ -843,6 +860,18 @@ var addBody = function(x, y, offset) {
         oscillator: oscillator,
         audio: audio
     };
+
+    var v = {
+        x: x-mx,
+        y: y-my
+    }
+    var vn = Math.normalize(v, offset);
+
+    /*
+    Body.setVelocity(obj.body, { 
+        x: vn.x*(sw/gridSize),
+        y: vn.y*(sw/gridSize)
+    });*/
 
     obj.body.render.sprite.texture = 
     createTexture(1, size*2, colors[obj.no]);
@@ -872,6 +901,36 @@ var addBonus = function(x, y) {
     Composite.add(engine.world, [ body ]);
 };
 
+var grid_angle = 0;
+var rotateGrid = function() {
+    if (bodyArr.length == 0) return;
+
+    var co = bodyArr[0].body.position.x-(sw/2);
+    var ca = bodyArr[0].body.position.y-(sh/2);
+    grid_angle = _angle2d(co, ca)-(Math.PI/2);
+
+    drawImage(grid_angle);
+};
+
+Matter.Render.startViewTransform = function(render) {
+    var boundsWidth = 
+    render.bounds.max.x - render.bounds.min.x,
+        boundsHeight = render.bounds.max.y - render.bounds.min.y,
+        boundsScaleX = boundsWidth / render.options.width,
+        boundsScaleY = boundsHeight / render.options.height;
+
+    // add lines:
+    var w2 = render.canvas.width / 2;
+    var h2 = render.canvas.height / 2;
+    render.context.translate(w2, h2);
+    render.context.rotate(grid_angle);
+    render.context.translate(-w2, -h2);
+    // /add lines.
+
+    render.context.scale(1 / boundsScaleX, 1 / boundsScaleY);
+    render.context.translate(-render.bounds.min.x, -render.bounds.min.y);
+};
+
 var getNextColor = function() {
     if (bodyArr.length == 0) return 0;
 
@@ -894,8 +953,8 @@ var getBody = function(label) {
 };
 
 var ceiling = Bodies.rectangle(
-sw/4-((sw/gridSize)/2), -140, 
-(sw/2)-(sw/gridSize), 300,
+(sw/4), -140, 
+(sw/2), 300,
 { isStatic: true,
     label: "ceiling",
     render: {
@@ -903,8 +962,8 @@ sw/4-((sw/gridSize)/2), -140,
          strokeStyle: '#2f2e40' }});
 
 var ceilingB = Bodies.rectangle(
-sw-(sw/4-((sw/gridSize)/2)), -140, 
-(sw/2)-(sw/gridSize), 300,
+(sw-(sw/4)), -140, 
+(sw/2), 300,
 { isStatic: true,
     label: "ceiling",
     render: {
@@ -912,8 +971,8 @@ sw-(sw/4-((sw/gridSize)/2)), -140,
          strokeStyle: '#2f2e40' }});
 
 var wallA = Bodies.rectangle(
--140, (sh/4)-((sw/gridSize)/2)-(sw/gridSize), 300, 
-((sh/2)-(sw/gridSize)-((sw/gridSize)*2)),
+-140, (sh/4), 300, 
+((sh/2)),
 //-140, (sh/4)-((sw/gridSize)/2), 300, ((sh/2)-(sw/gridSize)),
 { isStatic: true,
     label: "wallA",
@@ -922,7 +981,8 @@ var wallA = Bodies.rectangle(
          strokeStyle: '#2f2e40' }});
 
 var wallA_lower = Bodies.rectangle(
--140, sh-((sh/4)-((sw/gridSize)/2)+(sw/gridSize)), 300, ((sh/2)-(sw/gridSize)+((sw/gridSize)*2)),
+-140, sh-((sh/4)), 300, 
+((sh/2)),
 //-140, sh-((sh/4)-((sw/gridSize)/2)), 300, ((sh/2)-(sw/gridSize)),
 { isStatic: true,
     label: "wallA",
@@ -931,7 +991,7 @@ var wallA_lower = Bodies.rectangle(
          strokeStyle: '#2f2e40' }});
 
 var wallB = Bodies.rectangle(
-sw+140, (sh/4)-((sw/gridSize)/2), 300, ((sh/2)-(sw/gridSize)),
+sw+140, (sh/4), 300, ((sh/2)),
 { isStatic: true,
     label: "wallB",
     render: {
@@ -939,7 +999,7 @@ sw+140, (sh/4)-((sw/gridSize)/2), 300, ((sh/2)-(sw/gridSize)),
          strokeStyle: '#2f2e40' }});
 
 var wallB_lower = Bodies.rectangle(
-sw+140, sh-((sh/4)-((sw/gridSize)/2)), 300, ((sh/2)-(sw/gridSize)),
+sw+140, sh-((sh/4)), 300, ((sh/2)),
 { isStatic: true,
     label: "wallA",
     render: {
@@ -947,8 +1007,8 @@ sw+140, sh-((sh/4)-((sw/gridSize)/2)), 300, ((sh/2)-(sw/gridSize)),
          strokeStyle: '#2f2e40' }});
 
 var ground = Bodies.rectangle(
-sw/4-((sw/gridSize)/2), sh+140, 
-(sw/2)-(sw/gridSize), 300,
+(sw/4), sh+140, 
+(sw/2), 300,
 { isStatic: true,
     label: "ground",
     render: {
@@ -956,8 +1016,8 @@ sw/4-((sw/gridSize)/2), sh+140,
          strokeStyle: '#2f2e40' }});
 
 var groundB = Bodies.rectangle(
-sw-(sw/4-((sw/gridSize)/2)), sh+140, 
-(sw/2)-(sw/gridSize), 300,
+(sw-(sw/4)), sh+140, 
+(sw/2), 300,
 { isStatic: true,
     label: "ground",
     render: {
@@ -1028,6 +1088,32 @@ var cornerD = Bodies.rectangle(
          fillStyle: '#2f2e40',
          strokeStyle: '#2f2e40' }});
 
+var leverA = Bodies.rectangle(
+(sw/4)-((sw/gridSize)/2), (sh/4)-((sw/gridSize)/2), 
+(sw/gridSize), (sw/gridSize),
+{ isStatic: true,
+    label: "leverA",
+    render: {
+         fillStyle: '#2f2e40',
+         strokeStyle: '#2f2e40' }});
+
+var leverB = Bodies.rectangle(
+sw-(sw/4)+((sw/gridSize)/2), sh-(sh/4)+((sw/gridSize)/2), 
+(sw/gridSize), (sw/gridSize),
+{ isStatic: true,
+    label: "leverB",
+    render: {
+         fillStyle: '#2f2e40',
+         strokeStyle: '#2f2e40' }});
+
+var collisionFx = Bodies.circle(
+(sw/2), (sh/2), ((sw/gridSize)/4),
+{ isSensor: true,
+    label: "collisionFx",
+    render: {
+         fillStyle: "#ffffff",
+         strokeStyle: "#ffffff" }});
+
 function matterJs() {
     // create a renderer
     render = Render.create({
@@ -1049,10 +1135,49 @@ function matterJs() {
 
     Matter.Events.on(engine, "collisionStart", function (event) {
         pairs = [ ...event.pairs ];
-        //console.log(event);
+        console.log(event);
 
         for (var n = 0; n < pairs.length; n++) {
             console.log(pairs[n].bodyA.label, pairs[n].bodyB.label);
+
+            if (pairs[n].bodyA.label.includes("leverA") || 
+                pairs[n].bodyB.label.includes("leverA")) {
+
+                var body = pairs[n].bodyA.label.includes("body") ? 
+                pairs[n].bodyA : pairs[n].bodyB;
+
+                var p = {
+                     x: leverA.position.x + 
+                     ((body.position.x-leverA.position.x)/2),
+                     y: leverA.position.y + 
+                     ((body.position.y-leverA.position.y)/2)
+                };
+
+                var offsetX = (p.x - leverA.position.x);
+                var offsetY = (p.y - leverA.position.y);
+
+                openExit(offsetX, offsetY, false);
+            }
+
+            if (pairs[n].bodyA.label.includes("leverB") || 
+                pairs[n].bodyB.label.includes("leverB")) {
+
+                var body = pairs[n].bodyA.label.includes("body") ? 
+                pairs[n].bodyA : pairs[n].bodyB;
+
+                var p = {
+                     x: leverA.position.x + 
+                     ((body.position.x-leverA.position.x)/2),
+                     y: leverA.position.y + 
+                     ((body.position.y-leverA.position.y)/2)
+                };
+
+                var offsetX = (p.x - leverA.position.x);
+                var offsetY = (p.y - leverA.position.y);
+
+                openExit(offsetX, offsetY, true);
+
+            }
 
             if (pairs[n].bodyA.label.includes("body"))
             sfxPool.play("audio/collision-sfx.wav");
@@ -1103,7 +1228,7 @@ function matterJs() {
 
             if (pairs[n].bodyA.label.includes("body")) {
                 getBody(pairs[n].bodyA.label).direction = 
-                Math.floor(Math.random()*360);
+                Math.floor(Math.random()*360); 
             }
             if (pairs[n].bodyB.label.includes("body")) {
                 getBody(pairs[n].bodyB.label).direction = 
@@ -1113,6 +1238,79 @@ function matterJs() {
     });
 
     Matter.Events.on(engine, "beforeUpdate", function (event) {
+        //rotateGrid();
+
+        var ctx  = matterJsView.getContext("2d");
+        if (false && ontouch) {
+            var co = moveX-startX;
+            var ca = moveY-startY;
+            var a = _angle2d(co, ca)-(Math.PI);
+
+            ctx.drawImage(
+            drawDispatcher(profile.selectedDispatcher, false, a), 
+            startX-(sw/gridSize), startY-(sw/gridSize),
+            (sw/gridSize)*2, (sw/gridSize)*2);
+
+            ctx.save();
+            ctx.strokeStyle = colors[getNextColor()];
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(moveX, moveY);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        if (false && cpuLaunchSettings0.active) {
+            ctx.drawImage(
+            drawDispatcher(
+            cpuLaunchSettings0.dispatcher, false), 
+            cpuLaunchSettings0.startX-(sw/gridSize), 
+            cpuLaunchSettings0.startY-(sw/gridSize),
+            (sw/gridSize)*2, (sw/gridSize)*2);
+
+            ctx.save();
+            ctx.strokeStyle = colors[cpuLaunchSettings0.clip];
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(
+            cpuLaunchSettings0.startX, 
+            cpuLaunchSettings0.startY);
+            ctx.lineTo(
+            cpuLaunchSettings0.moveX, 
+            cpuLaunchSettings0.moveY);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        if (false && cpuLaunchSettings1.active) {
+            ctx.drawImage(
+            drawDispatcher(
+            cpuLaunchSettings1.dispatcher, false), 
+            cpuLaunchSettings1.startX-(sw/gridSize), 
+            cpuLaunchSettings1.startY-(sw/gridSize),
+            (sw/gridSize)*2, (sw/gridSize)*2);
+
+            ctx.save();
+            ctx.strokeStyle = colors[cpuLaunchSettings1.clip];
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(
+            cpuLaunchSettings1.startX, 
+            cpuLaunchSettings1.startY);
+            ctx.lineTo(
+            cpuLaunchSettings1.moveX, 
+            cpuLaunchSettings1.moveY);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
         var pairArr = [];
 
         if (bodyArr.length > 1) {
@@ -1357,6 +1555,8 @@ function matterJs() {
                 });
                 search[1].active = false;
 
+                console.log(search);
+
                 currentChampionship.state = "final";
                 currentChampionship.final.push({ ...search[0] });
 
@@ -1501,10 +1701,11 @@ function matterJs() {
     //Composite.add(engine.world, [ body0, body1 ]);
 
     Composite.add(engine.world, 
-    [ceiling, wallA, wallB, ground, 
+    [ ceiling, wallA, wallB, ground, 
     ceilingB, wallA_lower, wallB_lower, groundB,
     //exitA, exitB, exitC, exitD,
-    cornerA, cornerB, cornerC, cornerD]);
+    cornerA, cornerB, cornerC, cornerD,
+    leverA, leverB ]);
 
     var mouse = Matter.Mouse.create(render.canvas);
     var mouseConstraint = 
@@ -1528,6 +1729,97 @@ function matterJs() {
 
     // run the engine
     Runner.run(runner, engine);
+}
+
+var openExit = function(offsetX, offsetY, reverse) {
+    console.log(offsetX, offsetY);
+
+    if (Math.abs(offsetX) > Math.abs(offsetY)) 
+        if (!reverse && offsetX < 0) {
+            console.log("from left");
+            Body.setPosition(wallB, { 
+                x: wallB.position.x,
+                y: (sh/4)-(sw/gridSize)
+            });
+            Body.setPosition(wallB_lower, { 
+                x: wallB_lower.position.x,
+                y: sh-(sh/4)+(sw/gridSize)
+            });
+            setTimeout(function() {
+                Body.setPosition(wallB, { 
+                     x: wallB.position.x,
+                     y: (sh/4)
+                });
+                Body.setPosition(wallB_lower, { 
+                     x: wallB_lower.position.x,
+                     y: sh-(sh/4)
+                });
+            }, 2000);
+        }
+        else {
+            console.log("from right");
+            Body.setPosition(wallA, { 
+                 x: wallA.position.x,
+                 y: (sh/4)-(sw/gridSize)
+            });
+            Body.setPosition(wallA_lower, { 
+                 x: wallA_lower.position.x,
+                 y: sh-(sh/4)+(sw/gridSize)
+            });
+            setTimeout(function() {
+                Body.setPosition(wallA, { 
+                      x: wallA.position.x,
+                      y: (sh/4)
+                });
+                Body.setPosition(wallA_lower, { 
+                      x: wallA_lower.position.x,
+                      y: sh-(sh/4)
+                });
+            }, 2000);
+        }
+    else
+        if (!reverse && offsetY < 0) {
+            console.log("from top");
+            Body.setPosition(ground, { 
+                x: (sw/4)-(sw/gridSize),
+                y: ground.position.y
+            });
+            Body.setPosition(groundB, { 
+                x: sw-(sw/4)+(sw/gridSize),
+                y: groundB.position.y
+            });
+            setTimeout(function() {
+                Body.setPosition(ground, { 
+                    x: (sw/4),
+                    y: ground.position.y
+                });
+                Body.setPosition(groundB, { 
+                    x: sw-(sw/4),
+                    y: groundB.position.y
+                });
+            }, 2000);
+        }
+        else {
+            console.log("from bottom");
+            Body.setPosition(ceiling, { 
+                x: (sw/4)-(sw/gridSize),
+                y: ceiling.position.y
+            });
+            Body.setPosition(ceilingB, { 
+                x: sw-(sw/4)+(sw/gridSize),
+                y: ceilingB.position.y
+            });
+            setTimeout(function() {
+                Body.setPosition(ceiling, { 
+                    x: (sw/4),
+                    y: ceiling.position.y
+                });
+                Body.setPosition(ceilingB, { 
+                    x: sw-(sw/4),
+                    y: ceilingB.position.y
+                });
+            }, 2000);
+        }
 }
 
 Math.curve = function(value, scale) {
