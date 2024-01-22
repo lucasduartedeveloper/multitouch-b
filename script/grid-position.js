@@ -374,7 +374,10 @@ $(document).ready(function() {
     accView.style.zIndex = "15";
     document.body.appendChild(accView);
 
-    motion = true;
+    accView.onclick = function() {
+         motion = !motion;
+    };
+
     gyroUpdated = function(e) {
         accView.innerText = 
        "acc Z: "+e.accZ.toFixed(2)+
@@ -386,8 +389,8 @@ $(document).ready(function() {
     uiView.style.position = "absolute";
     uiView.style.fontFamily = "Khand";
     uiView.style.fontSize = "15px";
-    uiView.style.left = ((sw/4)-((sw/gridSize)/2))+"px";
-    uiView.style.top = ((sh/4)-((sw/gridSize)/2))+"px";
+    uiView.style.left = (sw-(sw/gridSize)-10)+"px";
+    uiView.style.top = (45)+"px";
     uiView.style.width = (sw/gridSize)+"px";
     uiView.style.height = (sw/gridSize)+"px";
     uiView.style.border = "1px solid white";
@@ -419,6 +422,54 @@ $(document).ready(function() {
             championshipButtonView.style.display = "none";
             accView.style.display = "none";
         }
+    };
+
+    leverAView = document.createElement("span");
+    leverAView.style.position = "absolute";
+    leverAView.style.fontFamily = "Khand";
+    leverAView.style.fontSize = "15px";
+    leverAView.style.left = ((sw/4)-((sw/gridSize)/2))+"px";
+    leverAView.style.top = ((sh/4)-((sw/gridSize)/2))+"px";
+    leverAView.style.width = (sw/gridSize)+"px";
+    leverAView.style.height = (sw/gridSize)+"px";
+    leverAView.style.border = "1px solid white";
+    leverAView.style.zIndex = "15";
+    //document.body.appendChild(leverAView);
+
+    var offsetArr = [
+        [ -1, 0 ],
+        [ 0, -1 ],
+        [ 1, 0 ],
+        [ 0, 1 ]
+    ];
+    var leverA_offsetNo = 0;
+    leverAView.onclick = function() {
+        var offsetX = offsetArr[leverA_offsetNo][0];
+        var offsetY = offsetArr[leverA_offsetNo][1];
+        updateExits(offsetX, offsetY);
+        leverA_offsetNo = (leverA_offsetNo+1) < offsetArr.length ?
+        (leverA_offsetNo+1) : 0;
+    };
+
+    leverBView = document.createElement("span");
+    leverBView.style.position = "absolute";
+    leverBView.style.fontFamily = "Khand";
+    leverBView.style.fontSize = "15px";
+    leverBView.style.left = sw-((sw/4)+((sw/gridSize)/2))+"px";
+    leverBView.style.top = sh-((sh/4)+((sw/gridSize)/2))+"px";
+    leverBView.style.width = (sw/gridSize)+"px";
+    leverBView.style.height = (sw/gridSize)+"px";
+    leverBView.style.border = "1px solid white";
+    leverBView.style.zIndex = "15";
+    //document.body.appendChild(leverBView);
+
+    var leverB_offsetNo = 0;
+    leverBView.onclick = function() {
+        var offsetX = offsetArr[leverB_offsetNo][0];
+        var offsetY = offsetArr[leverB_offsetNo][1];
+        updateExits(offsetX, offsetY, true);
+        leverB_offsetNo = (leverB_offsetNo+1) < offsetArr.length ?
+        (leverB_offsetNo+1) : 0;
     };
 
     createProfileView();
@@ -774,12 +825,13 @@ var getPolygon = function(n, pos, size) {
         x: c.x,
         y: c.y-(size/1.75)
     };
+    /*
     polygon.push({
         x: c.x,
         y: c.y-(size/1.75)
-    });
-    for (var n = 3; n < 48; n++) {
-        var rp = _rotate2d(c, p, n*(120/50));
+    });*/
+    for (var n = 3; n < 8; n++) {
+        var rp = _rotate2d(c, p, n*(120/10));
         polygon.push({
             x: rp.x,
             y: rp.y
@@ -790,8 +842,8 @@ var getPolygon = function(n, pos, size) {
         x: rp.x,
         y: rp.y
     });
-    for (var n = 3; n < 48; n++) {
-        var rp = _rotate2d(c, p, 120+(n*(120/50)));
+    for (var n = 3; n < 8; n++) {
+        var rp = _rotate2d(c, p, 120+(n*(120/10)));
         polygon.push({
             x: rp.x,
             y: rp.y
@@ -802,8 +854,8 @@ var getPolygon = function(n, pos, size) {
         x: rp.x,
         y: rp.y
     });
-    for (var n = 3; n < 48; n++) {
-        var rp = _rotate2d(c, p, 240+(n*(120/50)));
+    for (var n = 3; n < 8; n++) {
+        var rp = _rotate2d(c, p, 240+(n*(120/10)));
         polygon.push({
             x: rp.x,
             y: rp.y
@@ -967,6 +1019,7 @@ var addBody = function(x, y, mx, my, offset) {
             dispatcher[dispatcher.length-1].x, 
             dispatcher[dispatcher.length-1].y, polygon, {
             label: "body"+bodyNo,
+            frictionAir: 0,
             render: {
                 fillStyle: "#fff",
                 strokeStyle: "#fff" }}),
@@ -980,6 +1033,8 @@ var addBody = function(x, y, mx, my, offset) {
         y: y-my
     }
     var vn = Math.normalize(v, offset);
+
+    //Body.setAngularVelocity(obj.body, -obj.speed);
 
     /*
     Body.setVelocity(obj.body, { 
@@ -1263,6 +1318,8 @@ var createDirectionTexture = function(direction) {
     return canvas.toDataURL();
 };
 
+var lastCollisionTime = 0;
+
 function matterJs() {
     // create a renderer
     render = Render.create({
@@ -1288,6 +1345,10 @@ function matterJs() {
 
         for (var n = 0; n < pairs.length; n++) {
             console.log(pairs[n].bodyA.label, pairs[n].bodyB.label);
+
+            if (pairs[n].bodyA.label.includes("body") && 
+                 pairs[n].bodyB.label.includes("body"))
+                 lastCollisionTime = new Date().getTime();
 
             if (pairs[n].bodyA.label.includes("leverA") || 
                 pairs[n].bodyB.label.includes("leverA")) {
@@ -1510,7 +1571,11 @@ function matterJs() {
             };
             var hyp = pairArr[0].hyp;
 
-            if (autoFocusEnabled && hyp < (sw/2)) {
+            var lastCollisionTimeOffset = 
+            new Date().getTime() - lastCollisionTime;
+
+            if (lastCollisionTimeOffset < 5000 && 
+                autoFocusEnabled && hyp < (sw/2)) {
                 engine.timing.timeScale = 
                 (1/(sw/2))*(hyp-((sw/gridSize)/1.05));
 
@@ -1573,8 +1638,7 @@ function matterJs() {
             bodyArr[n].visible = false;
 
             Body.setAngularVelocity(
-            bodyArr[n].body, 
-            -bodyArr[n].speed);
+            bodyArr[n].body, -bodyArr[n].speed);
 
             var c = {
                 x: (sw/2),
@@ -1613,7 +1677,9 @@ function matterJs() {
             });
 
             bodyArr[n].oscillator.frequency.value = 
-            (engine.timing.timeScale * bodyArr[n].frequency);
+            engine.timing.timeScale * 
+            (((1/5)*bodyArr[n].body.angularVelocity) * 
+            bodyArr[n].frequency);
         }
 
         //if (bodyArr.length > 1)
@@ -1897,7 +1963,8 @@ var updateExits = function(offsetX, offsetY, reverse) {
     console.log(offsetX, offsetY);
 
     if (Math.abs(offsetX) > Math.abs(offsetY)) 
-        if (!reverse && offsetX < 0) {
+        if ((!reverse && offsetX < 0) || 
+            (reverse && offsetX > 0)) {
             if (!reverse) {
             leverA.render.sprite.texture = 
             createDirectionTexture(2);
@@ -1930,7 +1997,8 @@ var updateExits = function(offsetX, offsetY, reverse) {
             }
         }
      else
-        if (!reverse && offsetY < 0) {
+        if ((!reverse && offsetY < 0) || 
+            (reverse && offsetY > 0)) {
             if (!reverse) {
             leverA.render.sprite.texture = 
             createDirectionTexture(3);
@@ -1940,10 +2008,10 @@ var updateExits = function(offsetX, offsetY, reverse) {
             }
             else {
             leverB.render.sprite.texture = 
-            createDirectionTexture(3);
-            leverB_exit = 3;
+            createDirectionTexture(1);
+            leverB_exit = 1;
             closeExits(leverA_exit);
-            openExit(3);
+            openExit(1);
             }
         }
         else {
@@ -1956,10 +2024,10 @@ var updateExits = function(offsetX, offsetY, reverse) {
             }
             else {
             leverB.render.sprite.texture = 
-            createDirectionTexture(1);
-            leverB_exit = 1;
+            createDirectionTexture(3);
+            leverB_exit = 3;
             closeExits(leverA_exit);
-            openExit(1);
+            openExit(3);
             }
         }
 }
@@ -2009,7 +2077,12 @@ var openExit = function(no) {
     }
 };
 
-var closeExits = function(no=-1) {
+var closeExits = function(no=-2) {
+    if (no == -2) {
+        leverA.render.sprite.texture = "";
+        leverB.render.sprite.texture = "";
+    }
+
     if (no != 0) {
         Body.setPosition(wallA, { 
             x: wallA.position.x,

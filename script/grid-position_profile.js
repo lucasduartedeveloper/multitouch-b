@@ -871,7 +871,7 @@ var loadShop0 = function() {
 
 var shopItemPrice = [
     [ ],
-    [ 5, 15, 25, 35, 45, 100 ]
+    [ 5, 0, 25, 0, 45, 100 ]
 ];
 
 var loadShop1 = function() {
@@ -1669,6 +1669,7 @@ var launchItem = function(item, x, y, mx, my, offset, singlePlayer=false) {
             dispatcher[dispatcher.length-1].x, 
             dispatcher[dispatcher.length-1].y, polygon, {
             label: "body"+bodyNo,
+            frictionAir: 0,
             mass: getMidMass(item.mid),
             render: {
                 fillStyle: "#fff",
@@ -1684,6 +1685,8 @@ var launchItem = function(item, x, y, mx, my, offset, singlePlayer=false) {
         y: y-my
     }
     var vn = Math.normalize(v, offset);
+
+    //Body.setAngularVelocity(obj.body, -obj.speed);
 
     /*
     Body.setVelocity(obj.body, { 
