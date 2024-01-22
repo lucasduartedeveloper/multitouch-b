@@ -682,18 +682,21 @@ var drawTop = function(no, dataURL=true) {
         ctx.fill();
     };
     if (no == 5) {
-        ctx.lineWidth = ((size/4.5)/3);
+        ctx.translate((size/2), (size/2));
+        ctx.rotate((Math.PI/4));
+        ctx.translate(-(size/2), -(size/2));
+
+        ctx.lineWidth = ((size/4.5)/4);
         ctx.fillStyle = "#555";
         ctx.beginPath();
-        ctx.moveTo((size/2), (size/2));
-        ctx.arc((size/2), (size/2), ((size/4.5)/1.5), 0, ((Math.PI*2)/4));
-        ctx.fill();
+        ctx.arc((size/2), (size/2), ((size/4.5)/1.25), 
+        0, ((Math.PI*2)/4));
+        ctx.stroke();
 
         ctx.beginPath();
-        ctx.moveTo((size/2), (size/2));
-        ctx.arc((size/2), (size/2), ((size/4.5)/1.5), 
+        ctx.arc((size/2), (size/2), ((size/4.5)/1.25), 
         ((Math.PI*2)/4)*2, (((Math.PI*2)/4)*2)+((Math.PI*2)/4));
-        ctx.fill();
+        ctx.stroke();
     };
 
     ctx.restore();
@@ -704,7 +707,7 @@ var drawTop = function(no, dataURL=true) {
 var drawMid = function(no, dataURL=true) {
     var canvas = document.createElement("canvas");
     canvas.width = 160;
-    canvas.height = 160;
+    canvas.height = 160;2
 
     var size = 160;
 

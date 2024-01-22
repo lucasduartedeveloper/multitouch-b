@@ -129,6 +129,9 @@ $(document).ready(function() {
         if (currentChampionship.state != "ready")
         launchItem(profileToObj(), 
         startX, startY, moveX, moveY, swipeLength);
+        else if (bodyArr.length == 0)
+        launchItem(profileToObj(), 
+        startX, startY, moveX, moveY, swipeLength, true);
         else
         addBody(startX, startY, moveX, moveY, swipeLength);
     };
