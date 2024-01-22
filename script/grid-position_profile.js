@@ -681,6 +681,20 @@ var drawTop = function(no, dataURL=true) {
         }
         ctx.fill();
     };
+    if (no == 5) {
+        ctx.lineWidth = ((size/4.5)/3);
+        ctx.fillStyle = "#555";
+        ctx.beginPath();
+        ctx.moveTo((size/2), (size/2));
+        ctx.arc((size/2), (size/2), ((size/4.5)/1.5), 0, ((Math.PI*2)/4));
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo((size/2), (size/2));
+        ctx.arc((size/2), (size/2), ((size/4.5)/1.5), 
+        ((Math.PI*2)/4)*2, (((Math.PI*2)/4)*2)+((Math.PI*2)/4));
+        ctx.fill();
+    };
 
     ctx.restore();
 
@@ -822,7 +836,7 @@ var drawDispatcher = function(no, dataURL=true, a) {
 };
 
 var loadShop0 = function() {
-    for (var n = 0; n < 5; n++) {
+    for (var n = 0; n < 6; n++) {
         var shopItemView = document.createElement("img");
         shopItemView.style.position = "absolute";
         shopItemView.style.background = "#000";
@@ -843,6 +857,11 @@ var loadShop0 = function() {
         shopItemView.onclick = function() {
             profile.selectedTop = this.no;
             item0View.src = drawTop(profile.selectedTop);
+
+            if (bodyArr.length > 0 && bodyArr[0].no == 0) {
+                bodyArr[0].body.render.sprite.texture = 
+                drawItem(profileToObj(), true, true);
+            }
         };
     }
 };
@@ -897,6 +916,43 @@ var loadShop1 = function() {
             if ((shopItemPrice[1][this.no]) == 0) {
                 profile.selectedMid = this.no;
                 item1View.src = drawMid(profile.selectedMid);
+                
+                if (bodyArr.length > 0 && bodyArr[0].no == 0) {
+                    var velocity = bodyArr[0].body.velocity;
+                    var angularVelocity = bodyArr[0].body.angularVelocity;
+                    var position = bodyArr[0].body.position;
+
+                    var size = ((sw/gridSize)*2);
+
+                    var polygon = 
+                    getPolygon(this.no, { 
+                        x: position.x, 
+                        y: position.y
+                    }, size);
+
+                    var body = Bodies.fromVertices(
+                        position.x, position.y, polygon, {
+                        label: "body0",
+                        mass: getMidMass(this.no),
+                        render: {
+                            fillStyle: "#fff",
+                            strokeStyle: "#fff"
+                        }});
+
+                    Body.setVelocity(body, velocity);
+                    Body.setAngularVelocity(body, angularVelocity);
+                    Body.setPosition(body, position);
+
+                    body.render.sprite.texture = 
+                    drawItem(profileToObj(), true, true);
+                    body.render.sprite.xScale = 0.5;
+                    body.render.sprite.yScale = 0.5;
+
+                    Composite.remove(engine.world, [ bodyArr[0].body ]);
+
+                    bodyArr[0].body = body;
+                    Composite.add(engine.world, [ bodyArr[0].body ]);
+                }
             }
             else {
                 if (profile.balance < shopItemPrice[1][this.no])
@@ -1557,9 +1613,9 @@ var getMidMass = function(no) {
     return Math.abs(total);
 };
 
-var launchItem = function(item, x, y, mx, my, offset) {
-    if (!currentChampionship.stateOpen || 
-    bodyArr.length > 1) return;
+var launchItem = function(item, x, y, mx, my, offset, singlePlayer=false) {
+    if (!singlePlayer && (!currentChampionship.stateOpen || 
+    bodyArr.length > 1)) return;
 
     var baseArea = Math.PI*Math.pow(((sw/gridSize)/2), 2);
 
