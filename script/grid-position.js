@@ -165,7 +165,7 @@ $(document).ready(function() {
         /*var frequency = (reachedFreq/2)*(24000/512);
         oscillator0.frequency.value = frequency;*/
 
-        var frequency =reachedFreq > 50 ? 50: 50;
+        var frequency = reachedFreq > 50 ? 50: 50;
         oscillator0.frequency.value = frequency;
     };
     mic.onclose = function() { 
@@ -194,7 +194,7 @@ $(document).ready(function() {
 
     buttonMicView.onclick = function() {
         if (mic.closed) {
-            mic.open(false, 1);
+            mic.open(false, 50);
             buttonMicView.innerText = "mic: on";
         }
         else {
@@ -229,6 +229,8 @@ $(document).ready(function() {
         squareEnabled ? "hide square" : "show square";
         squareView.style.display = 
         squareEnabled ? "initial" : "none";
+        buttonPlaySquareView.style.display = 
+        squareEnabled ? "initial" : "none";
 
         if (squareEnabled) {
             oscillator0.start();
@@ -245,6 +247,8 @@ $(document).ready(function() {
     squareView.style.display = 
     squareEnabled ? "initial" : "none";
     squareView.style.background = "#fff";
+    squareView.width = (sw-50);
+    squareView.height = (sw-50);
     squareView.style.fontFamily = "Khand";
     squareView.style.fontSize = "15px";
     squareView.style.left = ((sw/2)-((sw/2)-25))+"px";
@@ -261,15 +265,28 @@ $(document).ready(function() {
     var oscillatorX1 = 0;
     var oscillatorY1 = 0;
 
+    var path = [];
+
     squareView.ontouchstart = function(e) {
+        path = [];
+        pathArr[pathArr.length] = [];
+
         var x0 = e.touches[0].clientX-25;
-        var y0 = e.touches[0].clientY-((sh-sw-50)/2);
+        var y0 = e.touches[0].clientY-((sh/2)-((sw/2)-25));
 
         oscillatorX0 = (1/(sw-50))*(x0-(sw/2)-25);
         oscillatorY0 = -(1/(sw-50))*(y0-(sw/2)-25);
 
-        var frequency = 50+(oscillatorY0*20);
+        var frequency = 50+(oscillatorY0*100);
         oscillator0.frequency.value = frequency;
+
+        var pos = {
+            x: x0,
+            y: y0,
+            frequency: frequency
+        };
+        path.push(pos);
+        pathArr[pathArr.length-1] = path;
 
         if (e.touches.length < 2) return;
         var x1 = e.touches[1].clientX-25;
@@ -284,13 +301,21 @@ $(document).ready(function() {
 
     squareView.ontouchmove = function(e) {
         var x0 = e.touches[0].clientX-25;
-        var y0 = e.touches[0].clientY-((sh-sw-50)/2);
+        var y0 = e.touches[0].clientY-((sh/2)-((sw/2)-25));
 
         oscillatorX0 = (1/(sw-50))*(x0-(sw/2)-25);
         oscillatorY0 = -(1/(sw-50))*(y0-(sw/2)-25);
 
-        var frequency = 50+(oscillatorY0*20);
+        var frequency = 50+(oscillatorY0*100);
         oscillator0.frequency.value = frequency;
+
+        var pos = {
+            x: x0,
+            y: y0,
+            frequency: frequency
+        };
+        path.push(pos);
+        pathArr[pathArr.length-1] = path;
 
         if (e.touches.length < 2) return;
         var x1 = e.touches[1].clientX-25;
@@ -306,11 +331,62 @@ $(document).ready(function() {
     squareView.ontouchend = function(e) {
         console.log(e);
 
+        //pathArr.push(path);
+
         if (e.changedTouches[0].identifier == 0)
         oscillator0.frequency.value = 0;
 
         if (e.changedTouches[0].identifier == 1)
         oscillator1.frequency.value = 0;
+    };
+
+    buttonPlaySquareView = document.createElement("button");
+    buttonPlaySquareView.style.position = "absolute";
+    buttonPlaySquareView.style.display = 
+    squareEnabled ? "initial" : "none";
+    buttonPlaySquareView.style.color = "#000";
+    buttonPlaySquareView.innerText = "play";
+    buttonPlaySquareView.style.fontFamily = "Khand";
+    buttonPlaySquareView.style.fontSize = "15px";
+    buttonPlaySquareView.style.left = (25)+"px";
+    buttonPlaySquareView.style.top = 
+    ((sh/2)+((sw/2)-25)+10)+"px";
+    buttonPlaySquareView.style.width = (100)+"px";
+    buttonPlaySquareView.style.height = (25)+"px";
+    buttonPlaySquareView.style.border = "1px solid white";
+    buttonPlaySquareView.style.borderRadius = "25px";
+    buttonPlaySquareView.style.zIndex = "15";
+    document.body.appendChild(buttonPlaySquareView);
+
+    currentPosition = 0;
+    var playSquareInterval = 0;
+    buttonPlaySquareView.onclick = function() {
+        if (currentPosition > 0) {
+             currentPosition = 0;
+             oscillator0.frequency.value = 0;
+             clearInterval(playSquareInterval);
+             return;
+        }
+
+        playSquareInterval = setInterval(function() {
+            var found = false;
+            var distance = 0;
+            for (var n = 0; n < pathArr.length; n++) {
+                var path = pathArr[n];
+                for (var k = 0; k < path.length; k++) {
+                    if (distance+k == currentPosition) {
+                        oscillator0.frequency.value = path[k].frequency;
+                        found = true;
+                        break;
+                    }
+                }
+                distance += path.length;
+                if (found) break;
+            }
+
+            if (!found) currentPosition = 0;
+            else currentPosition += 1;
+        }, 1000/60);
     };
 
     autoFocusEnabled = false;
@@ -472,6 +548,17 @@ $(document).ready(function() {
         (leverB_offsetNo+1) : 0;
     };
 
+    waveView = document.createElement("canvas");
+    waveView.style.position = "absolute";
+    waveView.width = (sw-20);
+    waveView.height = (25);
+    waveView.style.left = (10)+"px";
+    waveView.style.top = (sh-105)+"px";
+    waveView.style.width = (sw-20)+"px";
+    waveView.style.height = (25)+"px";
+    waveView.style.zIndex = "15";
+    //document.body.appendChild(waveView);
+
     createProfileView();
 
     resolution = 0;
@@ -482,8 +569,49 @@ $(document).ready(function() {
     matterJs();
 });
 
-var drawAB = function(freqArray) {
+var pathArr = [];
+
+var drawSquare = function(freqArray) {
     var canvas = squareView;
+    var ctx = canvas.getContext("2d");
+
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = "#000";
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+
+    for (var n = 0; n < pathArr.length; n++) {
+        var path = pathArr[n];
+        ctx.beginPath();
+        ctx.moveTo(path[0].x, path[0].y);
+        for (var k = 1; k < path.length; k++) {
+            ctx.lineTo(path[k].x, path[k].y);
+        }
+        ctx.stroke();
+    }
+
+    ctx.fillStyle = "#5f5";
+
+    var found = false;
+    var distance = 0;
+    for (var n = 0; n < pathArr.length; n++) {
+        var path = pathArr[n];
+        for (var k = 1; k < path.length; k++) {
+            if (distance+k == currentPosition) {
+                ctx.beginPath();
+                ctx.arc(path[k].x, path[k].y, 2.5, 0, (Math.PI*2));
+                ctx.fill();
+                found = true;
+                break;
+            }
+        }
+        distance += path.length;
+        if (found) break;
+    }
+};
+
+var drawAB = function(freqArray) {
+    var canvas = waveView;
     var ctx = canvas.getContext("2d");
 
     var offset = 0;
@@ -506,7 +634,7 @@ var drawAB = function(freqArray) {
 
     // draw waveform A
     ctx.clearRect(0, 0, canvas.width, canvas.height)
-    ctx.strokeStyle = "#000";
+    ctx.strokeStyle = "#5f5";
     ctx.lineWidth = 1;
 
     if (freqArray) {
@@ -592,6 +720,7 @@ var animate = function() {
         if ((new Date().getTime() - updateTime) > 1000) {
             updateTime = new Date().getTime();
         }
+        drawSquare();
         drawAB(resumedWave);
         //drawImage();
     }
