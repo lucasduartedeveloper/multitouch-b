@@ -1,5 +1,5 @@
 var profile = {
-    balance: 0,
+    balance: 1000000,
     selectedTop: 0,
     selectedMid: 1,
     selectedClip: 0,
@@ -364,19 +364,20 @@ var createProfileView = function() {
     balanceView.style.position = "absolute";
     balanceView.style.color = "#000";
     balanceView.style.fontFamily = "Khand";
-    balanceView.innerText = 
-    "$ "+profile.balance.toFixed(2).replace(".", ",");
+    balanceView.innerText = "$ 0,00";
     balanceView.style.fontSize = "15px";
     balanceView.style.lineHeight = "15px";
     balanceView.style.textAlign = "right";
-    balanceView.style.left = (sw-80)+"px";
+    balanceView.style.left = (sw-180)+"px";
     balanceView.style.top = (10)+"px";
-    balanceView.style.width = (50)+"px";
+    balanceView.style.width = (150)+"px";
     balanceView.style.height = (20)+"px";
     //balanceView.style.border = "1px solid white";
     //profileView.style.borderRadius = "25px";
     balanceView.style.zIndex = "15";
     profileView.appendChild(balanceView);
+
+    refreshBalance();
 
     item0View = document.createElement("img");
     item0View.style.position = "absolute";
@@ -679,6 +680,22 @@ var createProfileView = function() {
     };
 
     loadImages();
+};
+
+var refreshBalance = function() {
+    var formattedValue = 
+    profile.balance.toLocaleString("en-US", {
+        style: "currency", 
+        currency: "USD"
+    });
+
+    formattedValue = formattedValue.replace("$", "");
+    formattedValue = formattedValue.replaceAll(",", "#");
+    formattedValue = formattedValue.replace(".", ",");
+    formattedValue = formattedValue.replaceAll("#", ".");
+    formattedValue = "$ "+formattedValue;
+
+    balanceView.innerText = formattedValue;
 };
 
 var getNextAssembly = function(skip=-1) {
@@ -1136,6 +1153,8 @@ var loadShop0 = function() {
 };
 
 var loadShop1 = function() {
+    shop1View.innerHTML = "";
+
     for (var n = 0; n < 6; n++) {
         var shopItemView = document.createElement("img");
         shopItemView.style.position = "absolute";
@@ -1204,9 +1223,7 @@ var loadShop1 = function() {
                     .then((value) => {
                         //console.log(value);
                         if (value) {
-                            profile.balance -= shopItemPrice[1][this.no];
-                            balanceView.innerText = 
-                            "$ "+profile.balance.toFixed(2).replace(".", ",");
+                            refreshBalance();
 
                             profile.selectedMid = this.no;
                             item1View.src = drawMid(profile.selectedMid);
