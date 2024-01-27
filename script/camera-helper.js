@@ -69,6 +69,28 @@ function stopCamera() {
     }
 }
 
+var torchEnabled = false;
+function setTorch(action) {
+    if (!cameraOn) return;
+
+    var track = cameraElem.srcObject.getVideoTracks()[0];
+    var settings = track.getSettings();
+    var capabilities = track.getCapabilities();
+
+    if (action == "toggle")
+    torchEnabled = !settings.torch;
+    else if (action == "on")
+    torchEnabled = true;
+    else if (action == "off")
+    torchEnabled = false;
+
+    track.applyConstraints({
+        "advanced": [{
+            "torch": torchEnabled
+        }]
+    });
+};
+
 // 640x480 => 240x180
 /*
     240

@@ -1,8 +1,8 @@
 var uploadAlert = new Audio("audio/ui-audio/upload-alert.wav");
 var warningBeep = new Audio("audio/warning_beep.wav");
 
-var sw = window.innerWidth;
-var sh = window.innerHeight;
+var sw = 360; //window.innerWidth;
+var sh = 669; //window.innerHeight;
 
 var audioBot = true;
 var playerId = new Date().getTime();
@@ -81,59 +81,107 @@ $(document).ready(function() {
     matterJsView.style.zIndex = "15";
     document.body.appendChild(matterJsView);
 
-    startX = (sw/2);
-    startY = (sw/2);
-    moveX = (sw/2);
-    moveY = (sw/2);
+    startX0 = (sw/2);
+    startY0 = (sw/2);
+    moveX0 = (sw/2);
+    moveY0 = (sw/2);
 
-    swipeLength = 0;
+    startX1 = (sw/2);
+    startY1 = (sw/2);
+    moveX1 = (sw/2);
+    moveY1 = (sw/2);
+
+    swipeLength0 = 0;
+    swipeLength1 = 0;
+
+    ontouch0 = false;
+    ontouch1 = false;
 
     matterJsView.ontouchstart = function(e) {
         ontouchIteration = 0;
-        ontouch = true;
-        startX = e.touches[0].clientX;
-        startY = e.touches[0].clientY;
+
+        console.log("start", e.touches);
+
+        if (e.touches.length == 1) {
+            ontouch0 = true;
+            startX0 = e.touches[0].clientX;
+            startY0 = e.touches[0].clientY;
+            moveX0 = e.touches[0].clientX;
+            moveY0 = e.touches[0].clientY;
+        }
+
+        if (e.touches.length > 1) {
+            ontouch1 = true;
+            startX1 = e.touches[1].clientX;
+            startY1 = e.touches[1].clientY;
+            moveX1 = e.touches[1].clientX;
+            moveY1 = e.touches[1].clientY;
+        }
     };
 
     matterJsView.ontouchmove = function(e) {
-        moveX = e.touches[0].clientX;
-        moveY = e.touches[0].clientY;
+        //console.log("move", e.touches);
 
-        var co = Math.abs(moveX-startX);
-        var ca = Math.abs(moveY-startY);
-        var hyp = Math.sqrt(
-        Math.pow(co, 2)+
-        Math.pow(ca, 2));
+        if (e.touches[0].identifier == 0) {
+            moveX0 = e.touches[0].clientX;
+            moveY0 = e.touches[0].clientY;
 
-        swipeLength = (1/sw)*hyp;
+            var co = Math.abs(moveX0-startX0);
+            var ca = Math.abs(moveY0-startY0);
+            var hyp = Math.sqrt(
+            Math.pow(co, 2)+
+            Math.pow(ca, 2));
+
+            swipeLength0 = (1/sw)*hyp;
+        }
+
+        if (e.touches.length > 1) {
+            moveX1 = e.touches[1].clientX;
+            moveY1 = e.touches[1].clientY;
+
+            var co = Math.abs(moveX1-startX1);
+            var ca = Math.abs(moveY1-startY1);
+            var hyp = Math.sqrt(
+            Math.pow(co, 2)+
+            Math.pow(ca, 2));
+
+            swipeLength1 = (1/sw)*hyp;
+        }
     };
 
     multiplayerMode = false;
     matterJsView.ontouchend = function(e) {
-        ontouch = false;
         if (squareEnabled) return;
 
-        if (multiplayerMode) {
-            var obj = {
-                x: startX, 
-                y: startY, 
-                offset: swipeLength,
-                sw: sw,
-                sh: sh,
-                profileObj: profileToObj()
-            };
-            sendProfileObj(obj);
-            return;
-        }
+        console.log("end", e.touches);
 
-        if (currentChampionship.state != "ready")
-        launchItem(profileToObj(), 
-        startX, startY, moveX, moveY, swipeLength);
-        else if (bodyArr.length == 0)
-        launchItem(profileToObj(), 
-        startX, startY, moveX, moveY, swipeLength, true);
-        else
-        addBody(startX, startY, moveX, moveY, swipeLength);
+        if ((e.touches.length > 0 && e.touches[0].identifier == 0) || 
+            !ontouch1) {
+            ontouch0 = false;
+
+            if (currentChampionship.state != "ready")
+            launchItem(profileToObj(), 
+            startX0, startY0, moveX0, moveY0, swipeLength0);
+            else if (bodyArr.length == 0)
+            launchItem(profileToObj(), 
+            startX0, startY0, moveX0, moveY0, swipeLength0, true);
+            else
+            addBody(startX0, startY0, moveX0, moveY0, swipeLength0);
+        }
+        else 
+        if ((e.touches.length > 0 && e.touches[0].identifier == 1) || 
+            !ontouch0) {
+            ontouch1 = false;
+
+            if (currentChampionship.state != "ready")
+            launchItem(profileToObj(), 
+            startX1, startY1, moveX1, moveY1, swipeLength1);
+            else if (bodyArr.length == 0)
+            launchItem(profileToObj(), 
+            startX1, startY1, moveX1, moveY1, swipeLength1, true);
+            else
+            addBody(startX1, startY1, moveX1, moveY1, swipeLength1);
+        }
     };
 
     ws.onmessage = function(e) {
@@ -1581,36 +1629,45 @@ function matterJs() {
         //rotateGrid();
 
         var ctx  = matterJsView.getContext("2d");
-        if (false && ontouch) {
-            var co = moveX-startX;
-            var ca = moveY-startY;
-            var a = _angle2d(co, ca)-(Math.PI);
 
-            ctx.drawImage(
-            drawDispatcher(profile.selectedDispatcher, false, a), 
-            startX-(sw/gridSize), startY-(sw/gridSize),
-            (sw/gridSize)*2, (sw/gridSize)*2);
+        if (ontouch0 || ontouch1)
+        console.log(ontouch0, ontouch1);
+
+        if (ontouch0) {
+            var co = moveX0-startX0;
+            var ca = moveY0-startY0;
+            var a = _angle2d(co, ca)-(Math.PI);
 
             ctx.save();
             ctx.strokeStyle = colors[getNextColor()];
             ctx.lineWidth = 1;
             ctx.setLineDash([5, 5]);
             ctx.beginPath();
-            ctx.moveTo(startX, startY);
-            ctx.lineTo(moveX, moveY);
+            ctx.moveTo(startX0, startY0);
+            ctx.lineTo(moveX0, moveY0);
             ctx.stroke();
 
             ctx.restore();
         }
 
-        if (false && cpuLaunchSettings0.active) {
-            ctx.drawImage(
-            drawDispatcher(
-            cpuLaunchSettings0.dispatcher, false), 
-            cpuLaunchSettings0.startX-(sw/gridSize), 
-            cpuLaunchSettings0.startY-(sw/gridSize),
-            (sw/gridSize)*2, (sw/gridSize)*2);
+        if (ontouch1) {
+            var co = moveX1-startX1;
+            var ca = moveY1-startY1;
+            var a = _angle2d(co, ca)-(Math.PI);
 
+            ctx.save();
+            ctx.strokeStyle = colors[1];
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(startX1, startY1);
+            ctx.lineTo(moveX1, moveY1);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        if (false && ncpuLaunchSettings0.active) {
             ctx.save();
             ctx.strokeStyle = colors[cpuLaunchSettings0.clip];
             ctx.lineWidth = 1;
@@ -2066,7 +2123,7 @@ function matterJs() {
     Matter.MouseConstraint.create(engine, {
         mouse: mouse,
         constraint: {
-            render: { visible: true }
+            render: { visible: false }
         }
     });
     render.mouse = mouse;

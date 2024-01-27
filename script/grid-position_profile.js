@@ -6,6 +6,14 @@ var profile = {
     selectedDispatcher: 1
 };
 
+var assemblyLine = {
+    balance: 0,
+    selectedTop: 0,
+    selectedMid: 1,
+    selectedClip: 0,
+    selectedDispatcher: 1
+};
+
 var profileToObj = function() {
     var obj = {
         top: profile.selectedTop,
@@ -308,7 +316,7 @@ var createProfileView = function() {
     profileView.style.left = (10)+"px";
     profileView.style.top = (10)+"px";
     profileView.style.width = (sw-20)+"px";
-    profileView.style.height = (300)+"px";
+    profileView.style.height = (390)+"px";
     profileView.style.border = "1px solid white";
     //profileView.style.borderRadius = "25px";
     profileView.style.zIndex = "15";
@@ -401,21 +409,37 @@ var createProfileView = function() {
     item2View.style.zIndex = "15";
     profileView.appendChild(item2View);
 
-    item3View = document.createElement("img");
-    item3View.style.position = "absolute";
-    item3View.style.background = "#000";
-    item3View.style.objectFit = "cover";
-    item3View.style.fontFamily = "Khand";
-    item3View.style.fontSize = "15px";
-    item3View.style.left = (10)+"px";
-    item3View.style.top = (300)+"px";
-    item3View.style.width = (80)+"px";
-    item3View.style.height = (80)+"px";
-    item3View.style.border = "1px solid #000";
+    assembleView = document.createElement("button");
+    assembleView.style.position = "absolute";
+    assembleView.style.background = "#fff";
+    assembleView.style.colot = "#000";
+    assembleView.innerText = "ASSEMBLE";
+    assembleView.style.fontFamily = "Khand";
+    assembleView.style.fontSize = "15px";
+    assembleView.style.left = (10)+"px";
+    assembleView.style.top = (300)+"px";
+    assembleView.style.width = (80)+"px";
+    assembleView.style.height = (40)+"px";
+    assembleView.style.border = "1px solid #000";
     //shopView.style.borderRadius = "25px";
-    item3View.src = drawDispatcher(profile.selectedDispatcher);
-    item3View.style.zIndex = "15";
-    //profileView.appendChild(item3View);
+    assembleView.style.zIndex = "15";
+    profileView.appendChild(assembleView);
+
+    disassembleView = document.createElement("button");
+    disassembleView.style.position = "absolute";
+    disassembleView.style.background = "#fff";
+    disassembleView.style.colot = "#000";
+    disassembleView.innerText = "DISASSEMBLE";
+    disassembleView.style.fontFamily = "Khand";
+    disassembleView.style.fontSize = "15px";
+    disassembleView.style.left = (10)+"px";
+    disassembleView.style.top = (340)+"px";
+    disassembleView.style.width = (80)+"px";
+    disassembleView.style.height = (40)+"px";
+    disassembleView.style.border = "1px solid #000";
+    //shopView.style.borderRadius = "25px";
+    disassembleView.style.zIndex = "15";
+    profileView.appendChild(disassembleView);
 
     shop0View = document.createElement("div");
     shop0View.style.position = "absolute";
@@ -462,23 +486,26 @@ var createProfileView = function() {
     shop2View.style.height = (80)+"px";
     shop2View.style.border = "1px solid #000";
     //shopView.style.borderRadius = "25px";
+    shop2View.style.overflowX = "auto";
     shop2View.style.zIndex = "15";
     profileView.appendChild(shop2View);
 
-    shop3View = document.createElement("div");
-    shop3View.style.position = "absolute";
-    shop3View.style.background = "#fff";
-    shop3View.style.fontFamily = "Khand";
-    shop3View.style.fontSize = "15px";    
-    shop3View.style.left = (100)+"px";
-    shop3View.style.top = (300)+"px";
-    shop3View.style.width = (sw-130)+"px";
-    shop3View.style.height = (80)+"px";
-    shop3View.style.border = "1px solid #000";
-    shop3View.style.overflowX = "auto";
+    loadShop2();
+
+    profileArrView = document.createElement("div");
+    profileArrView.style.position = "absolute";
+    profileArrView.style.background = "#fff";
+    profileArrView.style.fontFamily = "Khand";
+    profileArrView.style.fontSize = "15px";    
+    profileArrView.style.left = (100)+"px";
+    profileArrView.style.top = (300)+"px";
+    profileArrView.style.width = (sw-130)+"px";
+    profileArrView.style.height = (80)+"px";
+    profileArrView.style.border = "1px solid #000";
+    profileArrView.style.overflowX = "auto";
     //shopView.style.borderRadius = "25px";
-    shop3View.style.zIndex = "15";
-    //profileView.appendChild(shop3View);
+    profileArrView.style.zIndex = "15";
+    profileView.appendChild(profileArrView);
 
     //loadShop3();
 
@@ -979,6 +1006,37 @@ var loadShop1 = function() {
                         }
                     });
                 }
+            }
+        };
+    }
+};
+
+var loadShop2 = function() {
+    for (var n = 0; n < 5; n++) {
+        var shopItemView = document.createElement("img");
+        shopItemView.style.position = "absolute";
+        shopItemView.style.background = "#000";
+        shopItemView.style.objectFit = "cover";
+        shopItemView.style.fontFamily = "Khand";
+        shopItemView.style.fontSize = "15px";
+        shopItemView.style.left = (n*80)+"px";
+        shopItemView.style.top = (0)+"px";
+        shopItemView.style.width = (80)+"px";
+        shopItemView.style.height = (80)+"px";
+        shopItemView.style.border = "1px solid #fff";
+        //shopView.style.borderRadius = "25px";
+        shopItemView.no = n;
+        shopItemView.src = drawClip(n);
+        shopItemView.style.zIndex = "15";
+        shop2View.appendChild(shopItemView);
+
+        shopItemView.onclick = function() {
+            profile.selectedClip = this.no;
+            item2View.src = drawClip(profile.selectedClip);
+
+            if (bodyArr.length > 0 && bodyArr[0].no == 0) {
+                bodyArr[0].body.render.sprite.texture = 
+                drawItem(profileToObj(), true, true);
             }
         };
     }
@@ -1629,8 +1687,8 @@ var launchItem = function(item, x, y, mx, my, offset, singlePlayer=false) {
     var min = (bodyArr.length*5);
     var max = ((bodyArr.length+1)*5);
 
-    var co = moveX-startX;
-    var ca = moveY-startY;
+    var co = mx-x;
+    var ca = my-y;
     var a = _angle2d(co, ca)-(Math.PI);
 
     var dispatcher = 
@@ -1688,11 +1746,10 @@ var launchItem = function(item, x, y, mx, my, offset, singlePlayer=false) {
 
     //Body.setAngularVelocity(obj.body, -obj.speed);
 
-    /*
     Body.setVelocity(obj.body, { 
         x: vn.x*(sw/gridSize),
         y: vn.y*(sw/gridSize)
-    });*/
+    });
 
     obj.body.render.sprite.texture = drawItem(item, true, true);
     obj.body.render.sprite.xScale = 0.5;

@@ -22,11 +22,12 @@ function CanvasRecorder(canvas, video_bits_per_sec) {
 
     function startRecording() {
         let types = [
+            /*
             "video/webm",
             'video/webm,codecs=vp9',
             'video/vp8',
             "video/webm\;codecs=vp8",
-            "video/webm\;codecs=daala",
+            "video/webm\;codecs=daala",*/
             "video/webm\;codecs=h264",
             "video/mpeg"
         ];
@@ -37,6 +38,7 @@ function CanvasRecorder(canvas, video_bits_per_sec) {
                 break;
             }
         }
+
         if (supportedType == null) {
             console.log("No supported type found for MediaRecorder");
         }
@@ -69,7 +71,8 @@ function CanvasRecorder(canvas, video_bits_per_sec) {
 
     function handleStop(event) {
         console.log('Recorder stopped: ', event);
-        const superBuffer = new Blob(recordedBlobs, { type: supportedType });
+        const superBuffer = new Blob(recordedBlobs, 
+        { type: "video/mp4" });
         video.src = window.URL.createObjectURL(superBuffer);
     }
 
@@ -88,7 +91,8 @@ function CanvasRecorder(canvas, video_bits_per_sec) {
 
     function download(file_name) {
         const name = file_name || 'recording.webm';
-        const blob = new Blob(recordedBlobs, { type: supportedType });
+        const blob = new Blob(recordedBlobs, 
+        { type: "video/mp4" });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.style.display = 'none';

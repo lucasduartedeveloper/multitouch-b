@@ -1,8 +1,8 @@
 var uploadAlert = new Audio("audio/ui-audio/upload-alert.wav");
 var warningBeep = new Audio("audio/warning_beep.wav");
 
-var sw = window.innerWidth;
-var sh = window.innerHeight;
+var sw = 360; //window.innerWidth;
+var sh = 669; //window.innerHeight;
 
 var audioBot = false;
 var playerId = new Date().getTime();
@@ -1002,6 +1002,12 @@ $(document).ready(function() {
         colorView.innerText = (color)+"x";
     };
 
+    motionPosition = {
+        accX: 0,
+        accY: 0,
+        accZ: 0
+    };
+
     motion = false;
     gyroUpdated = function(e) {
         var p0_fontSize = (sw/30);
@@ -1026,6 +1032,8 @@ $(document).ready(function() {
         var co = e.accX;
         var ca = e.accY;
         northAngle = -(_angle2d(co, ca)-(Math.PI))+drawAngle;
+
+        
     };
 
     backgroundOffset = 0.45;
@@ -1542,7 +1550,7 @@ var drawImage = function(alignmentOverlay=true) {
     resolutionCtx.imageSmoothingEnabled = false;
 
     if (!followPlane && measureLineEnabled) {
-        drawPicture(resolutionCanvas);
+        drawPicture(resolutionCanvas, 0, 0, 0, 0);
     }
 
     resolutionCtx.save();
