@@ -1157,7 +1157,7 @@ var getPolygon = function(n, pos, size) {
         var rp = _rotate2d(c, p, n*(180/50));
         polygon.push({
             x: rp.x,
-            y: rp.y0
+            y: rp.y
         });
     }
     polygon.push({

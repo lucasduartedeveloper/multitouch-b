@@ -22,12 +22,12 @@ var assemblyLine = [
 ];
 
 var shopItemPrice = [
-    [ 1, 1.5, 2, 2.5, 3, 3.5, 4 ],
+    [ 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5 ],
     [ 5, 15, 25, 35, 45, 100, 185 ]
 ];
 
 var inventory = [
-    [ 1, 0, 0, 0, 0, 0, 0 ],
+    [ 1, 0, 0, 0, 0, 0, 0, 0 ],
     [ 0, 1, 0, 1, 0, 0, 0 ]
 ];
 
@@ -682,7 +682,9 @@ var createProfileView = function() {
         dispatcher: 0
     };
 
-    loadImages();
+    loadImages(function() {
+        loadShop0();
+    });
 };
 
 var refreshBalance = function() {
@@ -803,7 +805,7 @@ var loadImages = function(callback) {
             img_list[this.n] = this;
             if (count == img_list.length) {
                 imagesLoaded = true;
-                callback();
+                if (callback) callback();
             }
         };
         var rnd = Math.random();
@@ -879,7 +881,8 @@ var drawTop = function(no, dataURL=true) {
 
     ctx.fillStyle = "#fff";
     ctx.beginPath();
-    ctx.arc((size/2), (size/2), (size/4.5), 0, (Math.PI*2));
+    ctx.arc((size/2), (size/2), 
+    (no == 7) ? (size/7) : (size/4.5), 0, (Math.PI*2));
     ctx.fill();
     ctx.clip();
 
@@ -1136,7 +1139,7 @@ var drawDispatcher = function(no, dataURL=true, a) {
 var loadShop0 = function() {
     shop0View.innerHTML = "";
 
-    for (var n = 0; n < 7; n++) {
+    for (var n = 0; n < 8; n++) {
         var shopItemView = document.createElement("img");
         shopItemView.style.position = "absolute";
         shopItemView.style.background = "#000";
