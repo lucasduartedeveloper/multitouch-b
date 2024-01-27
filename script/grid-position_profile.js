@@ -6,13 +6,12 @@ var profile = {
     selectedDispatcher: 1
 };
 
-var assemblyLine = {
-    balance: 0,
-    selectedTop: 0,
-    selectedMid: 1,
-    selectedClip: 0,
-    selectedDispatcher: 1
-};
+var assemblyLine = [{
+    top: 0,
+    mid: 1,
+    clip: 0,
+    dispatcher: 0
+}];
 
 var shopItemPrice = [
     [ ],
@@ -435,6 +434,23 @@ var createProfileView = function() {
     assembleView.style.zIndex = "15";
     profileView.appendChild(assembleView);
 
+    assembleView.onclick = function() {
+        var no = assemblyLine.indexOf((o) => {
+            return o.clip == profile.selectedClip;
+        });
+
+        if (no < 0) return;
+
+        assemblyLine[no].top = profile.selectedTop;
+        assemblyLine[no].mid = profile.selectedMid;
+        assemblyLine[no].clip = profile.selectedClip;
+        assemblyLine[no].dispatcher = profile.selectedDispatcher;
+
+        item0View.src = drawTop(profile.selectedTop);
+        item1View.src = drawMid(profile.selectedMid);
+        item2View.src = drawClip(profile.selectedClip);
+    };
+
     disassembleView = document.createElement("button");
     disassembleView.style.position = "absolute";
     disassembleView.style.background = "#fff";
@@ -450,6 +466,15 @@ var createProfileView = function() {
     //shopView.style.borderRadius = "25px";
     disassembleView.style.zIndex = "15";
     profileView.appendChild(disassembleView);
+
+    disassembleView.onclick = function() {
+        if (profile.no == 0) return;
+
+        var disassembly = 
+        assemblyLine.splice(profile.no, 1)[0];
+
+        inventory[1][disassembly.mid] += 1;
+    };
 
     shop0View = document.createElement("div");
     shop0View.style.position = "absolute";
@@ -516,6 +541,8 @@ var createProfileView = function() {
     //shopView.style.borderRadius = "25px";
     profileArrView.style.zIndex = "15";
     profileView.appendChild(profileArrView);
+
+    loadProfile();
 
     fixedCamera0 = document.createElement("canvas");
     fixedCamera0.style.position = "absolute";
@@ -601,8 +628,31 @@ var createProfileView = function() {
 };
 
 var loadProfile = function() {
-    
-};
+    var removeArr = [];
+    for (var n = 0; profileArrView.children.length; n++) {
+        removeArr.push(profileArrView.children[n]);
+    }
+    for (var n = 0; removeArr.length; n++) {
+        removeArr[n].remove();
+    }
+
+    for (var n = 0; n < assemblyLine.length; n++) {
+        var assemblyView = document.createElement("img");
+        assemblyView.style.position = "absolute";
+        assemblyView.style.background = "#000";
+        assemblyView.style.objectFit = "cover";
+        assemblyView.style.fontFamily = "Khand";
+        assemblyView.style.fontSize = "15px";
+        assemblyView.style.left = (n*80)+"px";
+        assemblyView.style.top = (0)+"px";
+        assemblyView.style.width = (80)+"px";
+        assemblyView.style.height = (80)+"px";
+        assemblyView.style.border = "1px solid #fff";
+        assemblyView.src = drawItem(assemblyLine[n]);
+        assemblyView.style.zIndex = "15";
+        profileArrView.appendChild(assemblyView);
+    }
+}; 
 
 var img_list = [
     "img/grid-position/clip-image/tile000.png",

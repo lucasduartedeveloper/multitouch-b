@@ -154,13 +154,20 @@ $(document).ready(function() {
 
         if ((e.touches.length > 0 && e.touches[0].identifier == 0) || 
             !ontouch1) {
+            if (swipeLength0 < 0.5) return;
             ontouch0 = false;
 
+            if (bodyArr.length > 0 && assemblyLine.length == 1)
+            return;
+
+            var obj = bodyArr.length == 0 ? 
+            assemblyLine[0] : assemblyLine[1];
+
             if (currentChampionship.state != "ready")
-            launchItem(profileToObj(), 
+            launchItem(obj, 
             startX0, startY0, moveX0, moveY0, swipeLength0);
             else if (bodyArr.length == 0)
-            launchItem(profileToObj(), 
+            launchItem(obj, 
             startX0, startY0, moveX0, moveY0, swipeLength0, true);
             else
             addBody(startX0, startY0, moveX0, moveY0, swipeLength0);
@@ -168,13 +175,20 @@ $(document).ready(function() {
         else 
         if ((e.touches.length > 0 && e.touches[0].identifier == 1) || 
             !ontouch0) {
+            if (swipeLength1 < 0.5) return;
             ontouch1 = false;
 
+            if (bodyArr.length > 0 && assemblyLine.length == 1)
+            return;
+
+            var obj = bodyArr.length == 0 ? 
+            assemblyLine[0] : assemblyLine[1];
+
             if (currentChampionship.state != "ready")
-            launchItem(profileToObj(), 
+            launchItem(obj, 
             startX1, startY1, moveX1, moveY1, swipeLength1);
             else if (bodyArr.length == 0)
-            launchItem(profileToObj(), 
+            launchItem(obj, 
             startX1, startY1, moveX1, moveY1, swipeLength1, true);
             else
             addBody(startX1, startY1, moveX1, moveY1, swipeLength1);
