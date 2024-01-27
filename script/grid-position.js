@@ -97,12 +97,21 @@ $(document).ready(function() {
     ontouch0 = false;
     ontouch1 = false;
 
+    color0 = "#fff";
+    color1 = "#fff";
+
     matterJsView.ontouchstart = function(e) {
-        if (squareEnabled || bodyArr.length > 1) return;
+        if (squareEnabled) return;
         ontouchIteration = 0;
 
         if (e.touches.length == 1) {
             ontouch0 = true;
+
+            var no = bodyArr.length == 0 ? 
+            getNextAssembly() : getNextAssembly(bodyArr[0].no);
+
+            color0 = colors[no];
+
             startX0 = e.touches[0].clientX;
             startY0 = e.touches[0].clientY;
             moveX0 = e.touches[0].clientX;
@@ -111,6 +120,12 @@ $(document).ready(function() {
 
         if (e.touches.length > 1) {
             ontouch1 = true;
+
+            var no = bodyArr.length == 0 ? 
+            getNextAssembly() : getNextAssembly(bodyArr[0].no);
+
+            color1 = colors[no];
+
             startX1 = e.touches[1].clientX;
             startY1 = e.touches[1].clientY;
             moveX1 = e.touches[1].clientX;
@@ -150,27 +165,27 @@ $(document).ready(function() {
 
     multiplayerMode = false;
     matterJsView.ontouchend = function(e) {
-        if (squareEnabled || bodyArr.length > 1) return;
+        if (squareEnabled) return;
 
         if ((e.touches.length > 0 && e.touches[0].identifier == 0) || 
             !ontouch1) {
             if (swipeLength0 < 0.5) return;
             ontouch0 = false;
 
-            if (bodyArr.length > 0 && assemblyLine.length == 1)
+            if (bodyArr.length == assemblyLine.length)
             return;
 
-            var obj = bodyArr.length == 0 ? 
-            assemblyLine[0] : assemblyLine[1];
+            var no = bodyArr.length == 0 ? 
+            getNextAssembly() : getNextAssembly(bodyArr[0].no);
+
+            var obj = assemblyLine[no];
 
             if (currentChampionship.state != "ready")
             launchItem(obj, 
             startX0, startY0, moveX0, moveY0, swipeLength0);
-            else if (bodyArr.length == 0)
+            else 
             launchItem(obj, 
             startX0, startY0, moveX0, moveY0, swipeLength0, true);
-            else
-            addBody(startX0, startY0, moveX0, moveY0, swipeLength0);
         }
         else 
         if ((e.touches.length > 0 && e.touches[0].identifier == 1) || 
@@ -178,20 +193,20 @@ $(document).ready(function() {
             if (swipeLength1 < 0.5) return;
             ontouch1 = false;
 
-            if (bodyArr.length > 0 && assemblyLine.length == 1)
+            if (bodyArr.length == assemblyLine.length)
             return;
 
-            var obj = bodyArr.length == 0 ? 
-            assemblyLine[0] : assemblyLine[1];
+            var no = bodyArr.length == 0 ? 
+            getNextAssembly() : getNextAssembly(bodyArr[0].no);
+
+            var obj = assemblyLine[no];
 
             if (currentChampionship.state != "ready")
             launchItem(obj, 
             startX1, startY1, moveX1, moveY1, swipeLength1);
-            else if (bodyArr.length == 0)
+            else 
             launchItem(obj, 
             startX1, startY1, moveX1, moveY1, swipeLength1, true);
-            else
-            addBody(startX1, startY1, moveX1, moveY1, swipeLength1);
         }
     };
 
@@ -1660,7 +1675,7 @@ function matterJs() {
             var a = _angle2d(co, ca)-(Math.PI);
 
             ctx.save();
-            ctx.strokeStyle = colors[getNextColor()];
+            ctx.strokeStyle = color0;
             ctx.lineWidth = 1;
             ctx.setLineDash([5, 5]);
             ctx.beginPath();
@@ -1677,7 +1692,7 @@ function matterJs() {
             var a = _angle2d(co, ca)-(Math.PI);
 
             ctx.save();
-            ctx.strokeStyle = colors[1];
+            ctx.strokeStyle = color1;
             ctx.lineWidth = 1;
             ctx.setLineDash([5, 5]);
             ctx.beginPath();

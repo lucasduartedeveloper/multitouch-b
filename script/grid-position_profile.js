@@ -6,12 +6,20 @@ var profile = {
     selectedDispatcher: 1
 };
 
-var assemblyLine = [{
-    top: 0,
-    mid: 1,
-    clip: 0,
-    dispatcher: 0
-}];
+var assemblyLine = [
+    {
+        top: 0,
+        mid: 1,
+        clip: 0,
+        dispatcher: 0
+    }, 
+    {
+        top: 0,
+        mid: 1,
+        clip: 1,
+        dispatcher: 0
+    }
+];
 
 var shopItemPrice = [
     [ ],
@@ -435,20 +443,59 @@ var createProfileView = function() {
     profileView.appendChild(assembleView);
 
     assembleView.onclick = function() {
-        var no = assemblyLine.indexOf((o) => {
+        var no = assemblyLine.findIndex((o) => {
             return o.clip == profile.selectedClip;
         });
 
-        if (no < 0) return;
+        if (no < 0) { 
+            assemblyLine.push(profileToObj());
+            loadProfile();
+            return;
+        }
 
         assemblyLine[no].top = profile.selectedTop;
         assemblyLine[no].mid = profile.selectedMid;
         assemblyLine[no].clip = profile.selectedClip;
         assemblyLine[no].dispatcher = profile.selectedDispatcher;
 
-        item0View.src = drawTop(profile.selectedTop);
-        item1View.src = drawMid(profile.selectedMid);
-        item2View.src = drawClip(profile.selectedClip);
+        loadProfile();
+
+        if (bodyArr.length > 0 && bodyArr[0].no == 0) {
+            var velocity = bodyArr[0].body.velocity;
+            var angularVelocity = bodyArr[0].body.angularVelocity;
+            var position = bodyArr[0].body.position;
+
+            var size = ((sw/gridSize)*2);
+
+            var polygon = 
+            getPolygon(assemblyLine[no].mid, { 
+                x: position.x, 
+                y: position.y
+            }, size);
+
+            var body = Bodies.fromVertices(
+                position.x, position.y, polygon, {
+                label: "body0",
+                mass: getMidMass(this.no),
+                render: {
+                    fillStyle: "#fff",
+                    strokeStyle: "#fff"
+                }});
+
+            Body.setVelocity(body, velocity);
+            Body.setAngularVelocity(body, angularVelocity);
+            Body.setPosition(body, position);
+
+            body.render.sprite.texture = 
+            drawItem(assemblyLine[no], true, true);
+            body.render.sprite.xScale = 0.5;
+            body.render.sprite.yScale = 0.5;
+
+            Composite.remove(engine.world, [ bodyArr[0].body ]);
+
+            bodyArr[0].body = body;
+            Composite.add(engine.world, [ bodyArr[0].body ]);
+        }
     };
 
     disassembleView = document.createElement("button");
@@ -468,12 +515,19 @@ var createProfileView = function() {
     profileView.appendChild(disassembleView);
 
     disassembleView.onclick = function() {
-        if (profile.no == 0) return;
+        if (assemblyLine.length == 1) return;
+
+        var no = assemblyLine.findIndex((o) => {
+            return o.clip == profile.selectedClip;
+        });
+
+        if (no < 0) return;
 
         var disassembly = 
-        assemblyLine.splice(profile.no, 1)[0];
+        assemblyLine.splice(no, 1)[0];
 
         inventory[1][disassembly.mid] += 1;
+        loadProfile();
     };
 
     shop0View = document.createElement("div");
@@ -627,14 +681,45 @@ var createProfileView = function() {
     loadImages();
 };
 
+var getNextAssembly = function(skip=-1) {
+    if (bodyArr.length == 0) return 0;
+
+    var search = [];
+    for (var n = 0; n < assemblyLine.length; n++) {
+        var no = assemblyLine[n].clip;
+        if (no == skip) continue;
+        search = bodyArr.filter((o) => { 
+            return o.no == no; 
+        });
+        if (search.length == 0)
+        return n;
+    }
+    return false;
+};
+
 var loadProfile = function() {
+    profileArrView.innerHTML = "";
+
+    var paperclipView = document.createElement("i");
+    paperclipView.style.position = "absolute";
+    paperclipView.style.color = "#fff";
+    paperclipView.className = "fa-solid fa-paperclip";
+    paperclipView.style.fontSize = "15px";
+    paperclipView.style.left = (0)+"px";
+    paperclipView.style.top = (0)+"px";
+    paperclipView.style.width = (20)+"px";
+    paperclipView.style.height = (20)+"px";
+    paperclipView.style.transform = "rotateZ(-45deg)";
+    paperclipView.style.zIndex = "15";
+
+    /*
     var removeArr = [];
     for (var n = 0; profileArrView.children.length; n++) {
         removeArr.push(profileArrView.children[n]);
     }
     for (var n = 0; removeArr.length; n++) {
         removeArr[n].remove();
-    }
+    }*/
 
     for (var n = 0; n < assemblyLine.length; n++) {
         var assemblyView = document.createElement("img");
@@ -651,7 +736,23 @@ var loadProfile = function() {
         assemblyView.src = drawItem(assemblyLine[n]);
         assemblyView.style.zIndex = "15";
         profileArrView.appendChild(assemblyView);
+
+        assemblyView.no = n;
+
+        assemblyView.onclick = function() {
+            paperclipView.style.left = (this.no*80)+"px";
+
+            profile.selectedTop = assemblyLine[this.no].top;
+            profile.selectedMid = assemblyLine[this.no].mid;
+            profile.selectedClip = assemblyLine[this.no].clip;
+
+            item0View.src = drawTop(profile.selectedTop);
+            item1View.src = drawMid(profile.selectedMid);
+            item2View.src = drawClip(profile.selectedClip);
+        };
     }
+
+    profileArrView.appendChild(paperclipView);
 }; 
 
 var img_list = [
@@ -1030,11 +1131,6 @@ var loadShop0 = function() {
         shopItemView.onclick = function() {
             profile.selectedTop = this.no;
             item0View.src = drawTop(profile.selectedTop);
-
-            if (bodyArr.length > 0 && bodyArr[0].no == 0) {
-                bodyArr[0].body.render.sprite.texture = 
-                drawItem(profileToObj(), true, true);
-            }
         };
     }
 };
@@ -1058,13 +1154,26 @@ var loadShop1 = function() {
         shopItemView.style.zIndex = "15";
         shop1View.appendChild(shopItemView);
 
+        itemInventoryView = document.createElement("span");
+        itemInventoryView.style.position = "absolute";
+        itemInventoryView.style.color = "#fff";
+        itemInventoryView.style.fontFamily = "Khand";
+        itemInventoryView.innerText = inventory[1][n];
+        itemInventoryView.style.fontSize = "10px";
+        itemInventoryView.style.lineHeight = "15px";
+        itemInventoryView.style.textAlign = "left";
+        itemInventoryView.style.left = ((n*80)+5)+"px";
+        itemInventoryView.style.top = (5)+"px";
+        itemInventoryView.style.width = (80)+"px";
+        itemInventoryView.style.height = (20)+"px";
+        itemInventoryView.style.zIndex = "15";
+        shop1View.appendChild(itemInventoryView);
+
         shopItemPriceView = document.createElement("span");
         shopItemPriceView.style.position = "absolute";
         shopItemPriceView.style.color = "#fff";
         shopItemPriceView.style.fontFamily = "Khand";
         shopItemPriceView.innerText = 
-        inventory[1][n] > 0 ? 
-        "owned" : 
         "$ "+shopItemPrice[1][n].toFixed(2).replace(".", ",");
         shopItemPriceView.style.fontSize = "10px";
         shopItemPriceView.style.lineHeight = "15px";
@@ -1084,43 +1193,6 @@ var loadShop1 = function() {
             if (inventory[1][this.no] == 1) {
                 profile.selectedMid = this.no;
                 item1View.src = drawMid(profile.selectedMid);
-
-                if (bodyArr.length > 0 && bodyArr[0].no == 0) {
-                    var velocity = bodyArr[0].body.velocity;
-                    var angularVelocity = bodyArr[0].body.angularVelocity;
-                    var position = bodyArr[0].body.position;
-
-                    var size = ((sw/gridSize)*2);
-
-                    var polygon = 
-                    getPolygon(this.no, { 
-                        x: position.x, 
-                        y: position.y
-                    }, size);
-
-                    var body = Bodies.fromVertices(
-                        position.x, position.y, polygon, {
-                        label: "body0",
-                        mass: getMidMass(this.no),
-                        render: {
-                            fillStyle: "#fff",
-                            strokeStyle: "#fff"
-                        }});
-
-                    Body.setVelocity(body, velocity);
-                    Body.setAngularVelocity(body, angularVelocity);
-                    Body.setPosition(body, position);
-
-                    body.render.sprite.texture = 
-                    drawItem(profileToObj(), true, true);
-                    body.render.sprite.xScale = 0.5;
-                    body.render.sprite.yScale = 0.5;
-
-                    Composite.remove(engine.world, [ bodyArr[0].body ]);
-
-                    bodyArr[0].body = body;
-                    Composite.add(engine.world, [ bodyArr[0].body ]);
-                }
             }
             else {
                 if (profile.balance < shopItemPrice[1][this.no])
@@ -1140,7 +1212,6 @@ var loadShop1 = function() {
                             item1View.src = drawMid(profile.selectedMid);
 
                             inventory[1][this.no] += 1;
-                            this.priceView.innerText = "owned";
                         }
                     });
                 }
@@ -1171,11 +1242,6 @@ var loadShop2 = function() {
         shopItemView.onclick = function() {
             profile.selectedClip = this.no;
             item2View.src = drawClip(profile.selectedClip);
-
-            if (bodyArr.length > 0 && bodyArr[0].no == 0) {
-                bodyArr[0].body.render.sprite.texture = 
-                drawItem(profileToObj(), true, true);
-            }
         };
     }
 };
