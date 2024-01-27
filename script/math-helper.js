@@ -40,3 +40,68 @@ Math.normalize = function(v, max=1) {
     var n = _rotate2d(c, p, -a, false);
     return n;
 };
+
+var centerBitmap = function(image) {
+    var canvas = document.createElement("canvas");
+    canvas.width = image.naturalWidth;
+    canvas.height = image.naturalHeight;
+
+    var ctx = canvas.getContext("2d");
+    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+    var imgData = 
+    ctx.getImageData(0, 0, canvas.width, canvas.height);
+    var data = imgData.data;
+
+    var positionArr = [];
+    for (var n = 0; n < data.length; n += 4) {
+        var x = (n%canvas.width);
+        var y = Math.floor(n/canvas.width);
+
+        if (data[(n*4)+3] == 0)
+        positionArr.push({ x: x, y: y });
+    };
+
+    console.log(
+    ((100/(data.length/4))*positionArr.length).toFixed(2)+
+    "% image detected");
+
+    var minX = canvas.width;
+    var minY = canvas.height;
+    var maxX = 0;
+    var maxY = 0;
+
+    var sumX = 0;
+    var sumY = 0;
+
+    for (var n = 0; n < positionArr.length; n++) {
+        minX = positionArr[n].x < minX ? positionArr[n].x : minX;
+        minY = positionArr[n].y < minY ? positionArr[n].y : minY;
+        maxX = positionArr[n].x > maxX ? positionArr[n].x : maxX;
+        maxY = positionArr[n].y > maxY ? positionArr[n].y : maxY;
+
+        sumX += positionArr[n].x;
+        sumY += positionArr[n].y;
+    }
+
+    var width = maxX-minX;
+    var height = maxY-minY;
+    var size = width > height ? width : height;
+
+    var centerX = sumX/positionArr.length;
+    var centerY = sumY/positionArr.length;
+
+    var left = centerX - (size/2);
+    var top = centerX - (size/2);
+
+    var resultCanvas = document.createElement("canvas");
+    resultCanvas.width = 100;
+    resultCanvas.height = 100;
+
+    var resultCtx = resultCanvas.getContext("2d");
+
+    resultCtx.drawImage(image, left, top, size, size,
+    0, 0, 100, 100);
+
+    return resultCanvas;
+};

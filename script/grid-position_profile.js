@@ -610,6 +610,10 @@ var img_list = [
     "img/grid-position/clip-image/tile002.png",
     "img/grid-position/clip-image/tile003.png",
     "img/grid-position/clip-image/tile005.png",
+    "img/grid-position/top-image/tile000.png",
+    "img/grid-position/top-image/tile001.png",
+    "img/grid-position/top-image/tile002.png",
+    "img/grid-position/top-image/tile003.png"
 ];
 
 var imagesLoaded = false;
@@ -791,6 +795,29 @@ var drawTop = function(no, dataURL=true) {
         ((Math.PI*2)/4)*2, (((Math.PI*2)/4)*2)+((Math.PI*2)/4));
         ctx.stroke();
     };
+    if (no == 6) {
+        var c = {
+            x: (size/2),
+            y: (size/2)
+        };
+        var p = {
+            x: c.x,
+            y: c.y-((size/4.5)/1.25)
+        };
+
+        ctx.fillStyle = "#000";
+
+        if (imagesLoaded)
+        for (var n = 0; n < 4; n++) {
+            var rp = _rotate2d(c, p, n*(360/4));
+            ctx.beginPath();
+            ctx.rect(rp.x-(size/16), rp.y-(size/16), (size/8), (size/8));
+            //ctx.fill();
+
+            ctx.drawImage(centerBitmap(img_list[5+n]), 
+            rp.x-(size/16), rp.y-(size/16), (size/8), (size/8));
+        }
+    };
 
     ctx.restore();
 
@@ -932,7 +959,7 @@ var drawDispatcher = function(no, dataURL=true, a) {
 };
 
 var loadShop0 = function() {
-    for (var n = 0; n < 6; n++) {
+    for (var n = 0; n < 7; n++) {
         var shopItemView = document.createElement("img");
         shopItemView.style.position = "absolute";
         shopItemView.style.background = "#000";
