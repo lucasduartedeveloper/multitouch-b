@@ -2008,7 +2008,15 @@ function matterJs() {
         for (var n = 0; n < bodyArr.length; n++) {
             if (!bodyArr[n].visible) {
                 console.log("removed "+bodyArr[n].body.label);
-                say(colorName[bodyArr[n].no]+" eliminated");
+
+                var rpm = 
+                ((bodyArr[n].body.angularVelocity / Math.PI)*60);
+
+                var text = rpm > 2.5 ? 
+                colorName[bodyArr[n].no]+" eliminated" : 
+                colorName[bodyArr[n].no]+" collapsed";
+
+                say(text);
                 bodyArr[n].oscillator.stop();
                 //bodyArr[n].audio.pause();
 
