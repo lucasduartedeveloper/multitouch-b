@@ -88,8 +88,14 @@ var centerBitmap = function(image) {
     var height = maxY-minY;
     var size = width > height ? width : height;
 
+    console.log("original size "+canvas.width+"x"+canvas.height, 
+    "detected size "+size+"x"+size);
+
     var centerX = sumX/positionArr.length;
     var centerY = sumY/positionArr.length;
+
+    console.log(
+    "rebased at "+centerX.toFixed(2)+"x"+centerY.toFixed(2));
 
     var left = centerX - (size/2);
     var top = centerX - (size/2);

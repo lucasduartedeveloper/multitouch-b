@@ -1815,7 +1815,7 @@ var launchItem = function(item, x, y, mx, my, offset, singlePlayer=false) {
             dispatcher[dispatcher.length-1].x, 
             dispatcher[dispatcher.length-1].y, polygon, {
             label: "body"+bodyNo,
-            frictionAir: 0,
+            frictionAir: 0.001,
             mass: getMidMass(item.mid),
             render: {
                 fillStyle: "#fff",
@@ -1832,7 +1832,7 @@ var launchItem = function(item, x, y, mx, my, offset, singlePlayer=false) {
     }
     var vn = Math.normalize(v, offset);
 
-    //Body.setAngularVelocity(obj.body, -obj.speed);
+    Body.setAngularVelocity(obj.body, -obj.speed);
 
     Body.setVelocity(obj.body, { 
         x: vn.x*(sw/gridSize),

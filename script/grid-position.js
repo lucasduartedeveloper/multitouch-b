@@ -1192,7 +1192,7 @@ var addBody = function(x, y, mx, my, offset) {
             dispatcher[dispatcher.length-1].x, 
             dispatcher[dispatcher.length-1].y, polygon, {
             label: "body"+bodyNo,
-            frictionAir: 0,
+            frictionAir: 0.001,
             render: {
                 fillStyle: "#fff",
                 strokeStyle: "#fff" }}),
@@ -1207,13 +1207,12 @@ var addBody = function(x, y, mx, my, offset) {
     }
     var vn = Math.normalize(v, offset);
 
-    //Body.setAngularVelocity(obj.body, -obj.speed);
+    Body.setAngularVelocity(obj.body, -obj.speed);
 
-    /*
     Body.setVelocity(obj.body, { 
         x: vn.x*(sw/gridSize),
         y: vn.y*(sw/gridSize)
-    });*/
+    });
 
     obj.body.render.sprite.texture = 
     createTexture(1, size*2, colors[obj.no]);
@@ -1624,6 +1623,18 @@ function matterJs() {
     Matter.Events.on(engine, "beforeUpdate", function (event) {
         //rotateGrid();
 
+        if (bodyArr.length > 0) {
+            var rpm = 
+            ((bodyArr[0].body.angularVelocity / Math.PI)*60);
+            bodyArr[0].visible = Math.abs(rpm) > 2.5;
+        }
+
+        if (bodyArr.length > 1) {
+            var rpm = 
+            ((bodyArr[1].body.angularVelocity / Math.PI)*60);
+            bodyArr[1].visible = Math.abs(rpm) > 2.5;
+        }
+
         var ctx  = matterJsView.getContext("2d");
 
         if (ontouch0 || ontouch1)
@@ -1820,8 +1831,9 @@ function matterJs() {
             sh+(150+((sw/gridSize)/2)))
             bodyArr[n].visible = false;
 
+            /*
             Body.setAngularVelocity(
-            bodyArr[n].body, -bodyArr[n].speed);
+            bodyArr[n].body, -bodyArr[n].speed);*/
 
             var c = {
                 x: (sw/2),
