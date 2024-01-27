@@ -810,17 +810,8 @@ var offsetAngle = -(Math.PI/180);
 
 var drawImage = function(angle=0) {
     var ctx = pictureView.getContext("2d");
-    ctx.imageSmoothingEnabled = false;
+    ctx.imageSmoothingEnabled = true;
     ctx.clearRect(0, 0, sw, sh);
-
-    var resolutionCanvas = document.createElement("canvas");
-    resolutionCanvas.width = 
-    resolution == 0 ? sw : (8*resolution);
-    resolutionCanvas.height = 
-    resolution == 0 ? sw : (8*resolution);
-
-    var resolutionCtx = resolutionCanvas.getContext("2d");
-    resolutionCtx.imageSmoothingEnabled = false;
 
     ctx.save();
     ctx.translate((sw/2), (sh/2));
@@ -830,8 +821,8 @@ var drawImage = function(angle=0) {
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, sw, sh);
 
-    ctx.strokeStyle = "#333";
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = "#111";
+    ctx.lineWidth = 5;
 
     for (var y = 0; y < Math.floor((sh/(sw/gridSize))); y++) {
         ctx.beginPath();
@@ -849,7 +840,100 @@ var drawImage = function(angle=0) {
 
     ctx.restore();
 
-    ctx.drawImage(resolutionCanvas, 0, 0, sw, sw);
+    setShape(ctx);
+    return;
+
+    if (bodyArr.length > 0) {
+        var position = { ...bodyArr[0].body.position };
+        setShape_item(ctx, position.x, position.y);
+    }
+
+    if (bodyArr.length > 1) {
+        var position = { ...bodyArr[1].body.position };
+        setShape_item(ctx, position.x, position.y);
+    }
+};
+
+var convertToZoom = function(pos) {
+    render.bounds.min.x = (c.x-(hyp*2));
+    render.bounds.max.x = (c.x+(hyp*2));
+
+    render.bounds.min.y = (c.y-((hyp*2)*r));
+    render.bounds.max.y = (c.y+((hyp*2)*r));
+};
+
+var setShape = function(ctx) {
+    var size = sw;
+
+    var canvas = document.createElement("canvas");
+    canvas.width = sw;
+    canvas.height = sw;
+
+    var centerCtx = canvas.getContext("2d");
+    centerCtx.imageSmoothingEnabled = true;
+
+    centerCtx.lineWidth = 0.5;
+    centerCtx.strokeStyle = "#fff";
+
+    for (var n = 0; n < 50 ; n++) {
+        var radius = (1-((1/50)*n))*(size/2);
+        centerCtx.save();
+        centerCtx.beginPath();
+        centerCtx.arc((size/2), (size/2), radius, 0, (Math.PI*2));
+        //drawPolygon(centerCtx, 75, 75, radius);
+        //centerCtx.stroke();
+        centerCtx.clip();
+
+        var scale = 1-(Math.curve((1/50)*n, 1)*0.25);
+        console.log(scale);
+
+        centerCtx.drawImage(pictureView, 
+        (sw/2)-((size/2)/scale), (sh/2)-((size/2)/scale),
+        (size/scale), (size/scale),
+        0, 0, size, size);
+
+        centerCtx.restore();
+    }
+
+    ctx.drawImage(canvas, 
+    (sw/2)-(size/2), (sh/2)-(size/2), size, size);
+};
+
+var setShape_item = function(ctx, x, y) {
+    var size = (sw/gridSize)*2;
+
+    var canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = size;
+
+    var centerCtx = canvas.getContext("2d");
+    centerCtx.imageSmoothingEnabled = true;
+
+    centerCtx.lineWidth = 0.5;
+    centerCtx.strokeStyle = "#fff";
+
+    for (var n = 0; n < 50 ; n++) {
+        var radius = (1-((1/50)*n))*(size/2);
+        centerCtx.save();
+        centerCtx.beginPath();
+        centerCtx.arc((size/2), (size/2), radius, 0, (Math.PI*2));
+        //drawPolygon(centerCtx, 75, 75, radius);
+        //centerCtx.stroke();
+        centerCtx.clip();
+
+        var scale = 1-(Math.curve((1/50)*n, 1)*0.25);
+        console.log(scale);
+
+        centerCtx.drawImage(pictureView, 
+        (x)-((size/2)/scale), (y)-((size/2)/scale),
+        (size/scale), (size/scale),
+        0, 0, size, size);
+
+        centerCtx.restore();
+    }
+
+    ctx.drawImage(canvas, 
+    (x)-(size/2), (y)-(size/2), size, size);
 };
 
 var clipTexture = function(url, size, callback) {
