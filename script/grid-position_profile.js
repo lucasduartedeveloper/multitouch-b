@@ -22,13 +22,13 @@ var assemblyLine = [
 ];
 
 var shopItemPrice = [
-    [ ],
-    [ 5, 15, 25, 35, 45, 100 ]
+    [ 1, 1.5, 2, 2.5, 3, 3.5, 4 ],
+    [ 5, 15, 25, 35, 45, 100, 185 ]
 ];
 
 var inventory = [
-    [ ],
-    [ 0, 1, 0, 1, 0, 0 ]
+    [ 1, 0, 0, 0, 0, 0, 0 ],
+    [ 0, 1, 0, 1, 0, 0, 0 ]
 ];
 
 var profileToObj = function() {
@@ -540,9 +540,10 @@ var createProfileView = function() {
     shop0View.style.top = (30)+"px";
     shop0View.style.width = (sw-130)+"px";
     shop0View.style.height = (80)+"px";
-    shop0View.style.border = "1px solid #000";
+    shop0View.style.outline = "1px solid #000";
     //shopView.style.borderRadius = "25px";
     shop0View.style.overflowX = "auto";
+    shop0View.style.overflowY = "hidden";
     shop0View.style.zIndex = "15";
     profileView.appendChild(shop0View);
 
@@ -557,9 +558,10 @@ var createProfileView = function() {
     shop1View.style.top = (120)+"px";
     shop1View.style.width = (sw-130)+"px";
     shop1View.style.height = (80)+"px";
-    shop1View.style.border = "1px solid #000";
+    shop1View.style.outline = "1px solid #000";
     //shopView.style.borderRadius = "25px";
     shop1View.style.overflowX = "auto";
+    shop1View.style.overflowY = "hidden";
     shop1View.style.zIndex = "15";
     profileView.appendChild(shop1View);
 
@@ -574,9 +576,10 @@ var createProfileView = function() {
     shop2View.style.top = (210)+"px";
     shop2View.style.width = (sw-130)+"px";
     shop2View.style.height = (80)+"px";
-    shop2View.style.border = "1px solid #000";
+    shop2View.style.outline = "1px solid #000";
     //shopView.style.borderRadius = "25px";
     shop2View.style.overflowX = "auto";
+    shop2View.style.overflowY = "hidden";
     shop2View.style.zIndex = "15";
     profileView.appendChild(shop2View);
 
@@ -591,7 +594,7 @@ var createProfileView = function() {
     profileArrView.style.top = (300)+"px";
     profileArrView.style.width = (sw-130)+"px";
     profileArrView.style.height = (80)+"px";
-    profileArrView.style.border = "1px solid #000";
+    profileArrView.style.outline = "1px solid #000";
     profileArrView.style.overflowX = "auto";
     //shopView.style.borderRadius = "25px";
     profileArrView.style.zIndex = "15";
@@ -717,12 +720,16 @@ var getNextAssembly = function(skip=-1) {
 var loadProfile = function() {
     profileArrView.innerHTML = "";
 
+    var no = assemblyLine.findIndex((o) => {
+        return o.clip == profile.selectedClip;
+    });
+
     var paperclipView = document.createElement("i");
     paperclipView.style.position = "absolute";
     paperclipView.style.color = "#fff";
     paperclipView.className = "fa-solid fa-paperclip";
     paperclipView.style.fontSize = "15px";
-    paperclipView.style.left = (0)+"px";
+    paperclipView.style.left = (no*80)+"px";
     paperclipView.style.top = (0)+"px";
     paperclipView.style.width = (20)+"px";
     paperclipView.style.height = (20)+"px";
@@ -995,7 +1002,7 @@ var drawTop = function(no, dataURL=true) {
 var drawMid = function(no, dataURL=true) {
     var canvas = document.createElement("canvas");
     canvas.width = 160;
-    canvas.height = 160;2
+    canvas.height = 160;
 
     var size = 160;
 
@@ -1127,6 +1134,8 @@ var drawDispatcher = function(no, dataURL=true, a) {
 };
 
 var loadShop0 = function() {
+    shop0View.innerHTML = "";
+
     for (var n = 0; n < 7; n++) {
         var shopItemView = document.createElement("img");
         shopItemView.style.position = "absolute";
@@ -1145,9 +1154,66 @@ var loadShop0 = function() {
         shopItemView.style.zIndex = "15";
         shop0View.appendChild(shopItemView);
 
+        itemInventoryView = document.createElement("span");
+        itemInventoryView.style.position = "absolute";
+        itemInventoryView.style.color = "#fff";
+        itemInventoryView.style.fontFamily = "Khand";
+        itemInventoryView.innerText = inventory[0][n];
+        itemInventoryView.style.fontSize = "10px";
+        itemInventoryView.style.lineHeight = "15px";
+        itemInventoryView.style.textAlign = "left";
+        itemInventoryView.style.left = ((n*80)+5)+"px";
+        itemInventoryView.style.top = (5)+"px";
+        itemInventoryView.style.width = (80)+"px";
+        itemInventoryView.style.height = (20)+"px";
+        itemInventoryView.style.zIndex = "15";
+        shop0View.appendChild(itemInventoryView);
+
+        shopItemPriceView = document.createElement("span");
+        shopItemPriceView.style.position = "absolute";
+        shopItemPriceView.style.color = "#fff";
+        shopItemPriceView.style.fontFamily = "Khand";
+        shopItemPriceView.innerText = 
+        "$ "+shopItemPrice[0][n].toFixed(2).replace(".", ",");
+        shopItemPriceView.style.fontSize = "10px";
+        shopItemPriceView.style.lineHeight = "15px";
+        shopItemPriceView.style.textAlign = "right";
+        shopItemPriceView.style.left = ((n*80)-5)+"px";
+        shopItemPriceView.style.top = (60)+"px";
+        shopItemPriceView.style.width = (80)+"px";
+        shopItemPriceView.style.height = (20)+"px";
+        //balanceView.style.border = "1px solid white";
+        //profileView.style.borderRadius = "25px";
+        shopItemPriceView.style.zIndex = "15";
+        shop0View.appendChild(shopItemPriceView);
+
         shopItemView.onclick = function() {
-            profile.selectedTop = this.no;
-            item0View.src = drawTop(profile.selectedTop);
+            if (inventory[0][this.no] == 1) {
+                profile.selectedTop = this.no;
+                item0View.src = drawTop(profile.selectedTop);
+            }
+            else {
+                if (profile.balance < shopItemPrice[0][this.no])
+                swal("Insuficient funds.");
+                else {
+                    swal({ text: "Purchase for $ "+
+                    (shopItemPrice[0][this.no]).toFixed(2).replace(".", ",")+
+                    "?", buttons: [ "No", "Yes"] })
+                    .then((value) => {
+                        //console.log(value);
+                        if (value) {
+                            profile.balance -= shopItemPrice[0][this.no];
+                            refreshBalance();
+
+                            profile.selectedTop = this.no;
+                            item0View.src = drawTop(profile.selectedTop);
+
+                            inventory[0][this.no] += 1;
+                            loadShop0();
+                        }
+                    });
+                }
+            }
         };
     }
 };
@@ -1155,7 +1221,7 @@ var loadShop0 = function() {
 var loadShop1 = function() {
     shop1View.innerHTML = "";
 
-    for (var n = 0; n < 6; n++) {
+    for (var n = 0; n < 7; n++) {
         var shopItemView = document.createElement("img");
         shopItemView.style.position = "absolute";
         shopItemView.style.background = "#000";
@@ -1217,18 +1283,20 @@ var loadShop1 = function() {
                 if (profile.balance < shopItemPrice[1][this.no])
                 swal("Insuficient funds.");
                 else {
-                    swal({ text: "Purchase for $"+
+                    swal({ text: "Purchase for $ "+
                     (shopItemPrice[1][this.no]).toFixed(2).replace(".", ",")+
                     "?", buttons: [ "No", "Yes"] })
                     .then((value) => {
                         //console.log(value);
                         if (value) {
+                            profile.balance -= shopItemPrice[1][this.no];
                             refreshBalance();
 
                             profile.selectedMid = this.no;
                             item1View.src = drawMid(profile.selectedMid);
 
                             inventory[1][this.no] += 1;
+                            loadShop1();
                         }
                     });
                 }

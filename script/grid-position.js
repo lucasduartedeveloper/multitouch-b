@@ -1131,6 +1131,55 @@ var getPolygon = function(n, pos, size) {
         });
     }
     }
+    else if (n == 6) {
+    var polygon = [];
+    var c = { 
+        x: pos.x,
+        y: pos.y
+    };
+    var p = {
+        x: c.x,
+        y: c.y-(size/3)
+    };
+    polygon.push({
+        x: c.x+(size/10),
+        y: c.y-(size/1.75)
+    });
+    polygon.push({
+        x: c.x,
+        y: c.y-(size/1.5)
+    });
+    polygon.push({
+        x: c.x-(size/10),
+        y: c.y-(size/1.75)
+    });
+    for (var n = 3; n < 48; n++) {
+        var rp = _rotate2d(c, p, n*(180/50));
+        polygon.push({
+            x: rp.x,
+            y: rp.y0
+        });
+    }
+    polygon.push({
+        x: c.x-(size/10),
+        y: c.y+(size/1.75)
+    });
+    polygon.push({
+        x: c.x,
+        y: c.y+(size/1.5)
+    });
+    polygon.push({
+        x: c.x+(size/10),
+        y: c.y+(size/1.75)
+    });
+    for (var n = 3; n < 48; n++) {
+        var rp = _rotate2d(c, p, 180+(n*(180/50)));
+        polygon.push({
+            x: rp.x,
+            y: rp.y
+        });
+    }
+    }
 
     return polygon;
 };
