@@ -1689,10 +1689,37 @@ function matterJs() {
                 updateExits(offsetX, offsetY, true);
             }
 
+            var c = {
+                x: (sw/2),
+                y: (sh/2)
+            };
+            var p = {
+                x: pairs[n].bodyA.position.x + 
+                ((pairs[n].bodyB.position.x - 
+                pairs[n].bodyA.position.x)/2),
+                y: pairs[n].bodyA.position.y + 
+                ((pairs[n].bodyB.position.y - 
+                pairs[n].bodyA.position.y)/2)
+            };
+            var v = {
+                x: (p.x-c.x),
+                y: (p.y-c.y)
+            };
+
+            var co = Math.abs(v.x);
+            var ca = Math.abs(v.y);
+            var hyp = Math.sqrt(
+            Math.pow(co, 2)+
+            Math.pow(ca, 2));
+
+            var r = (1/(sw/2))*hyp;
+            var volume = 0.5+r;
+            volume = volume < 0 ? 0 : volume;
+
             if (pairs[n].bodyA.label.includes("body"))
-            sfxPool.play("audio/collision-sfx.wav");
+            sfxPool.play("audio/collision-sfx.wav", volume*0.1);
             if (pairs[n].bodyB.label.includes("body"))
-            sfxPool.play("audio/collision-sfx.wav");
+            sfxPool.play("audio/collision-sfx.wav", volume*0.1);
 
             if (pairs[n].bodyA.label.includes("attack-bonus") || 
                 pairs[n].bodyB.label.includes("attack-bonus")) {
@@ -2002,6 +2029,11 @@ function matterJs() {
             engine.timing.timeScale * 
             (((1/5)*bodyArr[n].body.angularVelocity) * 
             bodyArr[n].frequency);
+
+            var volume = 0.5+r;
+            volume = volume < 0 ? 0 : volume;
+
+            bodyArr[n].oscillator.volume.gain.value = volume*0.1;
         }
 
         //if (bodyArr.length > 1)

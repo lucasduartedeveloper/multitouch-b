@@ -7,14 +7,13 @@ class SfxPool {
        this.used = 0;
        this.volume = 1;
     }
-    play(url, callback=false, obj=false) {
+    play(url, volume, callback=false) {
        var stored = this.stored.filter((o) => { return o.url == url; });
        var sfx0 = stored.length > 0 ? stored[0] : new Audio(url);
        var n = this.stored.indexOf(sfx0);
        this.stored.splice(n, 1);
-       /*var beep0 = this.stored.length > 0 ?
-       this.stored.pop() : new Audio(url);*/
-       sfx0.volume = this.volume;
+
+       sfx0.volume = volume; //this.volume;
        sfx0.onended = function() {
            for (var k in this.pool.playing) {
                if (this.timestamp == this.pool.playing[k].timestamp) {
@@ -22,10 +21,7 @@ class SfxPool {
                        this.pool.playing.splice(k, 1)[0]
                    );
                    this.pool.used += 1;
-                   /*
-                   info.innerText = "mp3: "+this.pool.used+
-                   (this.pool.playing.length > 0 ?
-                   "/"+this.pool.playing.length : "");*/
+
                    if (callback) callback(obj);
                }
            }
