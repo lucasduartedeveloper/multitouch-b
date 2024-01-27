@@ -2020,13 +2020,16 @@ function matterJs() {
             var ctx = fixedCamera0.getContext("2d");
 
             ctx.fillStyle = "#fff";
-            ctx.font = "15px sans serif";
+            ctx.font = "10px sans serif";
             ctx.textAlign = "right";
             ctx.textBaseline = "middle";
 
+            var rpm = 
+            ((bodyArr[0].body.angularVelocity / Math.PI)*60);
+
             ctx.fillText(
-            bodyArr[0].body.angularSpeed.toFixed(3)+" RP", 
-            (sw/3)-5, 12.5);
+            Math.abs(rpm).toFixed(3)+" RPM", 
+            (sw/3)-5, 10);
         }
 
         if (bodyArr.length > 1) {
@@ -2041,6 +2044,20 @@ function matterJs() {
 
             render1.bounds.min.y = c.y-(sw/12);
             render1.bounds.max.y = c.y+(sw/12);
+
+            var ctx = fixedCamera1.getContext("2d");
+
+            ctx.fillStyle = "#fff";
+            ctx.font = "10px sans serif";
+            ctx.textAlign = "right";
+            ctx.textBaseline = "middle";
+
+            var rpm = 
+            ((bodyArr[1].body.angularVelocity / Math.PI)*60);
+
+            ctx.fillText(
+            Math.abs(rpm).toFixed(3)+" RPM", 
+            (sw/3)-5, 10);
         }
         else {
             var ctx = fixedCamera1.getContext("2d");
