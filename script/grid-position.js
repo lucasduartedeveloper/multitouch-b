@@ -1192,7 +1192,7 @@ var addBody = function(x, y, mx, my, offset) {
             dispatcher[dispatcher.length-1].x, 
             dispatcher[dispatcher.length-1].y, polygon, {
             label: "body"+bodyNo,
-            frictionAir: 0.001,
+            frictionAir: getAirFriction(1),
             render: {
                 fillStyle: "#fff",
                 strokeStyle: "#fff" }}),

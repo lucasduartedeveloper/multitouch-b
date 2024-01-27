@@ -1762,6 +1762,25 @@ var getMidMass = function(no) {
     return Math.abs(total);
 };
 
+var getAirFriction = function(no) {
+    var polygon = 
+    getPolygon(no, { x: 0.5, y: 0.5 }, 1);
+
+    var total = 0;
+
+    for (var n = 0; n < polygon.length; n++) {
+      var addX = polygon[n].x;
+      var addY = polygon[n == polygon.length - 1 ? 0 : n + 1].y;
+      var subX = polygon[n == polygon.length - 1 ? 0 : n + 1].x;
+      var subY = polygon[n].y;
+
+      total += (addX * addY * 0.5);
+      total -= (subX * subY * 0.5);
+    }
+
+    return Math.abs(total)*0.001;
+};
+
 var launchItem = function(item, x, y, mx, my, offset, singlePlayer=false) {
     if (!singlePlayer && (!currentChampionship.stateOpen || 
     bodyArr.length > 1)) return;
@@ -1815,7 +1834,7 @@ var launchItem = function(item, x, y, mx, my, offset, singlePlayer=false) {
             dispatcher[dispatcher.length-1].x, 
             dispatcher[dispatcher.length-1].y, polygon, {
             label: "body"+bodyNo,
-            frictionAir: 0.001,
+            frictionAir: getAirFriction(item.mid),
             mass: getMidMass(item.mid),
             render: {
                 fillStyle: "#fff",
