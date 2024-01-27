@@ -23,12 +23,12 @@ var assemblyLine = [
 
 var shopItemPrice = [
     [ 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5 ],
-    [ 5, 15, 25, 35, 45, 100, 185 ]
+    [ 5, 15, 25, 35, 45, 100, 185, 225 ]
 ];
 
 var inventory = [
     [ 1, 0, 0, 0, 0, 0, 0, 0 ],
-    [ 0, 1, 0, 1, 0, 0, 0 ]
+    [ 0, 1, 0, 1, 0, 0, 0, 0 ]
 ];
 
 var profileToObj = function() {
@@ -1030,7 +1030,7 @@ var drawMid = function(no, dataURL=true) {
     return !dataURL ? canvas : canvas.toDataURL();
 };
 
-var drawClip = function(no, dataURL=true) {
+var drawClip = function(no, dataURL=true, standalone=true) {
     var canvas = document.createElement("canvas");
     canvas.width = 160;
     canvas.height = 160;
@@ -1038,6 +1038,12 @@ var drawClip = function(no, dataURL=true) {
     var size = 160;
 
     var ctx = canvas.getContext("2d");
+
+    ctx.save();
+    ctx.translate((size/2), (size/2));
+    if (!standalone)
+    ctx.rotate(-(Math.PI/2));
+    ctx.translate(-(size/2), -(size/2));
 
     var color = colors[no];
 
@@ -1053,6 +1059,8 @@ var drawClip = function(no, dataURL=true) {
     ctx.fillStyle = "#000";
     ctx.beginPath();
     ctx.arc((size/2), (size/2), (size/11), 0, (Math.PI*2));
+
+    ctx.restore();
 
     /*
     ctx.fill();
@@ -1224,7 +1232,7 @@ var loadShop0 = function() {
 var loadShop1 = function() {
     shop1View.innerHTML = "";
 
-    for (var n = 0; n < 7; n++) {
+    for (var n = 0; n < 8; n++) {
         var shopItemView = document.createElement("img");
         shopItemView.style.position = "absolute";
         shopItemView.style.background = "#000";
@@ -1836,7 +1844,7 @@ var drawItem = function(obj, toDataURL=true, toSprite=false) {
     0, 0, size, size);
     ctx.drawImage(drawTop(obj.top, false), 
     0, 0, size, size);
-    ctx.drawImage(drawClip(obj.clip, false), 
+    ctx.drawImage(drawClip(obj.clip, false, false), 
     0, 0, size, size);
 
     return !toDataURL ? canvas : canvas.toDataURL();
