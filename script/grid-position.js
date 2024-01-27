@@ -98,9 +98,8 @@ $(document).ready(function() {
     ontouch1 = false;
 
     matterJsView.ontouchstart = function(e) {
+        if (squareEnabled || bodyArr.length > 1) return;
         ontouchIteration = 0;
-
-        console.log("start", e.touches);
 
         if (e.touches.length == 1) {
             ontouch0 = true;
@@ -151,9 +150,7 @@ $(document).ready(function() {
 
     multiplayerMode = false;
     matterJsView.ontouchend = function(e) {
-        if (squareEnabled) return;
-
-        console.log("end", e.touches);
+        if (squareEnabled || bodyArr.length > 1) return;
 
         if ((e.touches.length > 0 && e.touches[0].identifier == 0) || 
             !ontouch1) {
@@ -1002,11 +999,10 @@ var getPolygon = function(n, pos, size) {
         x: c.x,
         y: c.y-(size/1.75)
     };
-    /*
     polygon.push({
         x: c.x,
         y: c.y-(size/1.75)
-    });*/
+    });
     for (var n = 3; n < 8; n++) {
         var rp = _rotate2d(c, p, n*(120/10));
         polygon.push({
@@ -1807,11 +1803,12 @@ function matterJs() {
             var renderScale = 
             timeScale < 1 ? 1+(1-timeScale) : timeScale;
 
+            /*
             render.bounds.min.x = c.x-((2-renderScale)*(sw/2));
             render.bounds.max.x = c.x+((2-renderScale)*(sw/2));
 
             render.bounds.min.y = c.y-((2-renderScale)*(sh/2));
-            render.bounds.max.y = c.y+((2-renderScale)*(sh/2));
+            render.bounds.max.y = c.y+((2-renderScale)*(sh/2));*/
         }
 
         for (var n = 0; n < bodyArr.length; n++) {
@@ -2007,6 +2004,61 @@ function matterJs() {
     });
 
     Matter.Events.on(engine, "afterUpdate", function (event) {
+        if (bodyArr.length > 0) {
+            // shop render 0
+            var c = {
+                x: bodyArr[0].body.position.x,
+                y: bodyArr[0].body.position.y
+            };
+
+            render0.bounds.min.x = c.x-(sw/12);
+            render0.bounds.max.x = c.x+(sw/12);
+
+            render0.bounds.min.y = c.y-(sw/12);
+            render0.bounds.max.y = c.y+(sw/12);
+
+            var ctx = fixedCamera0.getContext("2d");
+
+            ctx.fillStyle = "#fff";
+            ctx.font = "15px sans serif";
+            ctx.textAlign = "right";
+            ctx.textBaseline = "middle";
+
+            ctx.fillText(
+            bodyArr[0].body.angularSpeed.toFixed(3)+" RP", 
+            (sw/3)-5, 12.5);
+        }
+
+        if (bodyArr.length > 1) {
+            // shop render 0
+            var c = {
+                x: bodyArr[1].body.position.x,
+                y: bodyArr[1].body.position.y
+            };
+
+            render1.bounds.min.x = c.x-(sw/12);
+            render1.bounds.max.x = c.x+(sw/12);
+
+            render1.bounds.min.y = c.y-(sw/12);
+            render1.bounds.max.y = c.y+(sw/12);
+        }
+        else {
+            var ctx = fixedCamera1.getContext("2d");
+
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = "#fff";
+
+            ctx.beginPath();
+            ctx.moveTo(0, (sw/3));
+            ctx.moveTo((sw/3), 0);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.moveTo((sw/3), (sw/3));
+            ctx.stroke();
+        }
+
         var pairArr = [];
 
         if (bodyArr.length > 1) {

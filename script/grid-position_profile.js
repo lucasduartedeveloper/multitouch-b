@@ -14,6 +14,16 @@ var assemblyLine = {
     selectedDispatcher: 1
 };
 
+var shopItemPrice = [
+    [ ],
+    [ 5, 15, 25, 35, 45, 100 ]
+];
+
+var inventory = [
+    [ ],
+    [ 0, 1, 0, 1, 0, 0 ]
+];
+
 var profileToObj = function() {
     var obj = {
         top: profile.selectedTop,
@@ -507,7 +517,63 @@ var createProfileView = function() {
     profileArrView.style.zIndex = "15";
     profileView.appendChild(profileArrView);
 
-    //loadShop3();
+    fixedCamera0 = document.createElement("canvas");
+    fixedCamera0.style.position = "absolute";
+    fixedCamera0.style.width = (sw/3);
+    fixedCamera0.style.height = (sw/3);
+    fixedCamera0.style.left = ((sw/2)-(sw/3)) +"px";
+    fixedCamera0.style.top = ((sh/2)+(sh/3)-(sw/3))+"px";
+    fixedCamera0.style.width = (sw/3)+"px";
+    fixedCamera0.style.height = (sw/3)+"px";
+    fixedCamera0.style.border = "1px solid #fff";
+    fixedCamera0.style.zIndex = "15";
+    profileView.appendChild(fixedCamera0);
+
+    fixedCamera1 = document.createElement("canvas");
+    fixedCamera1.style.position = "absolute";
+    fixedCamera1.style.width = (sw/3);
+    fixedCamera1.style.height = (sw/3);
+    fixedCamera1.style.left = ((sw/2)) +"px";
+    fixedCamera1.style.top = ((sh/2)+(sh/3)-(sw/3))+"px";
+    fixedCamera1.style.width = (sw/3)+"px";
+    fixedCamera1.style.height = (sw/3)+"px";
+    fixedCamera1.style.border = "1px solid #fff";
+    fixedCamera1.style.zIndex = "15";
+    profileView.appendChild(fixedCamera1);
+
+    render0 = Render.create({
+        engine: engine,
+        canvas: fixedCamera0,
+        options: {
+            width: (sw/3),
+            height: (sw/3),
+            background: "#000",
+            wireframes: false
+            //showPerformance: true
+        }
+    });
+
+    render0.options.hasBounds = true;
+
+    // run the renderer
+    Render.run(render0);
+
+    render1 = Render.create({
+        engine: engine,
+        canvas: fixedCamera1,
+        options: {
+            width: (sw/3),
+            height: (sw/3),
+            background: "#000",
+            wireframes: false
+            //showPerformance: true
+        }
+    });
+
+    render1.options.hasBounds = true;
+
+    // run the renderer
+    Render.run(render1);
 
     cpuLaunchCount = 0;
 
@@ -896,11 +962,6 @@ var loadShop0 = function() {
     }
 };
 
-var shopItemPrice = [
-    [ ],
-    [ 5, 0, 25, 0, 45, 100 ]
-];
-
 var loadShop1 = function() {
     for (var n = 0; n < 6; n++) {
         var shopItemView = document.createElement("img");
@@ -925,7 +986,7 @@ var loadShop1 = function() {
         shopItemPriceView.style.color = "#fff";
         shopItemPriceView.style.fontFamily = "Khand";
         shopItemPriceView.innerText = 
-        shopItemPrice[1][n] == 0 ? 
+        inventory[1][n] > 0 ? 
         "owned" : 
         "$ "+shopItemPrice[1][n].toFixed(2).replace(".", ",");
         shopItemPriceView.style.fontSize = "10px";
@@ -943,10 +1004,10 @@ var loadShop1 = function() {
         shopItemView.priceView = shopItemPriceView;
 
         shopItemView.onclick = function() {
-            if ((shopItemPrice[1][this.no]) == 0) {
+            if (inventory[1][this.no] == 1) {
                 profile.selectedMid = this.no;
                 item1View.src = drawMid(profile.selectedMid);
-                
+
                 if (bodyArr.length > 0 && bodyArr[0].no == 0) {
                     var velocity = bodyArr[0].body.velocity;
                     var angularVelocity = bodyArr[0].body.angularVelocity;
@@ -1001,7 +1062,7 @@ var loadShop1 = function() {
                             profile.selectedMid = this.no;
                             item1View.src = drawMid(profile.selectedMid);
 
-                            shopItemPrice[1][this.no] = 0;
+                            inventory[1][this.no] += 1;
                             this.priceView.innerText = "owned";
                         }
                     });
