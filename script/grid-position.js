@@ -2146,7 +2146,7 @@ function matterJs() {
 
                 var text = rpm > 2.5 ? 
                 colorName[bodyArr[n].no]+" eliminated" : 
-                colorName[bodyArr[n].no]+" collapsed";
+                colorName[bodyArr[n].no]+" got collapsed";
 
                 say(text);
                 bodyArr[n].oscillator.stop();
