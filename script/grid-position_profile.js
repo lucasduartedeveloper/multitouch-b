@@ -379,6 +379,11 @@ var createProfileView = function() {
 
     refreshBalance();
 
+    // x * 1.5 = 0;
+    // x = 1/1.5;
+
+    var offset = parseInt(((40*1.5)-40)*(1/1.5));
+
     item0View = document.createElement("img");
     item0View.style.position = "absolute";
     item0View.style.background = "#000";
@@ -392,6 +397,9 @@ var createProfileView = function() {
     item0View.style.border = "1px solid #000";
     //shopView.style.borderRadius = "25px";
     item0View.src = drawTop(profile.selectedTop);
+    item0View.style.clipPath = 
+    "inset("+offset+"px "+offset+"px)";
+    item0View.style.transform = "scale(1.5)";
     item0View.style.zIndex = "15";
     profileView.appendChild(item0View);
 
@@ -408,6 +416,9 @@ var createProfileView = function() {
     item1View.style.border = "1px solid #000";
     //shopView.style.borderRadius = "25px";
     item1View.src = drawMid(profile.selectedMid);
+    item1View.style.clipPath = 
+    "inset("+offset+"px "+offset+"px)";
+    item1View.style.transform = "scale(1.5)";
     item1View.style.zIndex = "15";
     profileView.appendChild(item1View);
 
@@ -424,6 +435,9 @@ var createProfileView = function() {
     item2View.style.border = "1px solid #000";
     //shopView.style.borderRadius = "25px";
     item2View.src = drawClip(profile.selectedClip);
+    item2View.style.clipPath = 
+    "inset("+offset+"px "+offset+"px)";
+    item2View.style.transform = "scale(1.5)";
     item2View.style.zIndex = "15";
     profileView.appendChild(item2View);
 
@@ -974,6 +988,10 @@ var drawTop = function(no, dataURL=true) {
         ctx.stroke();
     };
     if (no == 6) {
+        ctx.translate((size/2), (size/2));
+        ctx.rotate((Math.PI/4));
+        ctx.translate(-(size/2), -(size/2));
+
         var c = {
             x: (size/2),
             y: (size/2)
@@ -988,12 +1006,19 @@ var drawTop = function(no, dataURL=true) {
         if (imagesLoaded)
         for (var n = 0; n < 4; n++) {
             var rp = _rotate2d(c, p, n*(360/4));
+            ctx.save();
+            ctx.translate(rp.x, rp.y);
+            ctx.rotate(-(n*(360/4))*(Math.PI/180));
+            ctx.translate(-rp.x, -rp.y);
+
             ctx.beginPath();
             ctx.rect(rp.x-(size/16), rp.y-(size/16), (size/8), (size/8));
             //ctx.fill();
 
-            ctx.drawImage(centerBitmap(img_list[5+n]), 
+            ctx.drawImage(img_list[5+n], 
             rp.x-(size/16), rp.y-(size/16), (size/8), (size/8));
+
+            ctx.restore();
         }
     };
 
@@ -1030,7 +1055,8 @@ var drawMid = function(no, dataURL=true) {
     return !dataURL ? canvas : canvas.toDataURL();
 };
 
-var drawClip = function(no, dataURL=true, standalone=true) {
+var drawClip = 
+    function(no, dataURL=true, standalone=true) {
     var canvas = document.createElement("canvas");
     canvas.width = 160;
     canvas.height = 160;
@@ -1201,7 +1227,8 @@ var loadShop0 = function() {
         shopItemView.onclick = function() {
             if (inventory[0][this.no] == 1) {
                 profile.selectedTop = this.no;
-                item0View.src = drawTop(profile.selectedTop);
+                item0View.src = 
+                drawTop(profile.selectedTop);
             }
             else {
                 if (profile.balance < shopItemPrice[0][this.no])
@@ -1217,7 +1244,8 @@ var loadShop0 = function() {
                             refreshBalance();
 
                             profile.selectedTop = this.no;
-                            item0View.src = drawTop(profile.selectedTop);
+                            item0View.src = 
+                            drawTop(profile.selectedTop);
 
                             inventory[0][this.no] += 1;
                             loadShop0();
@@ -2052,6 +2080,7 @@ var launchItem = function(item, x, y, mx, my, offset, singlePlayer=false) {
                 fillStyle: "#fff",
                 strokeStyle: "#fff"
             }}),
+        scale: 1,
         frequency: frequency,
         oscillator: oscillator,
         audio: audio

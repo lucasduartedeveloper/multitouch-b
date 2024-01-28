@@ -863,11 +863,11 @@ var convertToZoom = function(pos) {
 };
 
 var setShape = function(ctx) {
-    var size = sw;
+    var size = sh;
 
     var canvas = document.createElement("canvas");
-    canvas.width = sw;
-    canvas.height = sw;
+    canvas.width = size;
+    canvas.height = size;
 
     var centerCtx = canvas.getContext("2d");
     centerCtx.imageSmoothingEnabled = true;
@@ -885,7 +885,7 @@ var setShape = function(ctx) {
         centerCtx.clip();
 
         var scale = 1-(Math.curve((1/50)*n, 1)*0.25);
-        console.log(scale);
+        //console.log(scale);
 
         centerCtx.drawImage(pictureView, 
         (sw/2)-((size/2)/scale), (sh/2)-((size/2)/scale),
@@ -2095,7 +2095,18 @@ function matterJs() {
             var r = (1/(sw/2))*hyp;
             var rc = Math.curve(r, 1)
             *((1/5)*-bodyArr[n].body.angularVelocity);
-            //console.log(rc);
+
+            var scale = (1-((1-r)*0.1));
+            var resetScale = 1+(1-bodyArr[n].scale);
+
+            //console.log(bodyArr[n].scale, resetScale, scale);
+            bodyArr[n].scale = scale;
+
+            //Body.scale(bodyArr[n].body, resetScale, resetScale );
+            //Body.scale(bodyArr[n].body, scale, scale );
+
+            //bodyArr[n].body.render.sprite.xScale = (scale/2);
+            //bodyArr[n].body.render.sprite.yScale = (scale/2);
 
             var vn = Math.normalize(v, rc);
             //console.log(vn);
