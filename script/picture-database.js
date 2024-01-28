@@ -1774,6 +1774,8 @@ var drawImage = function(alignmentOverlay=true) {
 
     //drawIcon(resolutionCanvas);
 
+    setShape(resolutionCanvas);
+
     ctx.drawImage(resolutionCanvas, 0, 0, sw, sw);
     if (mode == 3) {
         updateShape();
@@ -1826,6 +1828,57 @@ var drawImage = function(alignmentOverlay=true) {
 
     if (!alignmentOverlay)
     return pictureView.toDataURL();
+};
+
+Math.curve = function(value, scale) {
+    var c = {
+        x: 0,
+        y: 0
+    };
+    var p = {
+        x: -1,
+        y: 0
+    };
+    var rp = _rotate2d(c, p, (value*90));
+    return rp.y*scale;
+};
+
+var setShape = function(image) {
+    var ctx = image.getContext("2d");
+    var size = sw;
+
+    var canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = size;
+
+    var centerCtx = canvas.getContext("2d");
+    centerCtx.imageSmoothingEnabled = true;
+
+    centerCtx.lineWidth = 0.5;
+    centerCtx.strokeStyle = "#fff";
+
+    for (var n = 0; n < 50 ; n++) {
+        var radius = (1-((1/50)*n))*(size/2);
+        centerCtx.save();
+        centerCtx.beginPath();
+        centerCtx.arc((size/2), (size/2), radius, 0, (Math.PI*2));
+        //drawPolygon(centerCtx, 75, 75, radius);
+        //centerCtx.stroke();
+        centerCtx.clip();
+
+        var scale = 1+(Math.curve((1/50)*n, 1)*0.5);
+        //console.log(scale);
+
+        centerCtx.drawImage(image, 
+        (sw/2)-((size/2)/scale), (sw/2)-((size/2)/scale),
+        (size/scale), (size/scale),
+        0, 0, size, size);
+
+        centerCtx.restore();
+    }
+
+    ctx.drawImage(canvas, 
+    (sw/2)-(size/2), (sw/2)-(size/2), size, size);
 };
 
 var selectPosition = function(x, y) {

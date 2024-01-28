@@ -2279,6 +2279,10 @@ function matterJs() {
             }
 
             if (autoPlay) 
+                /*
+                var rnd = Math.floor(Math.random()*10);
+                say("Championship interval" 
+                (rnd == 0 ? ", get me water." : "..."));*/
                 setTimeout(function() {
                 championshipStartView.click();
             }, 5000);
