@@ -800,7 +800,7 @@ var animate = function() {
         (engine.timing.timeScale % 0.25);
 
         if (timescale != lastTimescale) { 
-            drawImage(0, true);
+            drawImage(0, 10+(1-timescale)*20, 2+(timescale*3));
 
             lastTimescale = timescale;
         }
@@ -815,7 +815,7 @@ var offsetNo = 0;
 
 var offsetAngle = -(Math.PI/180);
 
-var drawImage = function(angle=0, useTimeScale=false) {
+var drawImage = function(angle=0, grid=gridSize, line=5) {
     var ctx = pictureView.getContext("2d");
     ctx.imageSmoothingEnabled = true;
     ctx.clearRect(0, 0, sw, sh);
@@ -829,25 +829,25 @@ var drawImage = function(angle=0, useTimeScale=false) {
     ctx.fillRect(0, 0, sw, sh);
 
     ctx.strokeStyle = "#111";
-    ctx.lineWidth = 5;
+    ctx.lineWidth = line;
 
-    for (var y = 0; y < Math.floor((sh/(sw/gridSize))); y++) {
+    for (var y = 0; y < Math.floor((sh/(sw/grid))); y++) {
         ctx.beginPath();
-        ctx.moveTo(0, y*(sw/gridSize));
-        ctx.lineTo(sw, y*(sw/gridSize));
+        ctx.moveTo(0, y*(sw/grid));
+        ctx.lineTo(sw, y*(sw/grid));
         ctx.stroke();
     }
 
-    for (var x = 0; x <= gridSize; x++) {
+    for (var x = 0; x <= grid; x++) {
         ctx.beginPath();
-        ctx.moveTo(x*(sw/gridSize), 0);
-        ctx.lineTo(x*(sw/gridSize), sh);
+        ctx.moveTo(x*(sw/grid), 0);
+        ctx.lineTo(x*(sw/grid), sh);
         ctx.stroke();
     }
 
     ctx.restore();
 
-    setShape(ctx, useTimeScale);
+    //setShape(ctx);
     return;
 
     if (bodyArr.length > 0) {
@@ -869,7 +869,7 @@ var convertToZoom = function(pos) {
     render.bounds.max.y = (c.y+((hyp*2)*r));
 };
 
-var setShape = function(ctx, useTimeScale=false) {
+var setShape = function(ctx) {
     var size = sh;
 
     var canvas = document.createElement("canvas");
@@ -891,9 +891,7 @@ var setShape = function(ctx, useTimeScale=false) {
         //centerCtx.stroke();
         centerCtx.clip();
 
-        var scale = 1-((useTimeScale ? 
-        (engine.timing.timeScale) : 1) *
-        (Math.curve((1/50)*n, 1)*0.25));
+        var scale = 1-(Math.curve((1/50)*n, 1)*0.25);
         //console.log(scale);
 
         centerCtx.drawImage(pictureView, 
