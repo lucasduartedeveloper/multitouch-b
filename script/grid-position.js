@@ -929,7 +929,7 @@ var setShape_item = function(ctx, x, y) {
         centerCtx.clip();
 
         var scale = 1-(Math.curve((1/50)*n, 1)*0.25);
-        console.log(scale);
+        //console.log(scale);
 
         centerCtx.drawImage(pictureView, 
         (x)-((size/2)/scale), (y)-((size/2)/scale),
@@ -1734,7 +1734,7 @@ function matterJs() {
         //console.log(event);
 
         for (var n = 0; n < pairs.length; n++) {
-            console.log(pairs[n].bodyA.label, pairs[n].bodyB.label);
+            //console.log(pairs[n].bodyA.label, pairs[n].bodyB.label);
 
             if (pairs[n].bodyA.label.includes("body") && 
                  pairs[n].bodyB.label.includes("body"))
@@ -1832,7 +1832,7 @@ function matterJs() {
                     };
                     var vn = Math.normalize(v, 1);
 
-                    console.log(vn);
+                    //console.log(vn);
 
                     Body.setVelocity(bodyA, {
                         x: vn.x*(sw/gridSize),
@@ -2139,7 +2139,7 @@ function matterJs() {
         //if (bodyArr.length > 1)
         for (var n = 0; n < bodyArr.length; n++) {
             if (!bodyArr[n].visible) {
-                console.log("removed "+bodyArr[n].body.label);
+                //console.log("removed "+bodyArr[n].body.label);
 
                 var rpm = 
                 ((bodyArr[n].body.angularVelocity / Math.PI)*60);
@@ -2242,7 +2242,7 @@ function matterJs() {
                 });
                 search[1].active = false;
 
-                console.log(search);
+                //console.log(search);
 
                 currentChampionship.state = "final";
                 currentChampionship.final.push({ ...search[0] });
@@ -2277,6 +2277,11 @@ function matterJs() {
                 currentChampionship.stateOpen = false;
             }
             }
+
+            if (autoPlay) 
+                setTimeout(function() {
+                championshipStartView.click();
+            }, 5000);
         }
 
         bodyArr = bodyArr.filter((o) => { return o.visible; });
@@ -2494,7 +2499,7 @@ var leverA_exit = -1;
 var leverB_exit = -1;
 
 var updateExits = function(offsetX, offsetY, reverse) {
-    console.log(offsetX, offsetY);
+    //console.log(offsetX, offsetY);
 
     if (Math.abs(offsetX) > Math.abs(offsetY)) 
         if ((!reverse && offsetX < 0) || 

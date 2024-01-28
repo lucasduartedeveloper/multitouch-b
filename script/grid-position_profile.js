@@ -182,6 +182,31 @@ var createProfileView = function() {
     championshipPrizeView.style.zIndex = "15";
     championshipView.appendChild(championshipPrizeView);
 
+    autoPlay = false;
+    championshipAutoPlayView = document.createElement("span");
+    championshipAutoPlayView.style.position = "absolute";
+    championshipAutoPlayView.style.color = "#000";
+    championshipAutoPlayView.innerText = "auto: "+
+    (autoPlay ? "on" : "off");
+    championshipAutoPlayView.style.fontFamily = "Khand";
+    championshipAutoPlayView.style.fontSize = "15px";
+    championshipAutoPlayView.style.lineHeight = "40px";
+    championshipAutoPlayView.style.fontWeight = 900;
+    championshipAutoPlayView.style.left = (10)+"px";
+    championshipAutoPlayView.style.top = (200)+"px";
+    championshipAutoPlayView.style.width = (100)+"px";
+    championshipAutoPlayView.style.height = (40)+"px";
+    championshipAutoPlayView.style.border = "1px solid #000";
+    //championshipView.style.borderRadius = "25px";
+    championshipAutoPlayView.style.zIndex = "15";
+    championshipView.appendChild(championshipAutoPlayView);
+
+    championshipAutoPlayView.onclick = function() {
+        autoPlay = !autoPlay;
+        championshipAutoPlayView.innerText = "auto: "+
+        (autoPlay ? "on" : "off");
+    };
+
     championshipStartView = document.createElement("span");
     championshipStartView.style.position = "absolute";
     championshipStartView.style.color = "#000";
@@ -266,7 +291,7 @@ var createProfileView = function() {
                     var participant = 
                     currentChampionship.participants[
                     currentChampionship.semifinal_1st[n].no];
-                    if (!participant.cpu) continue;
+                    if (!autoPlay && !participant.cpu) continue;
                     launchCPU(participant);
                 }
             }
@@ -276,7 +301,7 @@ var createProfileView = function() {
                     var participant = 
                     currentChampionship.participants[
                     currentChampionship.semifinal_2nd[n].no];
-                    if (!participant.cpu) continue;
+                    if (!autoPlay && !participant.cpu) continue;
                     launchCPU(participant);
                 }
             }
@@ -286,7 +311,7 @@ var createProfileView = function() {
                     var participant = 
                     currentChampionship.participants[
                     currentChampionship.final[n].no];
-                    if (!participant.cpu) continue;
+                    if (!autoPlay && !participant.cpu) continue;
                     launchCPU(participant);
                 }
             }
