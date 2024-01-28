@@ -110,7 +110,7 @@ $(document).ready(function() {
             var no = bodyArr.length == 0 ? 
             getNextAssembly() : getNextAssembly(bodyArr[0].no);
 
-            color0 = colors[no];
+            color0 = colors[assemblyLine[no].clip];
 
             startX0 = e.touches[0].clientX;
             startY0 = e.touches[0].clientY;
@@ -122,9 +122,9 @@ $(document).ready(function() {
             ontouch1 = true;
 
             var no = bodyArr.length == 0 ? 
-            getNextAssembly() : getNextAssembly(bodyArr[0].no);
+            getNextAssembly(0) : getNextAssembly();
 
-            color1 = colors[no];
+            color1 = colors[assemblyLine[no].clip];
 
             startX1 = e.touches[1].clientX;
             startY1 = e.touches[1].clientY;

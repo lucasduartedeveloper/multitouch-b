@@ -718,8 +718,6 @@ var refreshBalance = function() {
 };
 
 var getNextAssembly = function(skip=-1) {
-    if (bodyArr.length == 0) return 0;
-
     var search = [];
     for (var n = 0; n < assemblyLine.length; n++) {
         var no = assemblyLine[n].clip;
@@ -727,7 +725,7 @@ var getNextAssembly = function(skip=-1) {
         search = bodyArr.filter((o) => { 
             return o.no == no; 
         });
-        if (search.length == 0)
+        if (search.length == 0 || n == (assemblyLine.length-1))
         return n;
     }
     return false;
