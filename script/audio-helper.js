@@ -7,7 +7,7 @@ class SfxPool {
        this.used = 0;
        this.volume = 1;
     }
-    play(url, volume, callback=false) {
+    play(url, volume=1, callback=false) {
        var stored = this.stored.filter((o) => { return o.url == url; });
        var sfx0 = stored.length > 0 ? stored[0] : new Audio(url);
        var n = this.stored.indexOf(sfx0);
