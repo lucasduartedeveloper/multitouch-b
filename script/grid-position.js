@@ -239,7 +239,7 @@ $(document).ready(function() {
         /*var frequency = (reachedFreq/2)*(24000/512);
         oscillator0.frequency.value = frequency;*/
 
-        var frequency = reachedFreq > 50 ? 50: 50;
+        var frequency = reachedFreq > 50 ? 50 : 50;
         oscillator0.frequency.value = frequency;
     };
     mic.onclose = function() { 
@@ -634,13 +634,10 @@ $(document).ready(function() {
     //document.body.appendChild(waveView);
 
     createProfileView();
-
-    resolution = 0;
-
     drawImage();
-    animate();
 
     matterJs();
+    animate();
 });
 
 var pathArr = [];
@@ -788,6 +785,7 @@ var renderTime = 0;
 var elapsedTime = 0;
 var animationSpeed = 0;
 
+var lastTimescale = 1;
 var animate = function() {
     elapsedTime = new Date().getTime()-renderTime;
     if (!backgroundMode) {
@@ -796,7 +794,16 @@ var animate = function() {
         }
         drawSquare();
         drawAB(resumedWave);
-        //drawImage();
+
+        var timescale = 
+        engine.timing.timeScale-
+        (engine.timing.timeScale % 0.25);
+
+        if (timescale != lastTimescale) { 
+            drawImage(0, true);
+
+            lastTimescale = timescale;
+        }
     }
     renderTime = new Date().getTime();
     requestAnimationFrame(animate);
@@ -808,7 +815,7 @@ var offsetNo = 0;
 
 var offsetAngle = -(Math.PI/180);
 
-var drawImage = function(angle=0) {
+var drawImage = function(angle=0, useTimeScale=false) {
     var ctx = pictureView.getContext("2d");
     ctx.imageSmoothingEnabled = true;
     ctx.clearRect(0, 0, sw, sh);
@@ -840,7 +847,7 @@ var drawImage = function(angle=0) {
 
     ctx.restore();
 
-    setShape(ctx);
+    setShape(ctx, useTimeScale);
     return;
 
     if (bodyArr.length > 0) {
@@ -862,7 +869,7 @@ var convertToZoom = function(pos) {
     render.bounds.max.y = (c.y+((hyp*2)*r));
 };
 
-var setShape = function(ctx) {
+var setShape = function(ctx, useTimeScale=false) {
     var size = sh;
 
     var canvas = document.createElement("canvas");
@@ -884,7 +891,9 @@ var setShape = function(ctx) {
         //centerCtx.stroke();
         centerCtx.clip();
 
-        var scale = 1-(Math.curve((1/50)*n, 1)*0.25);
+        var scale = 1-((useTimeScale ? 
+        (engine.timing.timeScale) : 1) *
+        (Math.curve((1/50)*n, 1)*0.25));
         //console.log(scale);
 
         centerCtx.drawImage(pictureView, 
@@ -1664,7 +1673,7 @@ var collisionFx = Bodies.circle(
          fillStyle: "#ffffff",
          strokeStyle: "#ffffff" }});
 
-var createDirectionTexture = function(direction) {
+var createDirectionTexture = function(direction, reverse) {
     var canvas = document.createElement("canvas");
     canvas.width = (sw/gridSize);
     canvas.height = (sw/gridSize);
@@ -1676,7 +1685,7 @@ var createDirectionTexture = function(direction) {
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, size, size);
 
-    ctx.strokeStyle = "#fff";
+    ctx.strokeStyle = !reverse ? "#5f5" : "#f55";
     ctx.lineJoin = "round";
     ctx.lineWidth = size/10;
 
@@ -1767,8 +1776,6 @@ function matterJs() {
 
                 var offsetX = (p.x - leverB.position.x);
                 var offsetY = (p.y - leverB.position.y);
-
-                engine.timing.timeScale = 0;
 
                 updateExits(offsetX, offsetY, true);
             }
@@ -2503,7 +2510,7 @@ var updateExits = function(offsetX, offsetY, reverse) {
             }
             else {
             leverB.render.sprite.texture = 
-            createDirectionTexture(0);
+            createDirectionTexture(0, true);
             leverB_exit = 0;
             closeExits(leverA_exit);
             openExit(0);
@@ -2519,7 +2526,7 @@ var updateExits = function(offsetX, offsetY, reverse) {
             }
             else {
             leverB.render.sprite.texture = 
-            createDirectionTexture(2);
+            createDirectionTexture(2, true);
             leverB_exit = 2;
             closeExits(leverA_exit);
             openExit(2);
@@ -2537,7 +2544,7 @@ var updateExits = function(offsetX, offsetY, reverse) {
             }
             else {
             leverB.render.sprite.texture = 
-            createDirectionTexture(1);
+            createDirectionTexture(1, true);
             leverB_exit = 1;
             closeExits(leverA_exit);
             openExit(1);
@@ -2553,7 +2560,7 @@ var updateExits = function(offsetX, offsetY, reverse) {
             }
             else {
             leverB.render.sprite.texture = 
-            createDirectionTexture(3);
+            createDirectionTexture(3, true);
             leverB_exit = 3;
             closeExits(leverA_exit);
             openExit(3);
