@@ -154,7 +154,7 @@ var createProfileView = function() {
     championshipTimeView.style.color = "#000";
     championshipTimeView.innerText = "00:00";
     championshipTimeView.style.fontFamily = "Khand";
-    championshipTimeView.style.fontSize = "15px";
+    championshipTimeView.style.fontSize = "30px";
     championshipTimeView.style.fontWeight = 900;
     championshipTimeView.style.left = (10)+"px";
     championshipTimeView.style.top = (30)+"px";
@@ -174,7 +174,7 @@ var createProfileView = function() {
     championshipPrizeView.style.fontSize = "15px";
     championshipPrizeView.style.fontWeight = 900;
     championshipPrizeView.style.left = (10)+"px";
-    championshipPrizeView.style.top = (70)+"px";
+    championshipPrizeView.style.top = (90)+"px";
     championshipPrizeView.style.width = (100)+"px";
     championshipPrizeView.style.height = (20)+"px";
     championshipPrizeView.style.border = "1px solid white";
@@ -330,6 +330,7 @@ var createProfileView = function() {
             });
             if (search_final.length > 0) {
                 profile.balance += (100+(championshipNo*25));
+                sfxPool.play("audio/kaching-sfx.wav");
                 balanceView.innerText = 
                 "$ "+profile.balance.toFixed(2).replace(".", ",");
             };
@@ -342,7 +343,20 @@ var createProfileView = function() {
             (100+(championshipNo*25)).toFixed(2).replace(".",",");
             championshipPositionView.src = 
             drawChampionshipPosition();
+
+            if (autoPlay) 
+                setTimeout(function() {
+                championshipStartView.click();
+            }, 5000);
             return;
+        }
+
+        if (currentChampionship.state == "ready") {
+            var no = assemblyLine.findIndex((o) => {
+                return o.clip == profile.selectedClip;
+             });
+            currentChampionship.participants[0] = 
+            assemblyLine[no];
         }
 
         championshipView.style.display = "none";
@@ -720,6 +734,15 @@ var createProfileView = function() {
         clip: 0,
         dispatcher: 0
     };
+
+    championshipTime = 0;
+    setInterval(function() {
+        if (currentChampionship.state != "over")
+        championshipTime += 1;
+
+        championshipTimeView.innerText = 
+        moment(championshipTime*1000).format("mm:ss");
+    }, 1000);
 
     loadImages(function() {
         loadShop0();
@@ -1960,6 +1983,7 @@ var skipChampionship = function() {
 
 var createChampionship = function() {
     championshipNo += 1;
+    championshipTime = 0;
 
     var minTop = 0;
     var maxTop = championshipNo < 2 ? 2 : 4;
