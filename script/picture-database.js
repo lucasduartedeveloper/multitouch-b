@@ -1774,7 +1774,7 @@ var drawImage = function(alignmentOverlay=true) {
 
     //drawIcon(resolutionCanvas);
 
-    setShape(resolutionCanvas);
+    //setShape(resolutionCanvas);
 
     ctx.drawImage(resolutionCanvas, 0, 0, sw, sw);
     if (mode == 3) {

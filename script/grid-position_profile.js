@@ -2109,7 +2109,7 @@ var launchItem = function(item, x, y, mx, my, offset, singlePlayer=false) {
 
     var obj = {
         no: item.clip,
-        speed: (offset*5),
+        speed: (offset*10),
         visible: true,
         direction: Math.floor(Math.random()*360),
         size: size,

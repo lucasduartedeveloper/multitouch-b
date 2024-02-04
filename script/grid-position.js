@@ -131,6 +131,12 @@ $(document).ready(function() {
             moveX1 = e.touches[1].clientX;
             moveY1 = e.touches[1].clientY;
         }
+
+        if (currentChampionship.state == "ready" && 
+            bodyArr.length == assemblyLine.length) {
+            ontouch0 = false;
+            ontouch1 = false;
+        }
     };
 
     matterJsView.ontouchmove = function(e) {
@@ -2144,7 +2150,7 @@ function matterJs() {
                 var rpm = 
                 ((bodyArr[n].body.angularVelocity / Math.PI)*60);
 
-                var text = rpm > 2.5 ? 
+                var text = Math.abs(rpm) > 2.5 ? 
                 colorName[bodyArr[n].no]+" eliminated" : 
                 colorName[bodyArr[n].no]+" got collapsed";
 
