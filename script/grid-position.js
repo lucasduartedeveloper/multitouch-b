@@ -648,6 +648,36 @@ $(document).ready(function() {
     waveView.style.zIndex = "15";
     //document.body.appendChild(waveView);
 
+    fixedCamera2 = document.createElement("canvas");
+    fixedCamera2.style.position = "absolute";
+    fixedCamera2.style.display = "none";
+    fixedCamera2.style.width = (sw/3);
+    fixedCamera2.style.height = (sw/3);
+    fixedCamera2.style.left = ((sw/2)-(sw/6)) +"px";
+    fixedCamera2.style.top = ((sh/2)-(sw/6))+"px";
+    fixedCamera2.style.width = (sw/3)+"px";
+    fixedCamera2.style.height = (sw/3)+"px";
+    fixedCamera2.style.border = "1px solid #fff";
+    fixedCamera2.style.zIndex = "15";
+    document.body.appendChild(fixedCamera2);
+
+    render2 = Render.create({
+        engine: engine,
+        canvas: fixedCamera2,
+        options: {
+            width: (sw/3),
+            height: (sw/3),
+            background: "#000",
+            wireframes: false
+            //showPerformance: true
+        }
+    });
+
+    render2.options.hasBounds = true;
+
+    // run the renderer
+    Render.run(render2);
+
     createProfileView();
     drawImage();
 
@@ -2378,6 +2408,40 @@ function matterJs() {
             ctx.moveTo((sw/3), (sw/3));
             ctx.stroke();
         }
+
+       if (bodyArr.length > 0) {
+           if (engine.timing.timeScale < 1)
+           fixedCamera2.style.display = "initial";
+           else 
+           fixedCamera2.style.display = "none";
+
+           var no = 0;
+           if (bodyArr.length > 1) {
+               var velocity0 = 
+               Math.abs(bodyArr[0].body.velocity.x) + 
+               Math.abs(bodyArr[0].body.velocity.y);
+
+               var velocity1 = 
+               Math.abs(bodyArr[1].body.velocity.x) + 
+               Math.abs(bodyArr[1].body.velocity.y);
+
+               no = velocity0 > velocity1 ? 0 : 1;
+           }
+
+           var c = {
+                x: bodyArr[no].body.position.x,
+                y: bodyArr[no].body.position.y
+            };
+
+            render2.bounds.min.x = c.x-(sw/12);
+            render2.bounds.max.x = c.x+(sw/12);
+
+            render2.bounds.min.y = c.y-(sw/12);
+            render2.bounds.max.y = c.y+(sw/12);
+       }
+       else {
+            fixedCamera2.style.display = "none";
+       }
 
         var pairArr = [];
 
