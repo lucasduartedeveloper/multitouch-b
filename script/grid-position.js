@@ -57,6 +57,7 @@ $(document).ready(function() {
         sendPosition(position0);
     };
     pictureView.ontouchmove = function(e) {
+
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
 
@@ -173,6 +174,9 @@ $(document).ready(function() {
     matterJsView.ontouchend = function(e) {
         if (squareEnabled) return;
 
+       console.log(e.touches.length,
+       e.touches.length ? e.touches[0].identifier : 0);
+
         if ((e.touches.length > 0 && e.touches[0].identifier == 0) || 
             !ontouch1) {
             if (swipeLength0 < 0.5) return;
@@ -193,7 +197,6 @@ $(document).ready(function() {
             launchItem(obj, 
             startX0, startY0, moveX0, moveY0, swipeLength0, true);
         }
-        else 
         if ((e.touches.length > 0 && e.touches[0].identifier == 1) || 
             !ontouch0) {
             if (swipeLength1 < 0.5) return;
@@ -530,8 +533,14 @@ $(document).ready(function() {
     accView.style.zIndex = "15";
     document.body.appendChild(accView);
 
+    config_timeScale = 1;
     accView.onclick = function() {
          motion = !motion;
+
+         var value = prompt("Set timescale: ", config_timeScale);
+         value = parseFloat(value);
+
+         config_timeScale = value;
     };
 
     gyroUpdated = function(e) {
@@ -2038,7 +2047,7 @@ function matterJs() {
                 bodyArr[pairArr[0].no1].oscillator.volume.gain.value = 
                 0.1;
 
-                engine.timing.timeScale = 1;
+                engine.timing.timeScale = config_timeScale;
 
                 render.bounds.min.x = 0;
                 render.bounds.max.x = sw;
@@ -2048,7 +2057,7 @@ function matterJs() {
             }
         }
         else if (bodyArr.length == 1) {
-            var timeScale = 1;
+            var timeScale = config_timeScale;
             if (hasMotionSensor)
             timeScale = 1-((0.75/9.8)*
             (gyro.accZ < 0 ? -gyro.accZ : gyro.accZ));

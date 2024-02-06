@@ -1507,8 +1507,9 @@ var offsetOrder = [ 0, 0, 0, 0, 0 ];
 var offsetNo = 0;
 
 var offsetAngle = -(Math.PI/180);
+var alignmentOverlay = false;
 
-var drawImage = function(alignmentOverlay=true) {
+var drawImage = function() {
     var ctx = gradientView.getContext("2d");
 
     var count = Math.floor((sw/tileSize));

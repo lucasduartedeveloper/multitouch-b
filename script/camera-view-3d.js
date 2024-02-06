@@ -1579,8 +1579,8 @@ function(freqArray=false, avgValue=0) {
             y: (sw/2)-(sw/4)-(freqArray[n]*25)
         };
 
-        var rp0 = _rotate2d(c, p0, -(n*(360/freqArray.length)));
-        var rp1 = _rotate2d(c, p1, -(n*(360/freqArray.length)));
+        var rp0 = _rotate2d(c, p0, (n*(360/freqArray.length)));
+        var rp1 = _rotate2d(c, p1, (n*(360/freqArray.length)));
 
         var obj = {
             x0: rp0.x,
