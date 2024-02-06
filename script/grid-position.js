@@ -650,11 +650,11 @@ $(document).ready(function() {
 
     fixedCamera2 = document.createElement("canvas");
     fixedCamera2.style.position = "absolute";
-    fixedCamera2.style.display = "none";
+    //fixedCamera2.style.display = "none";
     fixedCamera2.style.width = (sw/3);
     fixedCamera2.style.height = (sw/3);
-    fixedCamera2.style.left = ((sw/2)-(sw/6)) +"px";
-    fixedCamera2.style.top = ((sh/2)-(sw/6))+"px";
+    fixedCamera2.style.left = (20) +"px";
+    fixedCamera2.style.top = (sh-80-(sw/3))+"px";
     fixedCamera2.style.width = (sw/3)+"px";
     fixedCamera2.style.height = (sw/3)+"px";
     fixedCamera2.style.border = "1px solid #fff";
@@ -1895,7 +1895,7 @@ function matterJs() {
         //console.log(event);
 
         for (var n = 0; n < pairs.length; n++) {
-            //console.log(pairs[n].bodyA.label, pairs[n].bodyB.label);
+            console.log(pairs[n].bodyA.label, pairs[n].bodyB.label);
 
             if (pairs[n].bodyA.label.includes("body")) {
                 getBody(pairs[n].bodyA.label).direction = 
@@ -1906,7 +1906,7 @@ function matterJs() {
                 Math.floor(Math.random()*360);
             }
         }
-    });
+    });   
 
     Matter.Events.on(engine, "beforeUpdate", function (event) {
         //rotateGrid();
@@ -2409,39 +2409,21 @@ function matterJs() {
             ctx.stroke();
         }
 
-       if (bodyArr.length > 0) {
-           if (engine.timing.timeScale < 1)
-           fixedCamera2.style.display = "initial";
-           else 
-           fixedCamera2.style.display = "none";
+        if (bodyArr.length > 1) {
+            var bodyA = bodyArr[0].body;
+            var bodyB = bodyArr[1].body;
 
-           var no = 0;
-           if (bodyArr.length > 1) {
-               var velocity0 = 
-               Math.abs(bodyArr[0].body.velocity.x) + 
-               Math.abs(bodyArr[0].body.velocity.y);
-
-               var velocity1 = 
-               Math.abs(bodyArr[1].body.velocity.x) + 
-               Math.abs(bodyArr[1].body.velocity.y);
-
-               no = velocity0 > velocity1 ? 0 : 1;
-           }
-
-           var c = {
-                x: bodyArr[no].body.position.x,
-                y: bodyArr[no].body.position.y
+            var c = {
+                 x: bodyA.position.x,
+                 y: bodyA.position.y
             };
 
             render2.bounds.min.x = c.x-(sw/12);
             render2.bounds.max.x = c.x+(sw/12);
 
-            render2.bounds.min.y = c.y-(sw/12);
-            render2.bounds.max.y = c.y+(sw/12);
-       }
-       else {
-            fixedCamera2.style.display = "none";
-       }
+            render2.bounds.min.y = c.y-(sw/6);
+            render2.bounds.max.y = c.y;
+        }
 
         var pairArr = [];
 
