@@ -1509,6 +1509,8 @@ var offsetNo = 0;
 var offsetAngle = -(Math.PI/180);
 var alignmentOverlay = false;
 
+var rotation = 0;
+
 var drawImage = function() {
     var ctx = gradientView.getContext("2d");
 
@@ -1776,6 +1778,26 @@ var drawImage = function() {
     //drawIcon(resolutionCanvas);
 
     //setShape(resolutionCanvas);
+
+    if (cameraOn) {
+        resolutionCtx.save();
+        resolutionCtx.beginPath();
+        resolutionCtx.arc((sw/2), (sw/2), (sw/4), 0, (Math.PI*2));
+        resolutionCtx.clip();
+
+        resolutionCtx.translate((sw/2), (sw/2));
+        resolutionCtx.rotate((Math.PI/180)*rotation);
+        resolutionCtx.translate(-(sw/2), -(sw/2));
+
+        resolutionCtx.fillStyle = "#000";
+        //resolutionCtx.fillRect((sw/4), (sw/4), (sw/2), (sw/2));
+        resolutionCtx.drawImage(resolutionCanvas, 
+        (sw/4), (sw/4), (sw/2), (sw/2));
+
+        rotation += 5;
+
+        resolutionCtx.restore();
+    }
 
     ctx.drawImage(resolutionCanvas, 0, 0, sw, sw);
     if (mode == 3) {

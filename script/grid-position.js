@@ -1517,17 +1517,24 @@ var rotateGrid = function() {
 };
 
 Matter.Render.startViewTransform = function(render) {
-    if (render != render2 || bodyArr.length == 0) return;
-
     var boundsWidth = 
     render.bounds.max.x - render.bounds.min.x,
         boundsHeight = render.bounds.max.y - render.bounds.min.y,
         boundsScaleX = boundsWidth / render.options.width,
         boundsScaleY = boundsHeight / render.options.height;
 
+    if (render != render2 || bodyArr.length == 0) {
+        render.context.scale(1 / boundsScaleX, 1 / boundsScaleY);
+        render.context.translate(-render.bounds.min.x, -render.bounds.min.y);
+        return;
+    }
+
+    var wr = (sw/3)/sw;
+    var hr = (sw/3)/sh;
+
     // add lines:
-    var w2 = bodyArr[0].body.position.x;
-    var h2 = bodyArr[0].body.position.y;
+    var w2 = (sw/3)/2;
+    var h2 = (sw/3)/2;
     render.context.translate(w2, h2);
     render.context.rotate(grid_angle);
     render.context.translate(-w2, -h2);
@@ -2416,25 +2423,25 @@ function matterJs() {
             var bodyB = bodyArr[1].body;
 
             var c = {
-                 x: (sw/2),
-                 y: (sh/2)
-            };
-            var p = {
                  x: bodyA.position.x,
                  y: bodyA.position.y
+            };
+            var p = {
+                 x: bodyB.position.x,
+                 y: bodyB.position.y
             };
 
             var co = bodyB.position.x-bodyA.position.x;
             var ca = bodyB.position.y-bodyA.position.y;
-            //grid_angle = _angle2d(co, ca);
+            grid_angle = _angle2d(co, ca);
 
-            //var rp = _rotate2d(c, p, 
+            var rp = _rotate2d(c, p, -grid_angle);
 
-            render2.bounds.min.x = p.x-(sw/12);
-            render2.bounds.max.x = p.x+(sw/12);
+            render2.bounds.min.x = c.x-250-(sw/2); //rp.x-(sw/12);
+            render2.bounds.max.x = c.x+250+(sw/2); //rp.x+(sw/12);
 
-            render2.bounds.min.y = p.y-(sw/6);
-            render2.bounds.max.y = p.y;
+            render2.bounds.min.y = c.y-250-(sh/2); //rp.y-(sw/6);
+            render2.bounds.max.y = c.y+250+(sh/2); //rp.y;
         }
 
         var pairArr = [];
