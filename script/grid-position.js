@@ -1517,6 +1517,8 @@ var rotateGrid = function() {
 };
 
 Matter.Render.startViewTransform = function(render) {
+    if (render != render2 || bodyArr.length == 0) return;
+
     var boundsWidth = 
     render.bounds.max.x - render.bounds.min.x,
         boundsHeight = render.bounds.max.y - render.bounds.min.y,
@@ -1524,8 +1526,8 @@ Matter.Render.startViewTransform = function(render) {
         boundsScaleY = boundsHeight / render.options.height;
 
     // add lines:
-    var w2 = render.canvas.width / 2;
-    var h2 = render.canvas.height / 2;
+    var w2 = bodyArr[0].body.position.x;
+    var h2 = bodyArr[0].body.position.y;
     render.context.translate(w2, h2);
     render.context.rotate(grid_angle);
     render.context.translate(-w2, -h2);
@@ -2414,15 +2416,25 @@ function matterJs() {
             var bodyB = bodyArr[1].body;
 
             var c = {
+                 x: (sw/2),
+                 y: (sh/2)
+            };
+            var p = {
                  x: bodyA.position.x,
                  y: bodyA.position.y
             };
 
-            render2.bounds.min.x = c.x-(sw/12);
-            render2.bounds.max.x = c.x+(sw/12);
+            var co = bodyB.position.x-bodyA.position.x;
+            var ca = bodyB.position.y-bodyA.position.y;
+            //grid_angle = _angle2d(co, ca);
 
-            render2.bounds.min.y = c.y-(sw/6);
-            render2.bounds.max.y = c.y;
+            //var rp = _rotate2d(c, p, 
+
+            render2.bounds.min.x = p.x-(sw/12);
+            render2.bounds.max.x = p.x+(sw/12);
+
+            render2.bounds.min.y = p.y-(sw/6);
+            render2.bounds.max.y = p.y;
         }
 
         var pairArr = [];
